@@ -1,21 +1,16 @@
 function handles = clear_data_set_both(handles)
 
 % find all the other channels that are not Membranes
-channelnames = cell(0);
-files = dir(handles.src.parent);
-for i = 1:length(files)
-    if files(i).isdir && ~strcmp(files(i).name , '.') && ~strcmp(files(i).name, '..') ...
-            && ~strcmp(files(i).name, 'Membranes')
-        channelnames{length(channelnames)+1} = files(i).name;
-    end
-end
-handles.channelnames = channelnames;
+handles.channelnames = get_folder_names(handles.src.parent);
+handles.channelnames(strcmp(handles.channelnames, 'Membranes')) = [];
+
+
 
 % if only 1 other channel, set the name of that checkbox to be that
 if length(handles.channelnames) == 1
-    set(handles.cbox_other, 'String', channelnames{1});
+    set(handles.cbox_other, 'String', handles.channelnames{1});
     set(handles.cbox_other, 'Enable', 'on'); 
-elseif length(channelnames) > 1
+elseif length(handles.channelnames) > 1
     set(handles.cbox_other, 'String', 'Other channels');
     set(handles.cbox_other, 'Enable', 'on'); 
 else
@@ -38,10 +33,13 @@ handles.fixed = isnan(handles.info.seconds_per_frame);
 % the name of the function that gives the filename for an image
 cd(handles.src.membranes);
 handles.info.image_file = @image_filename;
+% handles.info.image_file.raw = @(t, z) double(imread(image_filename(t, z, handles.src.raw)));
+% handles.info.image_file.bord= @(t, z) double(imread(image_filename(t, z, handles.src.bord)));
 handles.info.channel_image_file = cell(length(handles.channelnames));
 for i = 1:length(handles.channelnames)
     cd(handles.src.channelsrc{i});
     handles.info.channel_image_file{i} = @image_filename;
+%     handles.info.channel_image_file{i} = @(t, z) double(imread(image_filename(t, z, handles.src.channelsrc{channelnum})));
 end
 cd(fullfile(handles.program_dir, 'Matlab'));
 

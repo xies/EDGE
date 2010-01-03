@@ -101,13 +101,33 @@ public class CellGraph implements java.io.Serializable {
 					
 					// add the index of the Cell if the pixel is a Cell
 					// v.cellNeighbors is a Set so duplicates will not be kept
-					if (regions[Y-1][X-1] > 0) v.addNeighbor(regions[Y-1][X-1] - 1);
+					// EDITED SO THAT I ALSO KEEP ZEROS
+//					if (regions[Y-1][X-1] > 0) v.addNeighbor(regions[Y-1][X-1] - 1);
+					if (regions[Y-1][X-1] >= 0) v.addNeighbor(regions[Y-1][X-1] - 1);
 	
 				}
 			}
 			
 			// keep it if there are > 0 neighbors
 			if (v.neighbors().isEmpty()) tempVerts.remove(v);	
+		}
+		
+		// this code goes with the fact that above I changed > to >=
+		// basically sometimes I get a random small cell in the middle of a cell. this becomes
+		// an extra vertex in the middle, and screws things up. this way if a vertex is in the middle
+		// of a cell it only has one neighbor, whereas one on the edge that i actually want to keep
+		// has 2 neighbors: that cell and the background (0). so i keep these first, and then remove them
+		// (I want to get rid of vertices that are only touching one Cell AND are not at the edge)
+		for (int i = tempVerts.size() - 1; i >= 0; i--) {
+			TempVertex v = tempVerts.elementAt(i);
+
+			if (v.numNeighbors() == 1) {
+				tempVerts.remove(v);
+			}
+			else {
+				// now can get rid of the background pixels
+				v.removeNeighbor(-1);
+			}
 		}
 	
 		// calculate a distance matrix between the vertices
@@ -179,7 +199,7 @@ public class CellGraph implements java.io.Serializable {
 		
 		for (int i = 0; i < finalCells.size(); i++)
 			addCell(finalCells.get(i), -i - 1);  // strictly NEGATIVE INDICES --> INACTIVE
-		
+		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in CellGraph:init!");
 		assert(isValid());
 	}
 	
@@ -218,7 +238,7 @@ public class CellGraph implements java.io.Serializable {
 		return inactiveCells(cells());
 	}
 	public int[] cellIndices() {
-		return Cell.index(cells());
+		return Cell.index(cells());  // just the keySet
 	}
 	public int[] activeCellIndices() {
 		return Cell.index(activeCells());
@@ -234,13 +254,17 @@ public class CellGraph implements java.io.Serializable {
 	
 	// add Cell with index i
 	public void addCell(Cell c, int i) {
-		assert(c != null);
+		if (c == null) {
+			System.err.println("Error in CellGraph:addCell-- adding null Cell!");
+			return;
+		}
 		if (cells.containsValue(c)) 
 			System.err.println("Warning: CellGraph/addCell(Cell, int) --- adding already present Cell " + c);
 		if (cells.containsKey(i))
 			System.err.println("Warning: CellGraph/addCell(Cell, int) --- overwriting cell " + i);		
 		c.setIndex(i);
 		cells.put(i, c);
+//		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in CellGraph:addCell!");
 		assert(isValid());
 	}
 	// add Cell and make its index the maximum available negative index
@@ -313,6 +337,7 @@ public class CellGraph implements java.io.Serializable {
 	}
 	// get Cells with indices i
 	public Cell[] getCell(int[] inds) {
+		if (inds == null) return null;
 		Cell[] out = new Cell[inds.length];
 		for (int i = 0; i < inds.length; i++)
 			out[i] = getCell(inds[i]);
@@ -344,10 +369,10 @@ public class CellGraph implements java.io.Serializable {
 //		changeIndexSwap(c.index(), to);
 //	}
 	// is the Cell c "active" ?
-	public boolean isActive(Cell c) {
+	public static boolean isActive(Cell c) {
 		return isActive(c.index());
 	}
-	public boolean isActive(int i) {
+	public static boolean isActive(int i) {
 		if (i > 0) return true;
 		else	   return false;
 	}
@@ -448,43 +473,45 @@ public class CellGraph implements java.io.Serializable {
 			parent.removeCell(c, t, z);
 //			removeCell(c);
 	}
-	
+
+	// these functions return the index of the new Cell if successful, or 0 if failure
+	public int removeEdge(int c, int d) {
+		return removeEdge(getCell(c), getCell(d));
+	}
 	// combine two cells into one by removing the edge between them
 	// does nothing if the cells are not neighbors
-	public boolean removeEdge(Cell c, Cell d) {
-		if (!edgeConnected(c, d)) return false;
-
+	public int removeEdge(Cell c, Cell d) {
+		if (!edgeConnected(c, d)) return 0;
+		
 		// find the two vertices that are shared by these cells
 		// and then call removeEdge (Vertex, Vertex, Cell, Cell)
 		Vector<Vertex> verts = new Vector<Vertex>();
 		for (Vertex v : vertices())
 			if (c.containsVertex(v) && d.containsVertex(v))
 				verts.add(v);
-		if (verts.size() != 2) return false;
+		if (verts.size() != 2) return 0;
 		
 		Vertex v = verts.elementAt(0);
 		Vertex w = verts.elementAt(1);
-		removeEdge(v, w, c, d);
-		return true;
+		return removeEdge(v, w, c, d);
 	}
-	public boolean removeEdge(Vertex v, Vertex w) {
-		if (!connected(v, w)) return false;
+	public int removeEdge(Vertex v, Vertex w) {
+		if (!connected(v, w)) return 0;
 		
 		// find the two cells that are associated with these two vertices,
 		// and then call removeEdge (Vertex, Vertex, Cell, Cell)
 		//  assumes there can only be two cells with this property
 		Vector<Cell> cellVector = new Vector<Cell>();
 		for (Cell can : cells())
-			if (can.containsVertex(v) && can.containsVertex(w))
+			if (can.containsEdge(v, w))
 				cellVector.add(can);
-		if (cellVector.size() != 2) return false;
+		if (cellVector.size() != 2) return 0;
 		
 		Cell c = cellVector.elementAt(0);
 		Cell d = cellVector.elementAt(1);
-		removeEdge(v, w, c, d);
-		return true;
+		return removeEdge(v, w, c, d);
 	}
-	private void removeEdge(Vertex v, Vertex w, Cell c, Cell d) {
+	private int removeEdge(Vertex v, Vertex w, Cell c, Cell d) {
 		// the vertices of the new Cell
 		int newNumV = c.numV() + d.numV() - 2;  // -2 because they share v and w
 		Vertex[] newVertArray = new Vertex[newNumV];
@@ -504,7 +531,6 @@ public class CellGraph implements java.io.Serializable {
 			w = temp;
 		}
 			
-		
 		Vertex[] cVerts = c.vertices(v, w); // from v, ending in w
 		Vertex[] dVerts = d.vertices(w, v); // from w, ending in v
 		
@@ -530,16 +556,22 @@ public class CellGraph implements java.io.Serializable {
 		parent.removeCell(c, t, z);
 		parent.removeCell(d, t, z);
 		parent.addCell(newCell, t, z);
+		return newCell.index();
 	}
 		
-	public boolean addEdge(Vertex v, Vertex w) {
+	// adds an edge between the vertices v and w. returns an array ret with ret[0] the index
+	// of the cell removed, and ret[1] and ret[2] the indices of the two new cells
+	public int[] addEdge(Vertex v, Vertex w) {
 		// need to delete the cell in question, and add two cells
-		Cell old = null;
-		for (Cell c : cells())
-			if (c.containsVertex(v) && c.containsVertex(w))
-				old = c;
+		
+		// the first step is to find the cell that contains this edge
+		// once we allow for splitting edges, there may be two cells that contain both of these 
+		// (non-connected) vertices. thus, the strategy is to find the midpoint of the 
+		// edge-to-be and check what cell it's inside. i guess this makes some assumptions (?)
+		// about the shape of the cells but they are very reasonable ones
+		Cell old = cellAtPoint(Misc.midpointInt(v.coords(), w.coords()));
 		if (old == null)
-			return false;
+			return null;
 		
 		// the vertices of the new Cells
 		Vector<Vertex> verts1 = new Vector<Vertex>();
@@ -577,12 +609,15 @@ public class CellGraph implements java.io.Serializable {
 //		addCellInactive(new1);
 //		addCellInactive(new2);
 		
-		// need to remove first and then add
+		// need to remove first and then add (why?)
 		parent.removeCell(old, t, z);
 		parent.addCell(new1, t, z);
 		parent.addCell(new2, t, z);	
 			
-		return true;
+		int[] ret = new int[2];
+		ret[0] = new1.index();
+		ret[1] = new2.index();
+		return ret;
 	}
 	
 	
@@ -595,7 +630,7 @@ public class CellGraph implements java.io.Serializable {
 	// make a cell out of the vertices V and add it
 	public boolean addCell(Vertex[] verts) {
 		// make sure there are >= 3 vertices
-		if (verts.length <= 3)
+		if (verts.length < 3)
 			return false;
 		
 		// make sure a cell with this set of vertices doesn't already exist
@@ -612,8 +647,9 @@ public class CellGraph implements java.io.Serializable {
 					if (!vertsSet.contains(c.vertices()[i]))
 						break;  // break if that Vertex is not in the set
 				}
-				if (i == c.numV()) // if they are all in the Set
+				if (i == c.numV()) {// if they are all in the Set then this Cell already exists
 					return false;
+				}
 			}
 		}
 		
@@ -659,6 +695,7 @@ public class CellGraph implements java.io.Serializable {
 			
 			}
 		}
+		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in CellGraph:removeVertices!");
 		assert(isValid());
 	}
 	
@@ -687,6 +724,7 @@ public class CellGraph implements java.io.Serializable {
 			parent.modifyCell(d, t, z);
 		}
 		
+		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in CellGraph:splitEdge!");
 		assert(isValid());
 		return newVert;
 	}
@@ -700,35 +738,36 @@ public class CellGraph implements java.io.Serializable {
 	///////
 	
 	// refine the edges by splitting them
-	public void refineEdges(boolean[][] bords, int distThresh, double minAngle, double minEdgeLength) {
+	public void refineEdges(boolean[][] bords, double maxAngle, double minAngle, double minEdgeLength) {
 		Vertex[] vertices = vertices();
 		for (Vertex v : vertices) {
 			for (Vertex w : vertices) {
 				if (connected(v, w)) {
-					// if the edge length is *already* less than minEdgeLength, then by spltting it
-					// things will only get worse. therefor we skip these cases
+					// if the edge length is *already* less than minEdgeLength, then by splitting it
+					// things will only get worse. therefore we skip these cases
 					if (Misc.distance(v.coords(), w.coords()) <= minEdgeLength) continue;
-					// only do it once per edge, for now
-					refineEdge(v, w, bords, distThresh, minAngle, minEdgeLength);
+					// only do it once per edge
+					refineEdge(v, w, bords, maxAngle, minAngle, minEdgeLength);
 				}
 			}
 		}
+		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in CellGraph:refineEdges!");
 		assert(isValid());
 	}
-	// relax and edge by finding a semi-optimal vertex position for splitting the edge
-	// with. we must increase the edge length (simplified version, much easier and faster)
-	// by more than dist_thresh, and also keep the angle bigger than min_angle.
-	private boolean refineEdge(Vertex v, Vertex w, boolean[][] bords, int distThresh, double minAngle, double minEdgeLength) {
+	// relax and edge by finding a pseudo-optimal vertex position for splitting the edge
+	// we must create an angle on the interval [minAngle maxAngle]. the minimum prevents unrealistic
+	// sharp corners, the maximum prevents the addition of vertices that don't capture any new curvature
+	private boolean refineEdge(Vertex v, Vertex w, boolean[][] bords, double maxAngle, double minAngle, double minEdgeLength) {
 		double[] cV = v.coords();
 		double[] cW = w.coords();
 		double[] midpt = Misc.midpoint(cV, cW);
 		double slope = Misc.slope(cV, cW);
 		double normal = -1/slope;
-		double edgeLength = Misc.distance(cV, cW);
+//		double edgeLength = Misc.distance(cV, cW);
 		
 		double[] r1 = new double[2];
 		double[] r2 = new double[2];
-		// doesn't have to be done this way, but i move by 1 pixel each step
+		// doesn't have to be done this way, but I chose to move by 1 pixel each step
 		double dx, dy;
 		if (normal == 0) {
 			dx = 1;
@@ -756,19 +795,27 @@ public class CellGraph implements java.io.Serializable {
 			// the termination statement of the loop
 			if (angle < minAngle)
 				return false;
+//			if (angle > maxAngle)
+//				continue;
 			
 			if (withinOne(r1, bords)) {
-				if ((Misc.distance(r1, cV) + Misc.distance(r1, cW) - edgeLength >= distThresh) &&
-						Misc.distance(r1, cV) >= minEdgeLength && Misc.distance(r1, cW) >= minEdgeLength) {
+//			if (bords[(int)Math.round(r1[0])-1][(int)Math.round(r1[1])-1]) {
+//				if ((Misc.distance(r1, cV) + Misc.distance(r1, cW) - edgeLength >= distThresh) &&
+				 if (Misc.distance(r1, cV) >= minEdgeLength && Misc.distance(r1, cW) >= minEdgeLength &&
+						 angle < maxAngle) {
 					splitEdge(v, w, r1);
 					return true;
 				}
-				else return false;
+				else return false; // if one point doesn't pass the test, the other can't try
+				 // for example, if nearest border has angle too big, then it shouldn't try
+				 // the next very far away borders, the causes problems
 			}
 						
 			if (withinOne(r2, bords)) {
-				if ((Misc.distance(r2, cV) + Misc.distance(r2, cW) - edgeLength >= distThresh) &&
-						Misc.distance(r2, cV) >= minEdgeLength && Misc.distance(r2, cW) >= minEdgeLength) {
+//			if (bords[(int)Math.round(r2[0])-1][(int)Math.round(r2[1])-1]) {
+//				if ((Misc.distance(r2, cV) + Misc.distance(r2, cW) - edgeLength >= distThresh) &&
+				if (Misc.distance(r2, cV) >= minEdgeLength && Misc.distance(r2, cW) >= minEdgeLength && 
+						angle < maxAngle) {
 					splitEdge(v, w, r2);
 					return true;
 				}
@@ -780,16 +827,15 @@ public class CellGraph implements java.io.Serializable {
 	}
 	// is the point r at a TRUE in bords? checks a 1x2 square with r as the lower left corner
 	private boolean withinOne(double[] r, boolean[][] bords) {
-		int y = (int) Math.round(r[0]);
-		int x = (int) Math.round(r[1]);
+		int y = (int) Math.round(r[0]) -1;  // -1 because java uses 0-indexed arrays
+		int x = (int) Math.round(r[1]) -1;
 		
 		if (y < 0 || x < 0 || y+1 >= bords.length || x+1 >= bords[0].length) return false;
 		
 //		if (bords[y][x] || bords[y+1][x] || bords[y][x+1] || bords[y+1][x+1]) return true;
 		if (bords[y][x] || bords[y][x+1]) return true;
 		
-		else return false;
-		
+		else return false;	
 	}	
 	/*  end of modifying functions */
 	
@@ -889,6 +935,9 @@ public class CellGraph implements java.io.Serializable {
 	public Cell[] cellNeighbors(Cell input) {
 		return cellNeighbors(input, cells());
 	}
+	public Cell[] cellNeighbors(int input) {
+		return cellNeighbors(getCell(input));
+	}
 	public Cell[] cellNeighborsActive(Cell input, int n) {
 		return cellNeighbors(input, activeCells(), n);
 	}
@@ -929,19 +978,27 @@ public class CellGraph implements java.io.Serializable {
 				if (v == w) return true;
 		return false;
 	}
+	public boolean connected(int a, int b) {
+		return connected(getCell(a), getCell(b));
+	}
 	
 	// do these two cells share an edge?
 	public boolean edgeConnected(Cell a, Cell b) {
-		// assume this is equivalent to the cells sharing 2 vertices. there are only
-		// not equivalent in some totally crazy scenarios, which I ignore for now
+		// these two cells must share exactly two vertices, and these vertices
+		// must be connected
+		Vertex[] shared = new Vertex[2];
 		int share = 0;
 		for (Vertex v : a.vertices()) {
 			for (Vertex w : b.vertices()) {
-				if (v == w) share++;
-				if (share == 2) return true;
+				if (v == w) {
+					if (share == 2) return false; // must not be more than two
+					shared[share++] = v;
+				}
 			}
 		}
-		return false;
+
+		if (share == 2 && connected(shared[0], shared[1])) return true;
+		else return false;
 	}
 
 	
@@ -1024,10 +1081,22 @@ public class CellGraph implements java.io.Serializable {
 
 	
 	// are these two vertices connected?
+	// THEY MUST BE CONNECTED FOR ALL CELLS -- there are some weird cases (not sure how they arise)
+	// where they are connected for one cell but not another
+	// simple version would be:
+	// for (Cell c : inputCells)
+	// 	   if (c.connected(a, b)) return true;
+	// return false
 	public boolean connected(Vertex a, Vertex b, Cell[] inputCells) {
-		for (Cell c : inputCells)
-			if (c.connected(a, b)) return true;
-		return false;
+		int cellsContaining = 0;
+		for (Cell c : inputCells) {
+			if (c.containsVertex(a) && c.containsVertex(b)) {
+				cellsContaining++;
+				if (!c.connected(a, b)) return false;
+			}
+		}
+		if (cellsContaining > 0) return true;
+		else return false;
 	}
 	public boolean connected(Vertex a, Vertex b) {
 		return connected(a, b, cells());

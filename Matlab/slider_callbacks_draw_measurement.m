@@ -25,7 +25,7 @@ dropdown_val = get(handles.dropdown_measurements, 'Value');
     
     
 if handles.fixed
-    x_vals = handles.info.bottom_layer:sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer;
+    x_vals = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer;
     x_vals = x_vals * handles.info.microns_per_z_step;
     x_vals = x_vals(:);
     

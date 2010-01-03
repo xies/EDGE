@@ -1,6 +1,10 @@
+import java.util.Vector;
+
 public class Embryo4D implements java.io.Serializable {
 
 	final static long serialVersionUID = (long) "Embryo4D".hashCode();
+	
+	public static final boolean DEBUG_MODE = true;
 	
 	// the maximum fraction by which the area of a Cell can change between slices
 	private final double areaChangeMaxZ, areaChangeMaxT;
@@ -17,6 +21,8 @@ public class Embryo4D implements java.io.Serializable {
 	// the total number of (active) cells
 	private int numCells;
 	
+	// has the Embryo been changed since the last save?
+	public boolean changed;	
 	
 	public Embryo4D(int startTime,   int endTime,  int masterTime, 
 					int bottomLayer, int topLayer, int masterLayer,
@@ -37,7 +43,9 @@ public class Embryo4D implements java.io.Serializable {
 		
 		cellGraphs = new CellGraph[Math.abs(startTime-endTime)+1][Math.abs(bottomLayer-topLayer)+1];
 		numCells = 0;
-
+		changed = false;
+		
+		if (DEBUG_MODE && !isValid()) System.err.println("Error in Embryo4D:init!");
 		assert(isValid());
 	}
 	public Embryo4D(Embryo4D oldEmbryo, int startTime,   int endTime,  int masterTime, 
@@ -70,6 +78,7 @@ public class Embryo4D implements java.io.Serializable {
 			trackAllCells();
 //			performTracking();
 		
+		if (DEBUG_MODE && !isValid()) System.err.println("Error in Embryo4D:init2!");
 		assert(isValid());
 	}
 	
@@ -80,6 +89,7 @@ public class Embryo4D implements java.io.Serializable {
 		int Z = translateZ(z);
 		cellGraphs[T][Z] = cg;
 		cg.setParent(this);
+		changed = true;
 		
 		if (isFull())
 			trackAllCells();
@@ -128,6 +138,7 @@ public class Embryo4D implements java.io.Serializable {
 //		deactivateSingleCellZ(c, t, master_layer,  0);
 		deactivateSingleCellZ(c, t, master_layer, +1);
 		deactivateSingleCellZ(c, t, master_layer, -1);
+//		if (!isValid()) System.err.println("Error in Embryo4D:deactivateSingleCellZ!");
 		assert(isValid());
 	}
 	// deactivate a given cell for all Z in time, starting at from and going in direction dir
@@ -146,6 +157,7 @@ public class Embryo4D implements java.io.Serializable {
 		deactivateSingleCellZ(c, master_time, master_layer, -1);
 		deactivateSingleCellTZ(c, master_time, +1);
 		deactivateSingleCellTZ(c, master_time, -1);
+//		if (!isValid()) System.err.println("Error in Embryo4D:decativateSingleCellTZ!");
 		assert(isValid());
 	}
 	
@@ -173,7 +185,7 @@ public class Embryo4D implements java.io.Serializable {
 				Cell cMatchCandidate = cellGraphs[t][j].inactiveCellAtPoint(cTrack.centroidInt());
 				if (cMatchCandidate == null) continue;
 						
-				/// THIS isCellMatch function DEFINES THE CONDITIONS FOR TRACKING
+				/// this isCellMatch function contains the conditions for tracking
 				if (isCellMatch(cTrack, cMatchCandidate, areaChangeMaxZ, centroidDistMaxZ)) {	
 					cellGraphs[t][j].changeIndex(cMatchCandidate.index(), c);
 					cTrack = cMatchCandidate; // now you track the next Cell to this one
@@ -199,7 +211,8 @@ public class Embryo4D implements java.io.Serializable {
 		int master_layer = translateZ(masterLayer);
 		trackSingleCellZ(c, t, master_layer, +1);
 		trackSingleCellZ(c, t, master_layer, -1);
-		assert(isValid());
+//		if (!isValid()) System.err.println("Error in Embryo4D:trackSingleCellZ!");
+//		assert(isValid());
 	}
 	
 //	// (before doing this, need to activate everything in master layer)
@@ -327,7 +340,8 @@ public class Embryo4D implements java.io.Serializable {
 		// track in time in both directions. this automatically tracks spatially at all other times
 		trackSingleCellTZ(c, master_time, +1);
 		trackSingleCellTZ(c, master_time, -1);
-		assert(isValid());
+//		if (!isValid()) System.err.println("Error in Embryo4D:trackSingleCellTZ!");
+//		assert(isValid());
 	}
 
 	
@@ -436,7 +450,7 @@ public class Embryo4D implements java.io.Serializable {
 //		// temporally track
 //		for (i = 1; i <= numCells; i++)
 //			trackSingleCellT(i);
-	
+		if (DEBUG_MODE && !isValid()) System.err.println("Error in Embryo4D:trackAllCells!");
 		assert(isValid());
 	}
 
@@ -477,13 +491,13 @@ public class Embryo4D implements java.io.Serializable {
 			// use signum so that if z > master_layer you track upwards, if z < master_layer you track downwards
 			// for the 3rd argument, one might be tempted to save a bit more time and start from z instead
 			// of master_layer (why re-track everything lower?). actually you'd need to start from 
-			// something like z-layersToLookBackZ (or master_layer if you go past it when subtracked LTLBZ)
+			// something like z-layersToLookBackZ (or master_layer if you go past it when subtracked layers_to_look_backZ)
 			// and I don't want to worry about that right now
 			trackSingleCellZ(c, t, master_layer, (int) Math.signum(z - master_layer));
 		}
 		
-		
-		
+		if (DEBUG_MODE && !isValid()) System.err.println("Error in Embryo4D:retrackCell!");
+		assert(isValid());
 	}
 	
 	
@@ -494,6 +508,12 @@ public class Embryo4D implements java.io.Serializable {
 	// ***actually we only need to go back one tracking step because everything
 	// upstream is already tracked!!!!!!!!!
 	private int backtrack(Cell cTrack, int t, int z) {
+		Cell c = backtrackCell(cTrack, t, z);
+		if (c == null) return 0;
+		else return c.index();
+	}
+	
+	private Cell backtrackCell(Cell cTrack, int t, int z) {
 		int master_layer = translateZ(masterLayer);
 		int master_time  = translateT(masterTime);
 		
@@ -512,10 +532,10 @@ public class Embryo4D implements java.io.Serializable {
 				if (cMatchCandidate != null) 				
 					if (isCellMatch(cTrack, cMatchCandidate, areaChangeMaxZ, centroidDistMaxZ))
 //						if (cMatchCandidate.isActive())
-							return cMatchCandidate.index();
+							return cMatchCandidate;
 				
 				if (i == master_layer)
-					return 0;
+					return null;
 			}
 		}
 		else if (t != master_time) {  // at the master layer
@@ -528,15 +548,15 @@ public class Embryo4D implements java.io.Serializable {
 				if (cMatchCandidate != null) 				
 					if (isCellMatch(cTrack, cMatchCandidate, areaChangeMaxT, centroidDistMaxT))
 //						if (cMatchCandidate.isActive())   // implied by activeCellAtPoint
-							return cMatchCandidate.index();
+							return cMatchCandidate;
 				
 				if (i == master_time)
-					return 0;
+					return null;
 			}
 		}
 
-		// if you never found anything, return 0
-		return 0;
+		// if you never found anything, return null
+		return null;
 	}	
 	
 
@@ -569,6 +589,8 @@ public class Embryo4D implements java.io.Serializable {
 		else {
 			cellGraphs[t][z].addCellInactive(c);
 		}
+		changed = true;
+		if (DEBUG_MODE && !isValid()) System.err.println("Error in Embryo4D:addCell!");
 		assert(isValid());
 	}
 	public void removeCell(Cell c, int t, int z) {
@@ -577,15 +599,16 @@ public class Embryo4D implements java.io.Serializable {
 		int master_time  = translateT(masterTime);
 		int master_layer = translateZ(masterLayer);
 		
-		if (cellGraphs[t][z].isActive(c)) {
+		if (CellGraph.isActive(c)) {
 			if (t == master_time && z == master_layer) {
 				deactivateSingleCellTZ(c.index());
 				cellGraphs[t][z].removeCell(c);
-				numCells--;
 				
 				// want to keep things compact, so we move the last cell (index numCell)
 				// to fill the spot that just opened by the deletion of c
-				changeIndex(numCells, c.index());
+				changeIndexAll(numCells, c.index());
+				
+				numCells--;
 			}
 			else {	
 				int oldInd = c.index();
@@ -596,7 +619,8 @@ public class Embryo4D implements java.io.Serializable {
 		else {  // if inactive, just remove
 			cellGraphs[t][z].removeCell(c);
 		}
-			 
+		changed = true;
+		if (DEBUG_MODE && !isValid()) System.err.println("Error in Embryo4D:removeCell!");
 		assert(isValid());
 	}
 	public void modifyCell(Cell c, int t, int z) {
@@ -604,7 +628,7 @@ public class Embryo4D implements java.io.Serializable {
 		z = translateZ(z);
 		
 		if (isTracked()) {
-			if (cellGraphs[t][z].isActive(c))
+			if (CellGraph.isActive(c))
 				retrackCell(c.index(), t, z);
 			else {  // if inactive
 				int newInd = backtrack(c, t, z);
@@ -614,7 +638,9 @@ public class Embryo4D implements java.io.Serializable {
 				}
 			}
 		}
-		// if the embryo is not tracked, don't need to do anything
+		// if the Embryo is not tracked, don't need to do anything
+		changed = true;
+		if (DEBUG_MODE && !isValid()) System.err.println("Error in Embryo4D:modifyCell!");
 		assert(isValid());
 	}
 
@@ -637,10 +663,10 @@ public class Embryo4D implements java.io.Serializable {
 	public int Xs() {
 		return cellGraphs[0][0].Xs;
 	}
-	
+
 	// I want to keep the active Cell indices compact (from 1 to numCells)
-	// so i need a changeindex for all cells...
-	public void changeIndex(int from, int to) {
+	// so i need a changeIndex for all cells...
+	private void changeIndexAll(int from, int to) {
 		for (int t = 0; t < t(); t++)
 			for (int z = 0; z < z(); z++)
 				cellGraphs[t][z].changeIndex(from, to);
@@ -692,20 +718,18 @@ public class Embryo4D implements java.io.Serializable {
 	// the highest tracked cell for a given cell index c at time t
 	public double highestTracked(int c, int t) {
 		if (!anyTracked(c, t)) return Double.NaN;
-		int highest = -1;
 		for (int i = z()-1; i >= 0; i--)
 			if (getCell(c, t, unTranslateZ(i)) != null)
-				highest = i;
-		return unTranslateZ(highest);
+				return unTranslateZ(i);
+		return Double.NaN; // should never get here because of initial IF statement...
 	}
 	// the lowest tracked cell for a given cell index c at time t
 	public double lowestTracked(int c, int t) {
 		if (!anyTracked(c, t)) return Double.NaN;
-		int lowest = -1;
 		for (int i = 0; i < z(); i++)
 			if (getCell(c, t, unTranslateZ(i)) != null)
-				lowest = i;	
-		return unTranslateZ(lowest);
+				return unTranslateZ(i);
+		return Double.NaN;
 	}
 	// was cell c tracked at all in this time point?
 	public boolean anyTracked(int c, int t) {
@@ -751,54 +775,222 @@ public class Embryo4D implements java.io.Serializable {
 	
 	// this is some automatic error-correction code
 	// that works as follow: for every inactive cell, check if it would be tracked to a cell right below it. 
+	// (NOT POSSIBLE BY DEFINITION OF INACTIVE CELLS... (IT MEANS IMPOSE ONLY THE CENTROID INSIDE CONDITION,
+	// NOT ALL THE OTHER TRACKING CONDITIONS)
 	// if so, check if that cell has tracked to something on the current layer. if so, it means both cells should
 	// have been tracked to the same one cell. thus they are probably the same cell, and we will merge
-	// them using removeEdge(Cell a, Cellb) (assuming, of course, that they share an edge..!!)
-	
-	// this could have been done during the tracking stage, actually. check all cells that track to a given cell,
-	// merge them
-	
-	// only allow this if the new cell follows the tracking criteria. 
-	
-	// complication: if you find a pair of two cells that are both not tracked AND neighboring, consider if their
-	// combination could be tracked to something. GOOD! 
-	
-	
-	// 00
-	// okay, that is like automatic "add edge". what about automatic remove edge? same thing! if you have a cell
-	// that is untracked, then see if you can add an edge and make it work. --> this is all because of area thresholds, etc
+	// them using removeEdge(Cell a, Cell b) (assuming, of course, that they share an edge..!!)
 	
 	// ok...how do you decide where to add the edge? well, a cell (before relaxing edges) only has order 10 vertices,
 	// so there are only << 100 possibilities to check. take the one which minimizes some metric. either centroid
 	// distance or area change. let's say area change, because this centroid distance stuff might have to change
 	// later with the "velocity" model if we decide to use that
+	// no- area change is not good. we just need some "overlap" metric. this would be useful in several places,
+	// such as for removing edges-- we have several options and want to consider the best one.
 	
-	// do we want to do this in space or time? or is that the point? should we do it spatially after
-	// spatial tracking, and then temporally after temporal tracking? then it would be done during tracking
+	public void autoRemoveEdges(int t, int z) {		
+		CellGraph cg = getCellGraph(t, z);
+		
+		// for all inactive cells at this layer
+		// do it this messy way because iterator has strange behavior when you mess around with things
+		int[] inactiveCellIndices = cg.inactiveCellIndices();
+		for (int loop = 0; loop < inactiveCellIndices.length; loop++) {
+			int i = inactiveCellIndices[loop];
+			// try merging with all of the neighbors (active and inactive, for now!)
+			// for now only neighbors that share exactly 2 vertices (i.e., not more)
+			Cell c = cg.getCell(i);
+			
+			
+			// keep track of the potential merges and their "score"
+			// then, at the end, pick the best one
+			Vector<Cell[]> candidates = new Vector<Cell[]>();
+			Vector<Double> candidatesOverlap = new Vector<Double>();
+			
+			
+			for (int neigh : Cell.index(cg.cellNeighbors(i))) {
+				
+				Cell neighCell = cg.getCell(neigh);
+				
+//				System.out.println(i);
+//				System.out.println(cg.getCell(i));
+//				System.out.println(neigh);
+//				System.out.println(cg.getCell(neigh));
+//				System.out.println();
+				
+//				// find the shared vertices
+//				Vector<Vertex> verts = new Vector<Vertex>();
+//				for (Vertex v : cg.vertices())
+//					if (cg.getCell(i).containsVertex(v) && neighCell.containsVertex(v))
+//						verts.add(v);
+//				if (verts.size() != 2) continue;
+//				// some adjacent cells might share more vertices if i refine edges
+//				// this can be dealt with in theory, but for now it fails
+//				// later should modify removeEdge to deal with this
+				
+				int newInd = cg.removeEdge(i, neigh);
+//				System.out.println("newInd = " + newInd);
+//				System.out.println(cg.getCell(newInd));
+				
+				// for now there are some problematic cases. for example, we cannot remove 
+				// edges with >2 vertices 
+				if (newInd == 0) continue;
+				
+				if (CellGraph.isActive(newInd)) {
+//					System.out.println("Success! Created Cell " + newInd);
+					
+					Cell[] pair = new Cell[2];
+					pair[0] = c;
+					pair[1] = neighCell;
+					candidates.add(pair);
+					double overlap = cg.getCell(newInd).overlapArea(backtrackCell(cg.getCell(newInd), translateT(t), translateZ(z)));
+					overlap /= cg.getCell(newInd).area();
+					candidatesOverlap.add(overlap);
+					
+					// success
+//					break; 
+				}
+//				else {
+					
+					// if I revert this with addEdge its too complicated. so i will manually
+					// do this......
+					// i want to remove and add the neigh in properly, because that might be active
+					// but for "c", i don't care about adding it properly since it is inactive by definition
+					// so i can just use the brute for adding mechanism. then i can also conveniently
+					// set its index back to i. of course i could add the proper add and then change
+					// index, i think either way would be fine
+					
+				removeCell(cg.getCell(newInd), t, z);
+				cg.addCell(c, i);
+				addCell(neighCell, t, z);
+
+				
+			}  // for each neighbor
+			
+			// now pick the best cell (cell with highest overlap score)
+			double max = 0;
+			int maxInd = -1;
+			for (int k = 0; k < candidates.size(); k++) {
+				if (candidatesOverlap.elementAt(k) != Double.NaN && 
+						candidatesOverlap.elementAt(k) > max) {
+					max = candidatesOverlap.elementAt(k);
+					maxInd = k;
+				}
+			}
+			// if you found anything, keep that Cell
+			if (maxInd >= 0)
+				cg.removeEdge(candidates.elementAt(maxInd)[0], candidates.elementAt(maxInd)[1]);
+			
+			
+		}   // for each Cell
+		
+		if (DEBUG_MODE && !isValid()) System.err.println("Error in Embryo4D: autoRemoveEdges!");
+		assert(isValid());
+	}
 	
-	// IDEA: maybe we should ONLY allow these things to act on inactive (or 1 active and 1 inactive in the first case)
-	// that way it preserves tracking and we don't need to re-track. like even for the manual changes... well.......
-	// not sure about this..~~
-	
-	public void autoAddEdges() {
-		for (int i = translateZ(masterLayer) + 1; i < z(); i++) {		
+	public void autoAddEdges(int t, int z) {
+		CellGraph cg = getCellGraph(t, z);
+		
+//		for (int H : cg.inactiveCellIndices())
+//			System.out.println(H + ",  " + cg.getCell(H));
+//		System.out.println("********");
+
+		// for all inactive cells at this layer
+		int[] inactiveCellIndices = cg.inactiveCellIndices();
+		for (int loop = 0; loop < inactiveCellIndices.length; loop++) {
+			int i = inactiveCellIndices[loop];			
+			Cell c = cg.getCell(i);
+
+//			System.out.println("****" + c);
+					
+			// keep track of the potential merges and their "score"
+			// then, at the end, pick the best one
+			Vector<Vertex[]> candidates = new Vector<Vertex[]>();
+			Vector<Double> candidatesOverlap = new Vector<Double>();
+				
+			
+			// for all unique pairs
+			for (int vInd = 0; vInd < c.numV(); vInd++) {
+				for (int wInd = vInd + 1; wInd < c.numV(); wInd++) {
+					Vertex v = c.vertices()[vInd];
+					Vertex w = c.vertices()[wInd];
+					
+					if (v == w) continue;
+					if (cg.connected(v, w)) continue;
+			
+					// let this be handled by the correct cell-- don't let it happen for a cell
+					// where the edge is not inside.....
+					if (cg.cellAtPoint(Misc.midpointInt(v.coords(), w.coords())) != c) continue;
+
+					
+					int[] newInds = cg.addEdge(v, w);
+					// cases where the line between the new vertices is outside of the cell
+					// and not inside any other cell (because that cell is at the edge of the embryo)
+					if (newInds == null) continue;  
+					// note in this case the edge was not added, so we don't need to worry
+					
+					int newIndex1 = newInds[0];
+					int newIndex2 = newInds[1];
+													
+//					System.out.println("new inds = " + newIndex1 + ", " + newIndex2);
+//					System.out.println(cg.getCell(newIndex1));
+//					System.out.println(cg.getCell(newIndex2));
+					
+					if (CellGraph.isActive(newIndex1) && CellGraph.isActive(newIndex2)) {
+						Vertex[] newPair = new Vertex[2];
+						newPair[0] = v;
+						newPair[1] = w;
+						candidates.add(newPair);
+						// get the overlap between the two new cells and the nearest backtracked cells
+						// add them together for a total overlap score
+						double overlap = cg.getCell(newIndex1).overlapArea(backtrackCell(cg.getCell(newIndex1), translateT(t), translateZ(z))) + 
+										 cg.getCell(newIndex2).overlapArea(backtrackCell(cg.getCell(newIndex2), translateT(t), translateZ(z)));
+						candidatesOverlap.add(overlap);
+						
+//						System.out.println("Success! Created cells.");
+//						System.out.println("AAAAA " + cg.getCell(newIndex1).numV() + " " + cg.getCell(newIndex2).numV());
+//						break;   // success
+					}
+					// remove that edge manually
+					removeCell(cg.getCell(newIndex1), t, z);
+					removeCell(cg.getCell(newIndex2), t, z);					
+					cg.addCell(c, i);
+
+					
+				}  // each vertex
+			}  // each vertex
+
+			// now pick the best cell (cell with highest overlap score)
+			double max = 0;
+			int maxInd = -1;
+			for (int k = 0; k < candidates.size(); k++) {
+				if (candidatesOverlap.elementAt(k) != Double.NaN && 
+						candidatesOverlap.elementAt(k) > max) {
+					max = candidatesOverlap.elementAt(k);
+					maxInd = k;
+				}
+			}
+			// if you found anything, keep that Cell
+			if (maxInd >= 0)
+				cg.addEdge(candidates.elementAt(maxInd)[0], candidates.elementAt(maxInd)[1]);
 			
 			
-		}
-		for (int i = translateZ(masterLayer) - 1; i > 0; i--) {		
-			
-			
-		}
+		} // for each cell
+		
+		
+		if (DEBUG_MODE && !isValid()) System.err.println("Error in Embryo4D: autoRemoveEdges!");
+		assert(isValid());
+		
 	}
 	
 	
-	
 	private boolean isValid() {
-		for (int t = 0; t < t(); t++)
-			for (int z = 0; z < z(); z++)
-				if (cellGraphs[t][z] != null)
-					if (! cellGraphs[t][z].isValid())
-						return false;
+
+		// this part is too slow...
+//		for (int t = 0; t < t(); t++)
+//			for (int z = 0; z < z(); z++)
+//				if (cellGraphs[t][z] != null)
+//					if (! cellGraphs[t][z].isValid())
+//						return false;
 		if (Math.abs(endTime - startTime) + 1 != t()) return false;
 		if (Math.abs(bottomLayer - topLayer) + 1 != z()) return false;
 		
@@ -806,63 +998,37 @@ public class Embryo4D implements java.io.Serializable {
 		if (! isTracked())
 			for (int t = 0; t < t(); t++)
 				for (int z = 0; z < z(); z++)
-					if (cellGraphs[t][z].activeCells().length > 0)
-						return false;
+					if (cellGraphs[t][z] != null)
+						if (cellGraphs[t][z].activeCells().length > 0) {
+							System.err.println("Error: untracked Embryo contains active Cells");
+							return false;
+						}
 		
 		// the master image should contain only active cells
 		int master_time = translateT(masterTime);
 		int master_layer = translateZ(masterLayer);
-		if (cellGraphs[master_time][master_layer].inactiveCells().length > 0)
-			return false;
-		
-		// the set of active cell indices should be compact.
-		int[] inds = cellGraphs[master_time][master_layer].activeCellIndices();
-		for (int i = 0; i < numCells; i++) {
-			if (inds[i] != i+1) {
-				System.err.println("Error: indices not compact");
+		if (cellGraphs[master_time][master_layer] != null && isTracked()) { 
+			if (cellGraphs[master_time][master_layer].inactiveCells().length > 0) {
+				System.err.println("Error: reference CellGraph contains inactive Cells");
 				return false;
 			}
+			
+			// the set of active cell indices should be compact.
+			int[] inds = cellGraphs[master_time][master_layer].activeCellIndices();
+			for (int i = 0; i < numCells; i++) {
+				if (inds[i] != i+1) {
+					System.err.println("Error: indices not compact");
+					return false;
+				}
+			}		
 		}
 		
 		return true;
 	}
 	
 	public String toString() {
-		return "Embryo4D containing " + t() + " time points and " + z() + " slices";
+		return "Embryo4D containing " + t() + " time points and " + z() + " z-slices";
 	}
 	
-	
-/*************************************************************************/
-//	
-//	// for sorting by angle for the Vertices connected to a Cell
-//	private static class ByAngle implements Comparator<Cell4D> {
-//		private double[] origin;
-//		private int t;
-//		private int z;
-//        
-//        public ByAngle(double[] o, int t, int z) {
-//            origin = o;
-//            this.t = t;
-//            this.z = z;
-//        }
-//        
-//        // backwards so that a more negative angle is "greater"
-//        // this way the Vertices will be sorted clockwise
-//        public int compare(Cell4D a, Cell4D b) {
-//            double angleA = angle(origin, a.cells()[t].cells()[z]);
-//            double angleB = angle(origin, b.cells()[t].cells()[z]);
-//            if (angleA < angleB) return +1;
-//            if (angleA > angleB) return -1;
-//            else                 return  0;
-//        }
-//        
-//        // computes the angle that v makes with the point origin
-//        // returns the angle in the range [0, 2pi)
-//        // if v is at the origin 0.0 is returned
-//        private static double angle(double[] origin, Cell c) {
-//        	return Misc.angle(origin, c.centroid());
-//        }       
-//    }
-
 
 }

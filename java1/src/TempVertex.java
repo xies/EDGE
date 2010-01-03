@@ -29,6 +29,14 @@ public class TempVertex {
 		cellNeighbors.add(i);
 	}
 	
+	public void removeNeighbor(int i) {
+		cellNeighbors.remove(i);
+	}
+	
+	public int numNeighbors() {
+		return cellNeighbors.size();
+	}
+	
 	public void addNeighbors(int[] input) {
 		for (int i : input) cellNeighbors.add(i);
 	}

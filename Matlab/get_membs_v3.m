@@ -79,17 +79,12 @@ cellsX(mask==0)=1;
 cellsi = cellsX == 1;
 
 % skeletonize
-cellsi = bwmorph(cellsi,'shrink',Inf);  %OFF    %thins to 1 px
+cellsi = bwmorph(cellsi,'shrink',Inf);    %thins to 1 px
 %    figure, imshow(cellsi);
 
 cellsi = bwmorph(cellsi,'clean');   %gets rid of single dots
 
 
-
+cellsi(mask==0)=0;
 % label cells by integers; every cell gets addressed
-cellsi = -cellsi+1;  %flipping ones and zeros
 cellsi = logical(cellsi);
-
-cellsi(mask==0)=1;
-
-cellsi = ~cellsi;

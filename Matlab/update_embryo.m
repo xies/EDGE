@@ -32,4 +32,12 @@ handles.embryo = new_embryo;
 % save_embryo(handles);
 
 % set the sliders to the reference image
-handles = go_to_image(handles, handles.info.master_time, handles.info.master_layer);
+% (only want to do that if we are out of range now...)
+[T Z] =  getTZ(handles);
+
+if Z > max(handles.info.top_layer, handles.info.bottom_layer) || ...
+   Z < min(handles.info.top_layer, handles.info.bottom_layer) || ...
+   T > max(handles.info.start_time, handles.info.end_time) || ...
+   T < min(handles.info.start_time, handles.info.end_time)    
+    handles = go_to_image(handles, handles.info.master_time, handles.info.master_layer);
+end

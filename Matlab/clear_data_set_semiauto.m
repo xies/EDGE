@@ -12,7 +12,7 @@ info = read_data_info(data_set);
 if info.notfound  % if this is a new data set, never been imported
     msgbox(strcat('Info for data set "', data_set, ...
         '" does not exist. There has been an error in the import.', ...
-        'Check DATA_INFO.csv to see that an entry for this data set was created correctly'), ...
+        'Check DATA_INFO.csv to see that an entry for this data set was created correctly.'), ...
         'Loading failed', 'error'); 
     return;
 end
@@ -44,11 +44,9 @@ if ~exist(fullfile(handles.tempsrc.parent, 'embryo_data.mat'), 'file')
     msgbox('Cannot find DATA_SEMIAUTO embryo.mat file.', 'Failure', 'error');
     return
 end
+handles.embryo = [];
 load(fullfile(handles.tempsrc.parent, 'embryo_data'));
 handles.embryo = embryo4d;
-
-% put them temporary CG into handles for immediate use (if it exists)
-handles = semiauto_change_image_callbacks(handles);
 
 % take out the temporal tracking parameters for fixed data sets
 
@@ -76,6 +74,9 @@ set(handles.cbox_inactive, 'Value', 1);
 handles.activeCell = [];
 handles.activeVertex = [];
 handles.activeAdjustment = [];
+
+% initialize the vec buttons
+handles = semiauto_change_image_callbacks(handles);
 
 % initial draw
 slider_callbacks_draw_image_slice(handles);

@@ -23,7 +23,7 @@ function varargout = semiauto(varargin)
 
     % Edit the above text to modify the response to help semiauto
 
-    % Last Modified by GUIDE v2.5 14-Nov-2009 02:08:42
+    % Last Modified by GUIDE v2.5 20-Dec-2009 00:46:55
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -84,6 +84,8 @@ function semiauto_OpeningFcn(hObject, eventdata, handles, varargin) %#ok<*INUSL>
             % set the dropdown to be at the right thing
             val = find(strcmp(datanames, passinfo.data_set));
             set(handles.dropdown_datasets, 'Value', val);    
+            % make sure we're in the right directory
+            cd(main_dir);
         else
             default_data_set_number = 1;
             default_data_set = datanames{default_data_set_number};  % just take the first one
@@ -122,10 +124,12 @@ function semiauto_OpeningFcn(hObject, eventdata, handles, varargin) %#ok<*INUSL>
 %     set(handles.axes1, 'ButtonDownFcn', @mouseFunction);
 
     set(handles.panel_vec_cell_vert,'SelectionChangeFcn', @vec_select_cv_change);
+    set(handles.panel_vec_manual_auto,'SelectionChangeFcn', @vec_select_auto_change);
     
-    set(handles.axes1, 'Units', 'pixels');
-    set(handles.figure1, 'Units', 'pixels');
-    set(handles.main_panel, 'Units', 'pixels');
+    % the below lines mess up proportional resizing
+%     set(handles.axes1, 'Units', 'pixels');
+%     set(handles.figure1, 'Units', 'pixels');
+%     set(handles.main_panel, 'Units', 'pixels');
    
     % Choose default command line output for semiauto2
     handles.output = hObject;
@@ -278,6 +282,10 @@ function mouseFunction(hObject,evnt)
         return
     end
 
+%     if ~isempty(handles.activeCell)
+%         handles.activeCell{1}.index
+%     end
+    
     if strcmp(handles.activeAdjustment, 'split_edge')
         % we know there are exactly 2 active Vertices if this button is
         % pressed
@@ -285,6 +293,7 @@ function mouseFunction(hObject,evnt)
         vert2 = handles.activeVertex{2};
 
         newVert = handles.embryo.getCellGraph(T, Z).splitEdge(vert1, vert2, location);
+        
 %         save_embryo(handles);
         
 %         handles.activeVertex{3} = newVert;
@@ -468,7 +477,7 @@ function button_applyall_Callback(hObject, eventdata, handles)
 
         badimages = '';
         for time_i = handles.info.start_time:handles.info.end_time
-            for layer_i = handles.info.bottom_layer:sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+            for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
                 set(handles.text_processing_time,  'String', num2str(time_i));
                 set(handles.text_processing_layer, 'String', num2str(layer_i));
                 drawnow;
@@ -787,7 +796,7 @@ end
 
 
 
-function info_text_refine_split_threshold_Callback(hObject, eventdata, handles)
+function info_text_refine_max_angle_Callback(hObject, eventdata, handles)
     [ST, I] = dbstack;
     name = ST.name;
     % get rid of "info_text_" at the beginning and 
@@ -797,7 +806,7 @@ function info_text_refine_split_threshold_Callback(hObject, eventdata, handles)
     handles = semiauto_info_text_callback(handles, name);
     guidata(hObject, handles); 
 
-function info_text_refine_split_threshold_CreateFcn(hObject, eventdata, handles)
+function info_text_refine_max_angle_CreateFcn(hObject, eventdata, handles)
 
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
@@ -910,8 +919,30 @@ function button_export_Callback(hObject, eventdata, handles)
                 measurementchannels{i} = measurementchannelsall{selection_meas(i)};
             end
         end
-    else
-        msgbox('When exporting multiple data sets at once, all available measurements will be computed', 'All measurements computed'); 
+    else    
+    % get ALL measurements (even if none of these data sets can use them
+        msgbox('When exporting multiple data sets at once, only applicable measurements will be computed for each data set.', 'Only applicable measurements computed'); 
+        uiwait;
+        [measurementchannelsall measurementnamesall] = get_measurement_file_names_specific_ch(...
+            fullfile(handles.program_dir, 'Measurements'), ...
+            handles.all_channelnames);
+        % let the user slect
+        [selection_meas ok] = listdlg('ListString', strcat(measurementchannelsall, '::', measurementnamesall), ...
+            'Name', 'Select measurements sets for export', 'ListSize', [300 300], 'CancelString', 'None');
+        if ~ok
+            measurementnames_multi = cell(0);
+            measurementchannels_multi = cell(0);
+        else
+            % the measurements array is the list of measurements that the user
+            % selected
+            measurementnames_multi = cell(length(selection_meas), 1);
+            measurementchannels_multi = cell(length(selection_meas), 1);
+            for i = 1:length(selection_meas)
+                measurementnames_multi{i} = measurementnamesall{selection_meas(i)};
+                measurementchannels_multi{i} = measurementchannelsall{selection_meas(i)};
+            end
+        end
+%         msgbox('When exporting multiple data sets at once, all available measurements will be computed', 'All measurements computed'); 
     end
     %%%%
     
@@ -925,10 +956,16 @@ function button_export_Callback(hObject, eventdata, handles)
         % choose the list of measurements
         if length(selection) > 1
             % only for the case of multiple data sets
-            % just use all possibile measurements, for now
-            [measurementchannels measurementnames] = get_measurement_file_names(handles);
+            % first, find all measurements available for this data set
+            [measurementchannels_thisdata measurementnames_thisdata] = get_measurement_file_names(handles); 
+            % now, find all the measurements that are common to 
+            % measurementnames_thisdata AND measurementnames_multi
+            % the former is a list of all measurements for this data set,
+            % and the latter is the selection of all choices
+            intersection_inds = CStrAinBP(measurementnames_thisdata, measurementnames_multi);
+            measurementnames = measurementnames_thisdata(intersection_inds);
+            measurementchannels = measurementchannels_thisdata(intersection_inds);
         end
-            
 %         readyproc(handles, 'tracking');
 %         handles.embryo.trackAllCells;
 % 
@@ -945,7 +982,7 @@ function button_export_Callback(hObject, eventdata, handles)
 %             indTime = indTime + 1;
 % 
 %             indLayer = 0;
-%             for layer_i = handles.info.bottom_layer:sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+%             for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
 %     %             set(handles.text_processing_layer,  'String', num2str(layer_i));
 %     %             drawnow;
 %                 indLayer = indLayer + 1;
@@ -1000,14 +1037,21 @@ function button_export_Callback(hObject, eventdata, handles)
 %         % set the built-in names
 %         stored_properties.builtin.builtin.names = {'Area'; 'Perimeter'; 'Centroid-x'; 'Centroid-y'};
 %         stored_properties.builtin.builtin.units = {'micron^2'; 'microns'; 'microns'; 'microns'};
-%         
+      
         
         measure_path = fullfile(handles.program_dir, 'Measurements');
         for j = 1:length(measurementnames)  % for all measurements
             set(handles.text_readyproc_details, 'String', measurementnames{j});
             set(handles.text_readyproc_details, 'Visible', 'on');
             cd(fullfile(measure_path, measurementchannels{j}));  % go in that directory
-   
+            
+            
+            % the channel name might have spaces or other problematic
+            % characters and then cannot be used as a field name in the
+            % structure. this function returns the closet name.
+            good_measurementchannels_j = genvarname(measurementchannels{j});
+            
+            
             % find out how many properties are given by this measurement,
             % so that if a cell is missing we can put in the appropriate
             % number of NaNs
@@ -1017,27 +1061,32 @@ function button_export_Callback(hObject, eventdata, handles)
             % for the general call, but here we just do it once)
             % ** also get the names & units!~~~~~
             if strcmp(measurementchannels{j}, 'Membranes')
-                IMG_fun = [];
+%                 IMG_fun = [];
+                IMG_fun = @(t, z) double(imread(handles.info.image_file(t, z, handles.src.raw)));
 %                         IMG = imread(handles.info.image_file(time_i, layer_i, handles.src.bord));
             else
-                channelnum = find(strcmp(measurementchannels{j}, handles.channelnames));
+                channelnum = find(strcmp(good_measurementchannels_j, genvarname(handles.channelnames)));
 %                 IMG = imread(handles.info.channel_image_file{channelnum}(handles.info.master_time, handles.info.master_layer, handles.src.channelsrc{channelnum}));
                 IMG_fun = @(t, z) double(imread(handles.info.channel_image_file{channelnum}(t, z, handles.src.channelsrc{channelnum})));
+            end                
+            % also pass structure that allows you to read from all
+            % channels (some special cases, but this is the final piece
+            % of information available to them)
+            for all_chan = 1:length(handles.channelnames)
+                CHAN_fun.(genvarname(handles.channelnames{all_chan})) = ...
+                    @(t, z) double(imread(handles.info.channel_image_file{all_chan}(t, z, handles.src.channelsrc{all_chan})));
             end
+            % also give access to processed borders
+            CHAN_fun.Processed = @(t, z) double(imread(handles.info.image_file(t, z, handles.src.bord)));
+            
             try
                 [data names units] = feval(measurementnames{j}, handles.embryo, ...
                     IMG_fun, handles.info.master_time, handles.info.master_layer, 1,  handles.info.microns_per_pixel, ...
-                    handles.info.microns_per_z_step, handles.info.seconds_per_frame); 
+                    handles.info.microns_per_z_step, handles.info.seconds_per_frame, CHAN_fun); 
             catch ME
-                ME
-                ME.identifier
-                ME.message
-                ME.cause
-                ME.stack.file
-                ME.stack.name
-                ME.stack.line
+                disp(getReport(ME));
                 msgbox(strcat('Error in: ', measurementnames{j}, '. Export aborted'), ...
-                'Export failed', 'error');
+                    'Export failed', 'error');
                 readyproc(handles, 'ready');
                 cd(fullfile(handles.program_dir, 'Matlab'));
                 return;
@@ -1049,12 +1098,12 @@ function button_export_Callback(hObject, eventdata, handles)
 %             end
             data_size = size(data);
             % here we set the names and units
-            stored_properties.(measurementchannels{j}).(measurementnames{j}).names  = names;
-            stored_properties.(measurementchannels{j}).(measurementnames{j}).units  = units;
+            stored_properties.(good_measurementchannels_j).(measurementnames{j}).names  = names;
+            stored_properties.(good_measurementchannels_j).(measurementnames{j}).units  = units;
             
 
             % create the stored_properties data field for this measurement
-            stored_properties.(measurementchannels{j}).(measurementnames{j}).data = ...
+            stored_properties.(good_measurementchannels_j).(measurementnames{j}).data = ...
                 cell([...
                 abs(handles.info.end_time-handles.info.start_time)+1 ...
                 abs(handles.info.bottom_layer - handles.info.top_layer)+1 ...
@@ -1069,7 +1118,7 @@ function button_export_Callback(hObject, eventdata, handles)
                 drawnow;
                 indTime = indTime + 1;
                 indLayer = 0;
-                for layer_i = handles.info.bottom_layer:sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+                for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
                     set(handles.text_processing_layer,  'String', num2str(layer_i));
                     drawnow;
                     indLayer = indLayer + 1;
@@ -1084,13 +1133,22 @@ function button_export_Callback(hObject, eventdata, handles)
                     % load the image file for this channel at this (t, z)
                     if strcmp(measurementchannels{j}, 'Membranes')
                         % get a function handle to draw all the cells
-                        IMG_fun = @(t, z) double(handles.embryo.getCellGraph(t, z).draw);
+%                         IMG_fun = @(t, z) double(handles.embryo.getCellGraph(t, z).draw);
+                        IMG_fun = @(t, z) double(imread(handles.info.image_file(t, z, handles.src.raw)));
 %                         IMG = imread(handles.info.image_file(time_i, layer_i, handles.src.bord));
                     else
-                        channelnum = find(strcmp(measurementchannels{j}, handles.channelnames));
+                        channelnum = find(strcmp(good_measurementchannels_j, genvarname(handles.channelnames)));
 %                         IMG = imread(handles.info.channel_image_file{channelnum}(time_i, layer_i, handles.src.channelsrc{channelnum}));
                         IMG_fun = @(t, z) double(imread(handles.info.channel_image_file{channelnum}(t, z, handles.src.channelsrc{channelnum})));
                     end
+                    % also pass structure that allows you to read from all
+                    % channels (some special cases, but this is the final piece
+                    % of information available to them)
+                    for all_chan = 1:length(handles.channelnames)
+                        CHAN_fun.(genvarname(handles.channelnames{all_chan})) = ...
+                            @(t, z) double(imread(handles.info.channel_image_file{all_chan}(t, z, handles.src.channelsrc{all_chan})));
+                    end
+                    CHAN_fun.Processed = @(t, z) double(imread(handles.info.image_file(t, z, handles.src.bord)));
                     
                     % loop through all the cells
                     for cell_i = 1:handles.embryo.numCells()
@@ -1100,29 +1158,23 @@ function button_export_Callback(hObject, eventdata, handles)
                             % this with NaN everywhere
                             
                             
-                            stored_properties.(measurementchannels{j}).(measurementnames{j}).data{indTime, indLayer, cell_i}  = NaN(data_size);
-%                             stored_properties{indTime, indLayer, cell_i}.(measurementchannels{j}).(measurementnames{j}).data  = NaN(data_size);
-%                             stored_properties{indTime, indLayer, cell_i}.(measurementchannels{j}).(measurementnames{j}).names = cell(data_size);
-%                             stored_properties{indTime, indLayer, cell_i}.(measurementchannels{j}).(measurementnames{j}).units = cell(data_size);
+                            stored_properties.(good_measurementchannels_j).(measurementnames{j}).data{indTime, indLayer, cell_i}  = NaN(data_size);
+%                             stored_properties{indTime, indLayer, cell_i}.(good_measurementchannels_j).(measurementnames{j}).data  = NaN(data_size);
+%                             stored_properties{indTime, indLayer, cell_i}.(good_measurementchannels_j).(measurementnames{j}).names = cell(data_size);
+%                             stored_properties{indTime, indLayer, cell_i}.(good_measurementchannels_j).(measurementnames{j}).units = cell(data_size);
                         else
                         
                             try
                                 data = feval(measurementnames{j}, handles.embryo, ...
                                     IMG_fun, time_i, layer_i, cell_i,  handles.info.microns_per_pixel, ...
-                                    handles.info.microns_per_z_step, handles.info.seconds_per_frame);
+                                    handles.info.microns_per_z_step, handles.info.seconds_per_frame, CHAN_fun);
 
-                                stored_properties.(measurementchannels{j}).(measurementnames{j}).data{indTime, indLayer, cell_i} = data;
-%                                 stored_properties{indTime, indLayer, cell_i}.(measurementchannels{j}).(measurementnames{j}).data  = data;
-%                                 stored_properties{indTime, indLayer, cell_i}.(measurementchannels{j}).(measurementnames{j}).names = names;
-%                                 stored_properties{indTime, indLayer, cell_i}.(measurementchannels{j}).(measurementnames{j}).units = units;
+                                stored_properties.(good_measurementchannels_j).(measurementnames{j}).data{indTime, indLayer, cell_i} = data;
+%                                 stored_properties{indTime, indLayer, cell_i}.(good_measurementchannels_j).(measurementnames{j}).data  = data;
+%                                 stored_properties{indTime, indLayer, cell_i}.(good_measurementchannels_j).(measurementnames{j}).names = names;
+%                                 stored_properties{indTime, indLayer, cell_i}.(good_measurementchannels_j).(measurementnames{j}).units = units;
                             catch ME
-                                ME
-                                ME.identifier
-                                ME.message
-                                ME.cause
-                                ME.stack.file
-                                ME.stack.name
-                                ME.stack.line
+                                disp(getReport(ME));
                                 msgbox(strcat('Error in: ', measurementnames{j}, '. Export aborted'), ...
                                     'Export failed', 'error');
                                 readyproc(handles, 'ready');
@@ -1171,7 +1223,7 @@ function button_export_Callback(hObject, eventdata, handles)
     %%%% save Embryo4d in DATA_GUI folder and copy border files
         for time_i = handles.info.start_time:handles.info.end_time
             set(handles.text_processing_time,  'String', num2str(time_i));
-            for layer_i = handles.info.bottom_layer:sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+            for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
                 set(handles.text_processing_layer, 'String', num2str(layer_i));
                 drawnow;
 
@@ -1563,12 +1615,22 @@ end
 
 
 function save_datainfo_Callback(hObject, eventdata, handles)
-    readyproc('saving');
-    save_embryo(handles);
+    changed = handles.embryo.changed;
+    if changed
+        readyproc(handles, 'saving');
+        handles = save_embryo(handles);
+    end
     fields = write_data_info(handles);
-    othermsg = 'Successfully updated the following fields in DATA_INFO.csv:';
-    msg = [othermsg fields];
-    msgbox(msg, 'Save successful');   
+    if ~isempty(fields)
+        othermsg = 'Successfully updated the following fields in DATA_INFO.csv:';
+        msg = [othermsg fields];
+        msgbox(msg, 'Save successful');  
+    end
+    if isempty(fields) && ~changed
+        msgbox('No changes to be saved.');
+    end
+    readyproc(handles, 'ready');
+    guidata(hObject, handles);
 
 
 
@@ -1900,7 +1962,7 @@ function button_import_Callback(hObject, eventdata, handles)
         handles.info.tracking_area_change_T, handles.info.tracking_layers_back_T, ...
         handles.info.tracking_centroid_distance_T / handles.info.microns_per_pixel);
 
-    save_embryo(handles);
+    handles = save_embryo(handles);
     
     handles = clear_data_set_semiauto(handles, handles.data_set);
     
@@ -1908,7 +1970,7 @@ function button_import_Callback(hObject, eventdata, handles)
     
     msgbox(strcat('Data set ', handles.data_set, ' has been imported succesfully.', ...
         'The information entered can be edited anytime using this program. ', ...
-        ' Before processing, select a reference image and press the "Set master image" button'));    
+        ' Before processing, select a reference image and press the "Set reference image" button.'));    
 
     guidata(hObject, handles);
    
@@ -1968,52 +2030,87 @@ function vec_remove_cell_Callback(hObject, eventdata, handles)
 
 function vec_remove_edge_Callback(hObject, eventdata, handles)
     [T Z] = getTZ(handles);
-    
-    if length(handles.activeCell) ~= 2 && length(handles.activeVertex) ~= 2
-        msgbox('You must select exactly two cells or exactly two vertices for edge removal.', ...
-            'Edge removal failed', 'error');
-        return;
-    end
-    
-    if get(handles.radiobutton_adjust_cells, 'Value')  %cells
-        cell1 = handles.activeCell{1};
-        cell2 = handles.activeCell{2};
+    if get(handles.radiobutton_vec_manual, 'Value')     
 
-        if ~handles.embryo.getCellGraph(T, Z).edgeConnected(cell1, cell2)
-            msgbox('Edge removal only works for cells that share an edge.', ...
+        if length(handles.activeCell) ~= 2 && length(handles.activeVertex) ~= 2
+            msgbox('You must select exactly two cells or exactly two vertices for edge removal.', ...
                 'Edge removal failed', 'error');
             return;
         end
 
+        if get(handles.radiobutton_adjust_cells, 'Value')  %cells
+            cell1 = handles.activeCell{1};
+            cell2 = handles.activeCell{2};
 
-        handles.embryo.getCellGraph(T, Z).removeEdge(cell1, cell2);
+            if ~handles.embryo.getCellGraph(T, Z).edgeConnected(cell1, cell2)
+                msgbox('Edge removal only works for cells that share an edge.', ...
+                    'Edge removal failed', 'error');
+                return;
+            end
 
-        % no longer active
-        handles.activeCell = [];
-        
-    
-    elseif get(handles.radiobutton_adjust_vertices, 'Value')  % vertices
-        vert1 = handles.activeVertex{1};
-        vert2 = handles.activeVertex{2};
 
-        if ~handles.embryo.getCellGraph(T, Z).connected(vert1, vert2)
-            msgbox('Edge removal only works for vertices that are connected.', ...
-                'Edge removal failed', 'error');
-            return;
+            handles.embryo.getCellGraph(T, Z).removeEdge(cell1, cell2);
+
+            % no longer active
+            handles.activeCell = [];
+
+
+        elseif get(handles.radiobutton_adjust_vertices, 'Value')  % vertices
+            vert1 = handles.activeVertex{1};
+            vert2 = handles.activeVertex{2};
+
+            if ~handles.embryo.getCellGraph(T, Z).connected(vert1, vert2)
+                msgbox('Edge removal only works for vertices that are connected.', ...
+                    'Edge removal failed', 'error');
+                return;
+            end
+
+            handles.embryo.getCellGraph(T, Z).removeEdge(vert1, vert2); 
+
+
+            handles.activeVertex = [];
         end
 
-        handles.embryo.getCellGraph(T, Z).removeEdge(vert1, vert2); 
-   
+    %     tempcg = handles.tempcg;
+    %     [T Z] = getTZ(handles);
+    %     filename = handles.info.image_file(T, Z, handles.tempsrc.poly); 
+    %     save(chgext(filename, 'none'), 'tempcg');
+    %     save_embryo(handles);
+    elseif get(handles.radiobutton_vec_auto_thisimg, 'Value')
+        readyproc(handles, 'proc');
         
-        handles.activeVertex = [];
-    end
-    
-%     tempcg = handles.tempcg;
-%     [T Z] = getTZ(handles);
-%     filename = handles.info.image_file(T, Z, handles.tempsrc.poly); 
-%     save(chgext(filename, 'none'), 'tempcg');
-%     save_embryo(handles);
-    
+        handles.embryo.autoRemoveEdges(T, Z);
+        
+        readyproc(handles, 'ready');
+
+    elseif get(handles.radiobutton_vec_auto_allimg, 'Value')
+        readyproc(handles, 'proc_all');
+
+        for time_i = handles.info.start_time:handles.info.end_time
+            set(handles.text_processing_time,  'String', num2str(time_i));
+            for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+                set(handles.text_processing_layer, 'String', num2str(layer_i));
+                drawnow;
+                
+                % skip the master layer (!)
+                if time_i == handles.info.master_time && layer_i == handles.info.master_layer
+                    continue;
+                end
+
+                if get(handles.radiobutton_stop, 'Value')
+                    set(handles.radiobutton_stop, 'Value', 0);
+                    readyproc(handles, 'ready');
+                    guidata(hObject, handles);
+                    return;
+                end
+
+                handles.embryo.autoRemoveEdges(T, Z);
+     
+            end
+        end
+
+        readyproc(handles, 'ready');
+    end    
     handles = slider_callbacks_draw_image_slice(handles);
     guidata(hObject, handles);
     
@@ -2053,28 +2150,64 @@ function vec_add_cell_Callback(hObject, eventdata, handles)
     guidata(hObject, handles);
 
 function vec_add_edge_Callback(hObject, eventdata, handles)
-    if length(handles.activeVertex) ~= 2 
-        msgbox('You must select exactly two Vertices to add an edge.', ...
-            'Add edge failed', 'error');
-        return;
-    end
+    [T Z] = getTZ(handles);
     
-    vert1 = handles.activeVertex{1};
-    vert2 = handles.activeVertex{2};
+    if get(handles.radiobutton_vec_manual, 'Value')
+        if length(handles.activeVertex) ~= 2 
+            msgbox('You must select exactly two Vertices to add an edge.', ...
+                'Add edge failed', 'error');
+            return;
+        end
 
-    [T Z] = getTZ(handles);
-    if handles.embryo.getCellGraph(T, Z).connected(vert1, vert2)
-        msgbox('An edge between these two vertices already exists.', ...
-            'Edge removal failed', 'error');
-        return;
-    end
+        vert1 = handles.activeVertex{1};
+        vert2 = handles.activeVertex{2};
+
+        [T Z] = getTZ(handles);
+        if handles.embryo.getCellGraph(T, Z).connected(vert1, vert2)
+            msgbox('An edge between these two vertices already exists.', ...
+                'Edge removal failed', 'error');
+            return;
+        end
+
+        handles.embryo.getCellGraph(T, Z).addEdge(vert1, vert2);
+
+        handles.activeVertex = [];
+
     
-    [T Z] = getTZ(handles);
-    
-    handles.embryo.getCellGraph(T, Z).addEdge(vert1, vert2);
-    
-    handles.activeVertex = [];
-    
+    elseif get(handles.radiobutton_vec_auto_thisimg, 'Value')
+        readyproc(handles, 'proc');
+                
+        handles.embryo.autoAddEdges(T, Z);
+        
+        readyproc(handles, 'ready');
+
+    elseif get(handles.radiobutton_vec_auto_allimg, 'Value')
+        readyproc(handles, 'proc_all');
+
+        for time_i = handles.info.start_time:handles.info.end_time
+            set(handles.text_processing_time,  'String', num2str(time_i));
+            for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+                set(handles.text_processing_layer, 'String', num2str(layer_i));
+                drawnow;
+                
+                % skip the master layer (!)
+                if time_i == handles.info.master_time && layer_i == handles.info.master_layer
+                    continue;
+                end
+
+                if get(handles.radiobutton_stop, 'Value')
+                    set(handles.radiobutton_stop, 'Value', 0);
+                    readyproc(handles, 'ready');
+                    guidata(hObject, handles);
+                    return;
+                end
+
+                handles.embryo.autoAddEdges(T, Z);
+     
+            end
+        end
+        readyproc(handles, 'ready');
+    end    
 %     tempcg = handles.tempcg;
 %     [T Z] = getTZ(handles);
 %     filename = handles.info.image_file(T, Z, handles.tempsrc.poly); 
@@ -2150,6 +2283,9 @@ function vec_unselect_all_Callback(hObject, eventdata, handles)
     handles = slider_callbacks_draw_image_slice_dots_semiauto(handles);
     guidata(hObject, handles);
 
+function vec_select_auto_change(hObject, eventdata)
+    handles = guidata(hObject);
+    semiauto_set_vec_enabling(handles);
     
 % function vec_add_vertex_Callback(hObject, eventdata, handles)
 %     handles.activeAdjustment = 'add_vertex';
@@ -2169,24 +2305,105 @@ function vec_move_vertex_Callback(hObject, eventdata, handles)
     guidata(hObject, handles);
     
 function vec_split_edge_Callback(hObject, eventdata, handles)
-    if length(handles.activeVertex) ~= 2 
-        msgbox('You must select exactly two Vertices to split an edge.', ...
-            'Add edge failed', 'error');
-        return;
-    end
+    if get(handles.radiobutton_vec_manual, 'Value')   
     
-    vert1 = handles.activeVertex{1};
-    vert2 = handles.activeVertex{2};
-    
-    [T Z] = getTZ(handles);
-    if ~handles.embryo.getCellGraph(T, Z).connected(vert1, vert2)
-        msgbox('You must select two connected vertices to split an edge.', ...
-            'Edge removal failed', 'error');
-        return;
-    end
+        if length(handles.activeVertex) ~= 2 
+            msgbox('You must select exactly two Vertices to split an edge.', ...
+                'Add edge failed', 'error');
+            return;
+        end
 
-    handles.activeAdjustment = 'split_edge';
-    vec_adjustments_visible(handles, 'off');
+        vert1 = handles.activeVertex{1};
+        vert2 = handles.activeVertex{2};
+
+        [T Z] = getTZ(handles);
+        if ~handles.embryo.getCellGraph(T, Z).connected(vert1, vert2)
+            msgbox('You must select two connected vertices to split an edge.', ...
+                'Edge removal failed', 'error');
+            return;
+        end
+
+        handles.activeAdjustment = 'split_edge';
+        vec_adjustments_visible(handles, 'off');
+    elseif get(handles.radiobutton_vec_auto_thisimg, 'Value')
+            readyproc(handles, 'proc');
+            handles.activeVertex = [];
+
+
+            % get the parameters
+            [T Z]   = getTZ(handles);
+            max_angle   = deg2rad(str2double(get(handles.info_text_refine_max_angle, 'String')));
+            min_angle   = deg2rad(str2double(get(handles.info_text_refine_min_angle, 'String')));
+            min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String')) ...
+                            /handles.info.microns_per_pixel;
+            bords       = imread(handles.info.image_file(T, Z, handles.tempsrc.bord));
+
+            % refine the edges
+            handles.embryo.getCellGraph(T, Z).refineEdges(bords, max_angle, min_angle, min_edge_len); 
+
+            handles = slider_callbacks_draw_image_slice(handles);
+
+            readyproc(handles, 'ready');
+
+        
+    elseif get(handles.radiobutton_vec_auto_allimg, 'Value')
+%        % allows you to applyall for multiple data sets at once
+%         datanames = get_folder_names(fullfile('..', 'DATA_GUI'));
+%         default_val = find(strcmp(datanames, handles.data_set));
+%         if length(datanames) > 1
+%             [selection ok] = listdlg('ListString', datanames, 'Name', 'Select data sets for processing', ...
+%                 'ListSize', [300 300], 'InitialValue', default_val);
+%             if ~ok
+%                 return;
+%             end
+%         else
+%             selection = default_val;
+%         end
+%         data_set = handles.data_set;
+% 
+%         % do it for all data sets~~~
+%         for i = 1:length(selection)
+%             if ~strcmp(data_set, datanames{selection(i)})
+%                 handles = clear_data_set_semiauto(handles, datanames{selection(i)});
+%             end
+
+
+            readyproc(handles, 'proc_all');
+            for time_i = handles.info.start_time:handles.info.end_time
+                set(handles.text_processing_time,  'String', num2str(time_i));
+                for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+                    set(handles.text_processing_layer, 'String', num2str(layer_i));
+                    drawnow;
+
+                    if get(handles.radiobutton_stop, 'Value')
+                        set(handles.radiobutton_stop, 'Value', 0);
+                        readyproc(handles, 'ready');
+                        guidata(hObject, handles);
+                        return;
+                    end
+
+                    max_angle   = deg2rad(str2double(get(handles.info_text_refine_max_angle, 'String')));
+                    min_angle   = deg2rad(str2double(get(handles.info_text_refine_min_angle, 'String')));
+                    min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String'));
+                    bords       = imread(handles.info.image_file(time_i, layer_i, handles.tempsrc.bord));
+
+                    % refine the edges
+                    handles.embryo.getCellGraph(time_i, layer_i).refineEdges(bords, max_angle, min_angle, min_edge_len);
+                end
+            end
+%         end
+%         if ~strcmp(handles.data_set, data_set)
+%             % go back to the original data set
+%             handles = clear_data_set_semiauto(handles, data_set);
+%         end
+
+
+
+        handles = slider_callbacks_draw_image_slice(handles);
+
+        readyproc(handles, 'ready');
+
+    end
     guidata(hObject, handles);
     
 
@@ -2215,15 +2432,14 @@ function button_refine_applythis_Callback(hObject, eventdata, handles)
     
     % get the parameters
     [T Z]   = getTZ(handles);
-    dist_thresh = str2double(get(handles.info_text_refine_split_threshold, 'String')) ...
-                    /handles.info.microns_per_pixel;
+    max_angle   = deg2rad(str2double(get(handles.info_text_refine_max_angle, 'String')));
     min_angle   = deg2rad(str2double(get(handles.info_text_refine_min_angle, 'String')));
     min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String')) ...
                     /handles.info.microns_per_pixel;
     bords       = imread(handles.info.image_file(T, Z, handles.tempsrc.bord));
     
     % refine the edges
-    handles.embryo.getCellGraph(T, Z).refineEdges(bords, dist_thresh, min_angle, min_edge_len);
+    handles.embryo.getCellGraph(T, Z).refineEdges(bords, max_angle, min_angle, min_edge_len);
     
 %     tempcg = handles.tempcg;
 %     filename = handles.info.image_file(T, Z, handles.tempsrc.poly); 
@@ -2237,31 +2453,31 @@ function button_refine_applythis_Callback(hObject, eventdata, handles)
     
 
 function button_refine_applyall_Callback(hObject, eventdata, handles)
-    % allows you to applyall for multiple data sets at once
-    datanames = get_folder_names(fullfile('..', 'DATA_GUI'));
-    default_val = find(strcmp(datanames, handles.data_set));
-    if length(datanames) > 1
-        [selection ok] = listdlg('ListString', datanames, 'Name', 'Select data sets for processing', ...
-            'ListSize', [300 300], 'InitialValue', default_val);
-        if ~ok
-            return;
-        end
-    else
-        selection = default_val;
-    end
-    data_set = handles.data_set;
-    
-    % do it for all data sets~~~
-    for i = 1:length(selection)
-        if ~strcmp(data_set, datanames{selection(i)})
-            handles = clear_data_set_semiauto(handles, datanames{selection(i)});
-        end
-        
+%     % allows you to applyall for multiple data sets at once
+%     datanames = get_folder_names(fullfile('..', 'DATA_GUI'));
+%     default_val = find(strcmp(datanames, handles.data_set));
+%     if length(datanames) > 1
+%         [selection ok] = listdlg('ListString', datanames, 'Name', 'Select data sets for processing', ...
+%             'ListSize', [300 300], 'InitialValue', default_val);
+%         if ~ok
+%             return;
+%         end
+%     else
+%         selection = default_val;
+%     end
+%     data_set = handles.data_set;
+%     
+%     % do it for all data sets~~~
+%     for i = 1:length(selection)
+%         if ~strcmp(data_set, datanames{selection(i)})
+%             handles = clear_data_set_semiauto(handles, datanames{selection(i)});
+%         end
+%         
     
         readyproc(handles, 'refine_all');
         for time_i = handles.info.start_time:handles.info.end_time
             set(handles.text_processing_time,  'String', num2str(time_i));
-            for layer_i = handles.info.bottom_layer:sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+            for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
                 set(handles.text_processing_layer, 'String', num2str(layer_i));
                 drawnow;
 
@@ -2272,39 +2488,21 @@ function button_refine_applyall_Callback(hObject, eventdata, handles)
                     return;
                 end
 
-                dist_thresh = str2double(get(handles.info_text_refine_split_threshold, 'String')) ...
-                    / handles.info.microns_per_pixel;
+                max_angle   = deg2rad(str2double(get(handles.info_text_refine_max_angle, 'String')));
                 min_angle   = deg2rad(str2double(get(handles.info_text_refine_min_angle, 'String')));
                 min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String'));
                 bords       = imread(handles.info.image_file(time_i, layer_i, handles.tempsrc.bord));
 
-%                 filename = handles.info.image_file(time_i, layer_i, handles.tempsrc.poly);
-%                 filename = chgext(filename, 'mat');
-%                 if ~exist(filename, 'file')
-%                 msgbox(strcat('Temporary file ', filename, ' does not exist. Refining aborted.'), 'Refine failed', 'error');
-%                     readyproc(handles, 'ready');
-%                     return;
-%                 else
-%                     load(filename);  % loads "tempcg"
-%                 end
-
                 % refine the edges
-                embryo.getCellGraph(T, Z).refineEdges(bords, dist_thresh, min_angle, min_edge_len);
-
-%                 filename = handles.info.image_file(time_i, layer_i, handles.tempsrc.poly); 
-%                 save(chgext(filename, 'none'), 'tempcg');
-                
-
+                handles.embryo.getCellGraph(time_i, layer_i).refineEdges(bords, max_angle, min_angle, min_edge_len);
+     
             end
         end
-%         save_embryo(handles);
-    end
-    if ~strcmp(handles.data_set, data_set)
-        % go back to the original data set
-        handles = clear_data_set_semiauto(handles, data_set);
-    end
-    
-    
+%     end
+%     if ~strcmp(handles.data_set, data_set)
+%         % go back to the original data set
+%         handles = clear_data_set_semiauto(handles, data_set);
+%     end
     
     handles = slider_callbacks_draw_image_slice(handles);
     
@@ -2313,7 +2511,7 @@ function button_refine_applyall_Callback(hObject, eventdata, handles)
 
 
 function vec_activate_cell_Callback(hObject, eventdata, handles)
-
+%unfinished!!!
 
 function goto_master_image_Callback(hObject, eventdata, handles)
     [T Z] = getTZ(handles);

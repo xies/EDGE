@@ -1,5 +1,5 @@
 % Install script for EDGE
-% Michael Gelbart // 2009
+% by Michael Gelbart
 clear all; clc;
 
 % ***user-defined *** %

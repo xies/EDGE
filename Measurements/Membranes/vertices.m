@@ -1,4 +1,4 @@
-function [data names units] = vertices(embryo, getMembranes, t, z, c, dx, dz, dt)
+function [data names units] = vertices(embryo, getMembranes, t, z, c, dx, dz, dt, other)
 % computes the ellipse properties at (t, z) for Cell i given the Embryo4D,
 % the membranes, and the relevant resolutions
 

@@ -22,6 +22,7 @@ function handles = slider_callbacks_draw_image_slice(handles)
     if get(handles.cbox_raw,  'Value')
         out = imread(handles.info.image_file(T, Z, handles.src.raw));
         out = double(out);
+%         out = handles.info.image_file.raw(T, Z);
         out = out / max(out(:));
 
         img = repmat(out, [1 1 3]);  % all 3 channels
@@ -102,7 +103,7 @@ function handles = slider_callbacks_draw_image_slice(handles)
                 for i = 1:length(handles.activeCell)
                     activecells(i) = cg.getCell(handles.activeCell(i));
                 end
-                cents = round(Cell.centroidStack(activecells));
+                cents = Cell.centroidStack(activecells);
                         xplot = [cents(:, 2) NaN(size(cents, 1), 1)].';
                 yplot = [cents(:, 1) NaN(size(cents, 1), 1)].';
                 plot(xplot, yplot, '.');
@@ -143,6 +144,14 @@ function handles = slider_callbacks_draw_image_slice(handles)
     % this method works much faster than any other i have tried (several)
     if handles.is_semiauto
         if ~isempty(handles.embryo.getCellGraph(T, Z))
+            
+%             % try plotting all the centroids
+%             cents = Cell.centroidStack(handles.embryo.getCellGraph(T, Z).cells);
+%             xplot = [cents(:, 2) NaN(size(cents, 1), 1)].';
+%             yplot = [cents(:, 1) NaN(size(cents, 1), 1)].';
+%             plot(xplot, yplot, '*r', 'MarkerSize', 3);
+            
+            
             if handles.embryo.isTracked  % if it's tracked
                 
                 if get(handles.cbox_poly, 'Value')
@@ -151,7 +160,7 @@ function handles = slider_callbacks_draw_image_slice(handles)
                         CMS = double(handles.embryo.getCellGraph(T, Z).connectivityMatrixVertexSparseActive);
                         numV = handles.embryo.getCellGraph(T, Z).numActiveVertices;
                         sparseCM = sparse(CMS(1, :), CMS(2, :), 1, numV, numV);
-                        gplot(sparseCM, fliplr(Vertex.coords(handles.embryo.getCellGraph(T, Z).activeVertices)));
+                        gplot2(sparseCM, fliplr(Vertex.coords(handles.embryo.getCellGraph(T, Z).activeVertices)), 'm');
                     end
                 end
                 if get(handles.cbox_inactive, 'Value')  % if you want to draw inactive cells
@@ -173,19 +182,19 @@ function handles = slider_callbacks_draw_image_slice(handles)
                     CMS = double(handles.embryo.getCellGraph(T, Z).connectivityMatrixVertexSparse);
                     numV = handles.embryo.getCellGraph(T, Z).numVertices;
                     sparseCM = sparse(CMS(1, :), CMS(2, :), 1, numV, numV);
-                    gplot(sparseCM, fliplr(Vertex.coords(handles.embryo.getCellGraph(T, Z).vertices)));
+                    gplot(sparseCM, fliplr(Vertex.coords(handles.embryo.getCellGraph(T, Z).vertices)), 'm');
                 end
             end            
         else
 %             img(:,:,3) = img(:,:,3) + imagestripe(handles.info.Ys, handles.info.Xs);
         end
-    elseif get(handles.cbox_poly, 'Value')  % for browser
+    elseif get(handles.cbox_poly, 'Value')  % for EDGE browser
 %         img(:,:,3) = img(:,:,3) + handles.embryo.getCellGraph(T, Z).drawActive;
         if handles.embryo.getCellGraph(T, Z).numActiveCells > 0
             CMS = double(handles.embryo.getCellGraph(T, Z).connectivityMatrixVertexSparseActive);
             numV = handles.embryo.getCellGraph(T, Z).numActiveVertices;
             sparseCM = sparse(CMS(1, :), CMS(2, :), 1, numV, numV);
-            gplot(sparseCM, fliplr(Vertex.coords(handles.embryo.getCellGraph(T, Z).activeVertices)));
+            gplot2(sparseCM, fliplr(Vertex.coords(handles.embryo.getCellGraph(T, Z).activeVertices)), 'm');
         end
     end
 

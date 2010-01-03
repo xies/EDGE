@@ -1,4 +1,4 @@
-function [data names units] = nuclei_intensity(embryo, getNuclei, t, z, c, dx, dz, dt)
+function [data names units] = nuclei_intensity(embryo, getNuclei, t, z, c, dx, dz, dt, other)
 
 % the names
 names{1} = 'nuclei intensity';

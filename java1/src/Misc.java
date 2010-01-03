@@ -1,7 +1,6 @@
 import java.util.Stack;
 
-public class Misc {
-
+public class Misc {	
 	// returns the angle (in radians) of a point given an origin
 	public static double angle(double[] origin, double[] point) {
         double dx = point[1] - origin[1];
@@ -35,6 +34,12 @@ public class Misc {
 		out[0] = (a[0] + b[0])/2;
 		out[1] = (a[1] + b[1])/2;
 		return out;
+	}
+	public static int[] midpointInt(double[] a, double[] b) {
+		int[] out = new int[2];
+		out[0] = (int)Math.round((a[0] + b[0])/2);
+		out[1] = (int)Math.round((a[1] + b[1])/2);
+		return out;		
 	}
 	public static double slope(double[] a, double[] b) {
 		return (a[0] - b[0]) / (a[1] - b[1]);

@@ -16,6 +16,10 @@ if info.notfound  % if this is a new data set, never been imported
         '" does not exist. Data set must first be processed using semiauto.m'), ...
         'Loading failed', 'error'); 
     set(handles.text_readyproc, 'Visible', 'off');
+    % put the dropdown back to its old value
+    all_datasets = get(handles.dropdown_datasets, 'String');
+    old_dataset_number = find(strcmp(all_datasets, handles.data_set));
+    set(handles.dropdown_datasets, 'Value', old_dataset_number);   
     return;
 end
 
@@ -66,10 +70,13 @@ if handles.info.start_time ~= handles.embryo.startTime || ...
 end
 
 
+% just write this once in case I want to change this list
+handles.builtin = {'Area'; 'Perimeter'; 'Centroid-x'; 'Centroid-y'};
+
 
 % initialize the measurements dropdown menu and load stored_properties
 % measures = get_measurement_names(handles);
-allmeasures = {'Area'; 'Perimeter'; 'Centroid-x'; 'Centroid-y'};
+allmeasures = handles.builtin;
  
  prop_filename = fullfile(handles.src.parent, 'measurements.mat');
 if exist(prop_filename, 'file')

@@ -18,7 +18,7 @@ if ~isempty(handles.activeCell)
     for i = 1:length(handles.activeCell)
         activecells(i) = handles.activeCell{i};
     end
-    cents = round(Cell.centroidStack(activecells));
+    cents = Cell.centroidStack(activecells);
     handles.cents_handle = plot(cents(:,2), cents(:,1), '.r');
 end
 
@@ -34,7 +34,7 @@ if isfield(handles, 'activeVertex')
         for i = 1:length(handles.activeVertex)
             activeverts(i) = handles.activeVertex{i};
         end
-        verts = round(Vertex.coords(activeverts));
+        verts = Vertex.coords(activeverts);
         handles.verts_handle = plot(verts(:,2), verts(:, 1), 'og');
     end
 end

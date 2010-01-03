@@ -1,7 +1,25 @@
-function save_embryo(handles)
+function handles = save_embryo(handles)
 % save the embryo file to the DATA_SEMIAUTO directory
 
 
+% if ~handles.embryo.changed
+%     return;
+% else
+%     % want to save it with this equal to zero
+%     handles.embryo.changed = 0;
+% end
+
+% if unchanged, don't bother
+% can just store changed variable in Embryo4D class, set it back to
+% unchanged upon save (i.e. at the bottom of this function)
+% or is that a problem because sometimes you just change the CG? does that
+% ever happen? probably not because of re-tracking...
+% could also just re-load saved thing and compare, but then this barely
+% saves time because loading takes almost as long as saving (maybe half the
+% time)
+
+% do this first so that the saved form will always have this set to zero
+handles.embryo.changed = 0;
 
 
 embryo4d = handles.embryo;
@@ -10,10 +28,11 @@ try
     save(filename, 'embryo4d');
 catch ME
    % IN CASE IT RUNS OUT OF MEMORY WHILE SAVING!!!!!!!!!!!!!!!!!!!!! 
-   disp('Error in save_embryo.m: out of memory...!!!!') 
+   disp('Error in save_embryo.m: out of memory!') 
    keyboard
     
 end
+
 
 
 

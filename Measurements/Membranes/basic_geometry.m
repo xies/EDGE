@@ -1,4 +1,4 @@
-function [data names units] = basic_geometry(embryo, getMembranes, t, z, c, dx, dz, dt)
+function [data names units] = basic_geometry(embryo, getMembranes, t, z, c, dx, dz, dt, other)
 % computes the basic geometrical properties at (t, z) for Cell c given the
 % Embryo4D and the relevant resolutions
 

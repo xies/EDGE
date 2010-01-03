@@ -9,7 +9,7 @@ function import_copymove_files(handles, image_file, dest, rm_files, sample_image
 
 for time_i = handles.info.start_time:handles.info.end_time
     set(handles.text_processing_time,  'String', num2str(time_i));
-    for layer_i = handles.info.bottom_layer:sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+    for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
         if get(handles.radiobutton_stop, 'Value')
             set(handles.radiobutton_stop, 'Value', 0);
             readyproc(handles, 'ready');
@@ -36,7 +36,7 @@ if ndims(sample_image) == 3
     readyproc(handles, 'finalizing');
     for time_i = handles.info.start_time:handles.info.end_time
         set(handles.text_processing_time,  'String', num2str(time_i));
-        for layer_i = handles.info.bottom_layer:sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+        for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
             set(handles.text_processing_layer, 'String', num2str(layer_i));
             drawnow
 

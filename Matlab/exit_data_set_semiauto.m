@@ -23,7 +23,21 @@ if ~isempty(fields)  % if there are changes
     end
 end
 
-% save in all cases. this is the only time we call save_embryo (!!)
-readyproc(handles, 'saving');
-save_embryo(handles);
+
+% ask about unsaved changes to the embryo data
+if handles.embryo.changed
+    msg = 'There are unsaved changes to the Embryo data.';
+    res = questdlg(msg, 'Saving changes', ...
+                 'Save changes', 'Discard changes', 'Save changes');  
+    if strcmp(res, 'Save changes')
+        % this is the only time we call save_embryo (!!)
+        readyproc(handles, 'saving');
+        handles = save_embryo(handles);
+    elseif strcmp(res, 'Discard changes')
+        % do nothing
+    end
+end
+
+
+
 

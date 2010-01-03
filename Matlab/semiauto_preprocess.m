@@ -25,7 +25,13 @@ minimum_cell_size = handles.info.minimum_cell_size / (handles.info.microns_per_p
 [vertex_list] = find_vertices(dirty);
 
 % the minimum distance between vertices before they get merged into one
-VERTEX_MERGE_DIST_THRESH = 3.0; %pixel
+% VERTEX_MERGE_DIST_THRESH = 3.0; %pixel
+VERTEX_MERGE_DIST_THRESH = handles.info.refine_min_edge_length / handles.info.microns_per_pixel;
+% convert from microns to pixels
+% note that the min_edge_length is used here and when doing automatic split
+% edge -- in both cases, one cannot make edges smaller than this
+% also, note that the VERTEX_MERGE_DIST_THRESH may not end up being exactly
+% the same as a minimum edge length, but it's close enough
 
 % create the CellGraph object
 cg = CellGraph(regions, centroid_list, vertex_list, T, Z, VERTEX_MERGE_DIST_THRESH);

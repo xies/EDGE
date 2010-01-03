@@ -6,6 +6,7 @@ for i = 1:length(names)
     cont = strfind(names{i}, 'vec_');
     if ~isempty(cont) && cont(1) == 1
         set(handles.(names{i}), 'Visible', onoff)
+        set(handles.(names{i}), 'Enable', onoff)
     end
 end
 

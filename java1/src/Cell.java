@@ -80,6 +80,7 @@ public class Cell implements java.io.Serializable {
 		}
 		
 		vertices = newVertArray;
+		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in Cell:splitEdge!");
 		assert(isValid());
 	}
 	// remove the vertex v while preserving the sorted order
@@ -94,6 +95,7 @@ public class Cell implements java.io.Serializable {
 				newVertArray[j++] = vertices[i++];
 		}
 		vertices = newVertArray;
+		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in Cell:removeVertex!");
 		assert(isValid());
 	}
 	
@@ -110,9 +112,15 @@ public class Cell implements java.io.Serializable {
 		return false;
 	}
 	
+	public boolean equals(Cell that) {
+		if (this.numV() != that.numV()) return false;
+		for (int i = 0; i < numV(); i++)
+			if (this.vertices()[i] != that.vertices()[i]) return false;
+		return true;
+	}
 	
 	public boolean isActive() {
-		return parent.isActive(this);
+		return CellGraph.isActive(this);
 	}
 	public int index() {
 		return index;
@@ -364,6 +372,19 @@ public class Cell implements java.io.Serializable {
 //		return true;
 //	}
 	
+	// computes the overlapping area between this and that Cell
+	public double overlapArea(Cell that) {
+//		Polygon p1 = this.getPolygon();
+//		Polygon p2 = that.getPolygon();
+//		Area a1 = new Area(p1);
+//		Area a2 = new Area(p2);
+//		Area dif = new Area(p1);
+//		dif.subtract(a2);   // dif = a1 - a2
+//		a1.subtract(dif);   // a1 = a1 - dif = a1 - (a1 - a2)
+		if (that == null) return Double.NaN;
+		return PolygonIntersect.intersectionArea(this.vertexCoords(), that.vertexCoords());
+	}
+	
 	public boolean containsPoint(int y, int x) {
 		int[] point = new int[2];
 		point[0] = y;
@@ -372,6 +393,10 @@ public class Cell implements java.io.Serializable {
 	}
 	// uses the java.awt.Polygon to determine if the point is inside
 	public boolean containsPoint(int[] input) {
+		Polygon p = getPolygon();
+		return p.contains(input[1], input[0]);
+	}
+	private Polygon getPolygon() {
 		int[] x = new int[numV()];
 		int[] y = new int[numV()];
 		for (int i = 0; i < numV(); i++) {
@@ -379,7 +404,7 @@ public class Cell implements java.io.Serializable {
 			y[i] = (int)vertices[i].coords()[0];
 		}
 		Polygon p = new Polygon(x, y, numV());
-		return p.contains(input[1], input[0]);
+		return p;
 	}
 	
 	// does this Cell contain the Vertex input?
@@ -387,6 +412,12 @@ public class Cell implements java.io.Serializable {
 		for (Vertex v : vertices)
 			if (v == input) return true;
 		return false;
+	}
+	
+	// does this cell contain both of these vertices in a connected manner?
+	public boolean containsEdge(Vertex v, Vertex w) {
+		if (!containsVertex(v) || !containsVertex(w)) return false;
+		return connected(v, w);
 	}
 	
 	// draw the Cell (image is also returned for Matlab callers, there is no need for this in Java)
