@@ -2104,7 +2104,7 @@ function vec_remove_edge_Callback(hObject, eventdata, handles)
                     return;
                 end
 
-                handles.embryo.autoRemoveEdges(T, Z);
+                handles.embryo.autoRemoveEdges(time_i, layer_i);
      
             end
         end
@@ -2202,7 +2202,7 @@ function vec_add_edge_Callback(hObject, eventdata, handles)
                     return;
                 end
 
-                handles.embryo.autoAddEdges(T, Z);
+                handles.embryo.autoAddEdges(time_i, layer_i);
      
             end
         end
