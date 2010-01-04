@@ -2070,7 +2070,6 @@ function vec_remove_edge_Callback(hObject, eventdata, handles)
 
             handles.activeVertex = [];
         end
-
     %     tempcg = handles.tempcg;
     %     [T Z] = getTZ(handles);
     %     filename = handles.info.image_file(T, Z, handles.tempsrc.poly); 
