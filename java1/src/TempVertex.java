@@ -37,6 +37,10 @@ public class TempVertex {
 		return cellNeighbors.size();
 	}
 	
+	public boolean containsNeighor(int i) {
+		return cellNeighbors.contains(i);
+	}
+	
 	public void addNeighbors(int[] input) {
 		for (int i : input) cellNeighbors.add(i);
 	}

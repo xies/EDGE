@@ -124,6 +124,11 @@ public class CellGraph implements java.io.Serializable {
 			if (v.numNeighbors() == 1) {
 				tempVerts.remove(v);
 			}
+			// new: also, if a vertex has only two neighbors and is not along the edge, get rid of it
+			// this prevents weird extra vertices from appearing in the middle
+			else if (v.numNeighbors() == 2 && !v.containsNeighor(-1)) {
+				tempVerts.remove(v);
+			}
 			else {
 				// now can get rid of the background pixels
 				v.removeNeighbor(-1);

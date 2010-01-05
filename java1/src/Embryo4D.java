@@ -907,6 +907,10 @@ public class Embryo4D implements java.io.Serializable {
 			Vector<Vertex[]> candidates = new Vector<Vertex[]>();
 			Vector<Double> candidatesOverlap = new Vector<Double>();
 				
+			if (c == null) {
+				System.err.println("null Cell during error correction! index = " + i);
+				System.err.println("t = " + t + ", z = " + z);
+			}
 			
 			// for all unique pairs
 			for (int vInd = 0; vInd < c.numV(); vInd++) {
