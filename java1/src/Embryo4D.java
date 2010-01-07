@@ -43,7 +43,7 @@ public class Embryo4D implements java.io.Serializable {
 		
 		cellGraphs = new CellGraph[Math.abs(startTime-endTime)+1][Math.abs(bottomLayer-topLayer)+1];
 		numCells = 0;
-		changed = true;
+		changed = false;
 		
 		if (DEBUG_MODE && !isValid()) System.err.println("Error in Embryo4D:init!");
 		assert(isValid());
@@ -58,7 +58,7 @@ public class Embryo4D implements java.io.Serializable {
 				 areaChangeMaxZ,  layersToLookBackZ,  centroidDistMaxZ, 
 				 areaChangeMaxT,  layersToLookBackT,  centroidDistMaxT);
 		
-		changed = false;
+//		changed = false;
 		
 		// get whatever CellGraphs the old embryo has
 		for (int i = 0; i < t(); i++) {

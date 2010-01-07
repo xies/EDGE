@@ -505,7 +505,9 @@ function button_applyall_Callback(hObject, eventdata, handles)
                 end
             end
         end
-%         save_embryo(handles);
+        % must save here, because as soon as you move on to the next
+        % embryo, all the work on the current embryo is lost!!
+        save_embryo(handles);
                
     end
     set(handles.text_readyproc_details, 'Visible', 'off');
