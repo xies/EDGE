@@ -1,6 +1,6 @@
 % Install script for EDGE 
 % by Michael Gelbart
-clear all; clc; 
+clear all; clc;
 
 % ***user-defined *** %
 JAVA_NAME = fullfile('java1', 'bin');
