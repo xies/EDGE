@@ -913,7 +913,7 @@ public class Embryo4D implements java.io.Serializable {
 				System.err.println("null Cell during error correction! index = " + i);
 				System.err.println("t = " + t + ", z = " + z);
 			}
-			System.out.println(i);
+//			System.out.println(i);
 			
 			// for all unique pairs
 			for (int vInd = 0; vInd < c.numV(); vInd++) {
