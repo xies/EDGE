@@ -153,10 +153,10 @@ if ~isnan(handles.info.seconds_per_frame)
 % times series data set
     set(handles.smoothing_panel, 'Visible', 'on');
 %     set(handles.export_panel, 'Visible', 'on');
-    set(handles.radiobutton_export_this_layer, 'Value', 1);
+%     set(handles.radiobutton_export_this_layer, 'Value', 1);
 %     set(handles.radiobutton_export_all_layers, 'Value', 0);
-    handles.export_all_layers = 0;
-    handles.exporting = 0;
+%     handles.export_all_layers = 0;
+%     handles.exporting = 0;
 else
 % fixed data set
     set(handles.button_smoothed, 'Value', 1);
@@ -165,7 +165,7 @@ else
 %     set(handles.smoothing_panel, 'Visible', 'off');
     set(handles.smoothing_strength_slider, 'Value', 0);
     set(handles.smoothing_strength_text, 'String', '0');
-    set(handles.export_panel, 'Visible', 'off');
+%     set(handles.export_panel, 'Visible', 'off');
 end
 
 

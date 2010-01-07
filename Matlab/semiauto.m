@@ -1862,11 +1862,11 @@ function button_import_Callback(hObject, eventdata, handles)
     handles.info.Xs = dims(2);
     handles.info.master_time = handles.info.start_time;
     handles.info.master_layer = handles.info.bottom_layer;
-    handles.info.minimum_cell_size = 0;
+    handles.info.minimum_cell_size = 2;
     handles.info.bandpass_low = 1;
     handles.info.bandpass_high = 10;
     handles.info.number_of_erosions = 0;
-    handles.info.preprocessing_threshold = 0;
+    handles.info.refine_max_angle = 170;
     handles.info.refine_min_edge_length = 0.5;
     handles.info.refine_min_angle = 90;
     handles.info.refine_split_threshold = 1.0;

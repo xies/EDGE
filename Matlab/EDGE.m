@@ -146,7 +146,7 @@ function EDGE_OpeningFcn(hObject, eventdata, handles, varargin)
     set(handles.panel_3d_z_or_t, 'SelectionChangeFcn', @panel_3d_change);
     set(handles.panel_neighbors_averages, 'SelectionChangeFc', @averages_panel_change);
     set(handles.radiobutton_panel_3d,'SelectionChangeFcn', @wireframe_surface_panel_change);
-    set(handles.export_panel,        'SelectionChangeFcn',@export_panel_selection);
+%     set(handles.export_panel,        'SelectionChangeFcn',@export_panel_selection);
     
     guidata(hObject, handles);
     
@@ -960,17 +960,17 @@ function wireframe_surface_panel_change(hObject, eventdata)
     guidata(hObject, handles);
 
 
-function export_panel_selection(hObject, eventdata)
-    handles = guidata(hObject);   
-    switch get(eventdata.NewValue,'Tag')
-        case 'radiobutton_export_all_layers'
-            handles.export_all_layers = 1;
-        case 'radiobutton_export_this_layer'
-            handles.export_all_layers = 0;
-        otherwise
-            %
-    end
-    guidata(hObject, handles);
+% function export_panel_selection(hObject, eventdata)
+%     handles = guidata(hObject);   
+%     switch get(eventdata.NewValue,'Tag')
+%         case 'radiobutton_export_all_layers'
+%             handles.export_all_layers = 1;
+%         case 'radiobutton_export_this_layer'
+%             handles.export_all_layers = 0;
+%         otherwise
+%             %
+%     end
+%     guidata(hObject, handles);
 
 
 function button_make_movie_Callback(hObject, eventdata, handles)
