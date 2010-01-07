@@ -58,7 +58,7 @@ public class Embryo4D implements java.io.Serializable {
 				 areaChangeMaxZ,  layersToLookBackZ,  centroidDistMaxZ, 
 				 areaChangeMaxT,  layersToLookBackT,  centroidDistMaxT);
 		
-//		changed = false;
+		changed = true;
 		
 		// get whatever CellGraphs the old embryo has
 		for (int i = 0; i < t(); i++) {

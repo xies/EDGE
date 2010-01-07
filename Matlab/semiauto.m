@@ -1991,6 +1991,8 @@ function button_set_master_image_Callback(hObject, eventdata, handles)
 
     handles = update_embryo(handles);
     
+    handles = slider_callbacks_draw_image_slice(handles);    
+    
     guidata(hObject, handles);
     
     
