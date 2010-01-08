@@ -208,7 +208,8 @@ public class CellGraph implements java.io.Serializable {
 		
 		for (int i = 0; i < finalCells.size(); i++)
 			addCell(finalCells.get(i), -i - 1);  // strictly NEGATIVE INDICES --> INACTIVE
-		
+
+		/*
 		// do the angle check  NOT SURE IF THIS IS RIGHT YET
 		for (int i : cellIndices()) {
 			Cell c = getCell(i);
@@ -224,6 +225,7 @@ public class CellGraph implements java.io.Serializable {
 //				removeCell(c);
 			
 		}
+		*/
 			
 		
 		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in CellGraph:init!");

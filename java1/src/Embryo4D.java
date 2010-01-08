@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.Vector;
 
 public class Embryo4D implements java.io.Serializable {
@@ -898,10 +899,23 @@ public class Embryo4D implements java.io.Serializable {
 
 		// for all inactive cells at this layer
 		int[] inactiveCellIndices = cg.inactiveCellIndices();
-		for (int loop = 0; loop < inactiveCellIndices.length; loop++) {
+		for (int loop = inactiveCellIndices.length - 1; loop >= 0; loop--) {
 			int i = inactiveCellIndices[loop];			
 			Cell c = cg.getCell(i);
 
+// error might be happening because we take a copy of the array at the top, but when we re-add a cell
+			// it might get a different index because inactives are not compact. that when we look
+			// for the original it is nor there. is this right? why does it happen so rarely?
+			// well, it's usually an EARLIEr one that gets lost...
+//			for (int jj : cg.cellIndices())
+//				if (cg.getCell(jj) == null)
+//					System.err.println("Null cell in looper iteration " + i + " for Cell " + jj);
+//			
+//			for (int jj : inactiveCellIndices)
+//				if (cg.getCell(jj) == null)
+//					System.err.println("2 Null cell in looper iteration " + i + " for Cell " + jj);
+			
+			
 //			System.out.println("****" + c);
 					
 			// keep track of the potential merges and their "score"
