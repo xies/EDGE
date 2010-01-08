@@ -184,7 +184,7 @@ public class Embryo4D implements java.io.Serializable {
 				// although actually that should probably never happen anyway.....
 				// this is obsolete with the new system of more negative indices. ok... 
 				// regular cellAtPoint would be fine too, it's the same thing
-				Cell cMatchCandidate = cellGraphs[t][j].inactiveCellAtPoint(cTrack.centroidInt());
+				Cell cMatchCandidate = cellGraphs[t][j].inactiveCellAtPoint(cTrack.centroid());
 				if (cMatchCandidate == null) continue;
 						
 				/// this isCellMatch function contains the conditions for tracking
@@ -309,7 +309,7 @@ public class Embryo4D implements java.io.Serializable {
 		for (int i = from + dir; i < t() && i >= 0; i += dir) {  // i is a temporal variable
 			int j = i;
 			for ( ; j < t() && j < i + layersToLookBackT && j >= 0 && j > i - layersToLookBackT; j += dir) {
-				Cell cMatchCandidate = cellGraphs[j][master_layer].inactiveCellAtPoint(cTrack.centroidInt());
+				Cell cMatchCandidate = cellGraphs[j][master_layer].inactiveCellAtPoint(cTrack.centroid());
 				if (cMatchCandidate == null) continue;
 				
 				if (isCellMatch(cTrack, cMatchCandidate, areaChangeMaxT, centroidDistMaxT)) {
@@ -530,7 +530,7 @@ public class Embryo4D implements java.io.Serializable {
 				// in tracking we use inactiveCellAtPoint... here we use activeCellAtPoint
 				// again, because we are going the right direction. if we find an inactive cell
 				// that's OK, but it doesn't help us...
-				Cell cMatchCandidate = cellGraphs[t][i].activeCellAtPoint(cTrack.centroidInt());
+				Cell cMatchCandidate = cellGraphs[t][i].activeCellAtPoint(cTrack.centroid());
 				if (cMatchCandidate != null) 				
 					if (isCellMatch(cTrack, cMatchCandidate, areaChangeMaxZ, centroidDistMaxZ))
 //						if (cMatchCandidate.isActive())
@@ -546,7 +546,7 @@ public class Embryo4D implements java.io.Serializable {
 			for (int i = t + dir; i < t() && i < t + layersToLookBackT && i >= 0 && i > t - layersToLookBackT; i += dir) {
 				
 				// (back)tracking
-				Cell cMatchCandidate = cellGraphs[i][master_layer].activeCellAtPoint(cTrack.centroidInt());
+				Cell cMatchCandidate = cellGraphs[i][master_layer].activeCellAtPoint(cTrack.centroid());
 				if (cMatchCandidate != null) 				
 					if (isCellMatch(cTrack, cMatchCandidate, areaChangeMaxT, centroidDistMaxT))
 //						if (cMatchCandidate.isActive())   // implied by activeCellAtPoint
@@ -763,8 +763,8 @@ public class Embryo4D implements java.io.Serializable {
 		if (areaRatio > area_change_max) return false;
 		
 		// STEP 3: the two cells must contain each other's centroids
-		if (!cMatchCandidate.containsPoint(cTrack.centroidInt())) return false;
-		if (!cTrack.containsPoint(cMatchCandidate.centroidInt())) return false;
+		if (!cMatchCandidate.containsPoint(cTrack.centroid())) return false;
+		if (!cTrack.containsPoint(cMatchCandidate.centroid())) return false;
 		// (note, the first of these is redundant, since that's how the match candidate is defined)
 		// (but it's good to have them both here, since it ensures tracking is a 1:1 operation)
 		// actually, there IS a reason to check both. if we are CHECKING the tracking (as 
@@ -910,7 +910,7 @@ public class Embryo4D implements java.io.Serializable {
 			Vector<Double> candidatesOverlap = new Vector<Double>();
 				
 			if (c == null) {
-				System.err.println("null Cell during error correction! index = " + i);
+				System.err.println("WARNING (Embryo4D:autoAddEdges):null Cell during error correction! index = " + i);
 				System.err.println("t = " + t + ", z = " + z);
 			}
 //			System.out.println(i);
@@ -926,12 +926,12 @@ public class Embryo4D implements java.io.Serializable {
 			
 					// let this be handled by the correct cell-- don't let it happen for a cell
 					// where the edge is not inside.....
-					if (cg.cellAtPoint(Misc.midpointInt(v.coords(), w.coords())) != c) continue;
+					if (cg.cellAtPoint(Misc.midpoint(v.coords(), w.coords())) != c) continue;
 
-					
 					int[] newInds = cg.addEdge(v, w);
 					// cases where the line between the new vertices is outside of the cell
 					// and not inside any other cell (because that cell is at the edge of the embryo)
+					
 					if (newInds == null) continue;  
 					// note in this case the edge was not added, so we don't need to worry
 					
@@ -941,7 +941,7 @@ public class Embryo4D implements java.io.Serializable {
 //					System.out.println("new inds = " + newIndex1 + ", " + newIndex2);
 //					System.out.println(cg.getCell(newIndex1));
 //					System.out.println(cg.getCell(newIndex2));
-					
+										
 					if (CellGraph.isActive(newIndex1) && CellGraph.isActive(newIndex2)) {
 						Vertex[] newPair = new Vertex[2];
 						newPair[0] = v;
@@ -957,11 +957,12 @@ public class Embryo4D implements java.io.Serializable {
 //						System.out.println("AAAAA " + cg.getCell(newIndex1).numV() + " " + cg.getCell(newIndex2).numV());
 //						break;   // success
 					}
+										
 					// remove that edge manually
 					removeCell(cg.getCell(newIndex1), t, z);
 					removeCell(cg.getCell(newIndex2), t, z);					
 					cg.addCell(c, i);
-
+					
 					
 				}  // each vertex
 			}  // each vertex

@@ -1,6 +1,7 @@
 import java.util.Arrays;
 import java.util.Comparator;
 import java.awt.Polygon;
+import java.util.Vector;
 
 // comparable for using in Sets
 public class Cell implements java.io.Serializable {
@@ -385,14 +386,14 @@ public class Cell implements java.io.Serializable {
 		return PolygonIntersect.intersectionArea(this.vertexCoords(), that.vertexCoords());
 	}
 	
-	public boolean containsPoint(int y, int x) {
-		int[] point = new int[2];
+	public boolean containsPoint(double y, double x) {
+		double[] point = new double[2];
 		point[0] = y;
 		point[1] = x;
 		return containsPoint(point);
 	}
 	// uses the java.awt.Polygon to determine if the point is inside
-	public boolean containsPoint(int[] input) {
+	public boolean containsPoint(double[] input) {
 		Polygon p = getPolygon();
 		return p.contains(input[1], input[0]);
 	}
@@ -418,6 +419,29 @@ public class Cell implements java.io.Serializable {
 	public boolean containsEdge(Vertex v, Vertex w) {
 		if (!containsVertex(v) || !containsVertex(w)) return false;
 		return connected(v, w);
+	}
+	
+	// check the angles formed by consecutive groups of 3 vertices. if any is too small
+	// remove that vertex...
+	public Vertex[] checkAngle(double minAngle) {
+		// an array that has the first 2 elements at the end so it is cyclic for groups of 3
+		Vector<Vertex> badVertices = new Vector<Vertex>();  // in case there are more than one (totally unlikely)
+		Vertex[] verts = new Vertex[numV() + 2];
+		for (int i = 0; i < numV(); i++)
+			verts[i] = vertices[i];
+		verts[numV()] = vertices[0];
+		verts[numV()+1] = vertices[1];
+		for (int i = 0; i < numV(); i++) {
+			double angle = Misc.angle(verts[i+1].coords(), verts[i].coords(), verts[i+2].coords());
+			if (angle < minAngle) {
+//				System.out.println(angle + " < " + minAngle);
+				badVertices.add(verts[i+1]); 
+			}
+		}
+		if (badVertices.isEmpty()) return null;
+		Vertex[] out = new Vertex[badVertices.size()];
+		badVertices.toArray(out);
+		return out;
 	}
 	
 	// draw the Cell (image is also returned for Matlab callers, there is no need for this in Java)
@@ -491,7 +515,7 @@ public class Cell implements java.io.Serializable {
 //	}
 	
 	public String toString() {
-		return "Cell centered at (" + centroid()[0] + ", " + centroid()[1] + ") with area " +
+		return "Cell with index " + index + " centered at (" + centroid()[0] + ", " + centroid()[1] + ") with area " +
 			area() + " and " + numV() + " Vertices.";		
 	}
 	

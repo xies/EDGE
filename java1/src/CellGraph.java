@@ -13,6 +13,9 @@ public class CellGraph implements java.io.Serializable {
 	// the threshold for merging vertices, measured in pixels
 	private static final double VERTEX_MERGE_DIST_THRESH_DEFAULT_VALUE = 3.0;
 	
+	// by default, don't do the min angle check
+	private static final double VERTEX_MIN_ANGLE_DEFAULT_VALUE = 0.0;
+	
 	// the minimum number of neighbors a Cell and have
 	private static final int MIN_CELL_NEIGHBORS = 2;  // do not allow cells or pairs of cells floating on their own
 	
@@ -56,11 +59,12 @@ public class CellGraph implements java.io.Serializable {
 	// ellipseProperties = YES; myosin = YES, distthresh = NO;
 	public CellGraph(int[][] regions, int[][] centlist, int[][] vertlist, 
 			int t, int z) {		
-		this(regions, centlist, vertlist, t, z, VERTEX_MERGE_DIST_THRESH_DEFAULT_VALUE);
+		this(regions, centlist, vertlist, t, z, VERTEX_MERGE_DIST_THRESH_DEFAULT_VALUE,
+				VERTEX_MIN_ANGLE_DEFAULT_VALUE);
 	}
 	
 	public CellGraph(int[][] regions, int[][] centlist, int[][] vertlist,
-			int t, int z, double vertex_merge_dist_thresh) {		
+			int t, int z, double vertex_merge_dist_thresh, double vertex_min_angle) {		
 		// assumes for regions: borders are -1, background is 0, cells are 1, 2, 3, ...
 		// assumes for centlist/vertlist: two columns of coordinates, not two rows
 		
@@ -204,6 +208,24 @@ public class CellGraph implements java.io.Serializable {
 		
 		for (int i = 0; i < finalCells.size(); i++)
 			addCell(finalCells.get(i), -i - 1);  // strictly NEGATIVE INDICES --> INACTIVE
+		
+		// do the angle check  NOT SURE IF THIS IS RIGHT YET
+		for (int i : cellIndices()) {
+			Cell c = getCell(i);
+			Vertex[] test = c.checkAngle(vertex_min_angle);
+			if (test != null) {
+//				System.out.println(test.length);
+				removeCell(c);
+			}
+//			removeVertices(c.checkAngle(vertex_min_angle));
+//			removeVertices(test);
+			
+//			if (c.area() == 0 || c.numV() < 3)
+//				removeCell(c);
+			
+		}
+			
+		
 		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in CellGraph:init!");
 		assert(isValid());
 	}
@@ -352,6 +374,24 @@ public class CellGraph implements java.io.Serializable {
 	// change the index of [the Cell with index i] from i to j
 	public void changeIndex(int from, int to) {
 		if (!containsCell(from)) return;
+		
+		// here I need to add a bit of a non-intuitive statement
+		if (containsCell(to)) return;
+		// in other words, you can't overwrite a cell with this function
+		// the reasoning is as follows:
+		/*
+		when adding a new cell, you can get a situation where you overwrite an existing one
+		 (in other words, this causes a problem because then tracking is not 1:1)
+		here's an example:
+		a cell in t= 3 tracks onto a cell (say, cell 5) in t=2, no problems
+		then another cell also at t=3 (newly created by addEdge, for example) 
+		does not track onto that cell at t=2, but it DOES track to cell 5 at t = 1, 
+		so it gets the same index from backtrack and overwrites the (more rightful) cell 5 in t = 3. 
+		so what's the deal here? you're always supposed to keep looking.
+		we need to give priority to the DIRECT situation where they are at adjacent time points (i.e., the initial cell 5 at t=3)
+		another reason why layers_to_look_back > 1 annoying...
+		*/
+
 		Cell removed = removeCell(from);
 		addCell(removed, to);
 	}
@@ -574,7 +614,7 @@ public class CellGraph implements java.io.Serializable {
 		// (non-connected) vertices. thus, the strategy is to find the midpoint of the 
 		// edge-to-be and check what cell it's inside. i guess this makes some assumptions (?)
 		// about the shape of the cells but they are very reasonable ones
-		Cell old = cellAtPoint(Misc.midpointInt(v.coords(), w.coords()));
+		Cell old = cellAtPoint(Misc.midpoint(v.coords(), w.coords()));
 		if (old == null)
 			return null;
 		
@@ -614,10 +654,11 @@ public class CellGraph implements java.io.Serializable {
 //		addCellInactive(new1);
 //		addCellInactive(new2);
 		
-		// need to remove first and then add (why?)
+		// need to remove first and then add (why? well, makes sense, don't want to overwrite in case of tracking)
 		parent.removeCell(old, t, z);
 		parent.addCell(new1, t, z);
-		parent.addCell(new2, t, z);	
+		parent.addCell(new2, t, z);
+
 			
 		int[] ret = new int[2];
 		ret[0] = new1.index();
@@ -679,24 +720,59 @@ public class CellGraph implements java.io.Serializable {
 		return true;
 	}
 	
-	// remove the vertices verts
-	// if it belongs to some Cells, need to fix that. 
-	public void removeVertices(Vertex[] verts) {
+	
+	// supposed to be for the min angle check in the CG constuctor, but will
+	// probably get rid of this...
+	private void removeVerticesUntracked(Vertex[] verts) {
+		if (verts == null) return;
 		for (Vertex v : verts) {
 			// for each Vertex we want to remove
+			if (v == null) continue;
+			
 			for (Cell c : cellsNeighboringVertex(v)) {
 				// for each Cell neighboring the Vertex in question
+				if (c == null) continue;
+				
 				c.removeVertex(v);
 				
 				// if the cell becomes just a bunch of points of a line, remove it. 
 				// i also use the redundant criterion numV < 3 because i'm worried about 
 				// roundoff errors with getting an area of exactly zero, so now the worst
 				// case scenario is just a cell consisting of >= 3 points on a line
-				if (c.area() == 0 || c.numV() < 3)
+				if (c.area() == 0 || c.numV() < 3) {
+					removeCell(c);
+					break;
+				}
+	
+			}
+		}
+	}
+	// remove the vertices verts
+	// if it belongs to some Cells, need to fix that. 
+	public void removeVertices(Vertex[] verts) {
+		if (verts == null) return;
+		for (Vertex v : verts) {
+			// for each Vertex we want to remove
+			if (v == null) continue;
+			
+			for (Cell c : cellsNeighboringVertex(v)) {
+				// for each Cell neighboring the Vertex in question
+				if (c == null) continue;
+				
+				c.removeVertex(v);
+				
+				// if the cell becomes just a bunch of points of a line, remove it. 
+				// i also use the redundant criterion numV < 3 because i'm worried about 
+				// roundoff errors with getting an area of exactly zero, so now the worst
+				// case scenario is just a cell consisting of >= 3 points on a line
+				if (c.area() == 0 || c.numV() < 3) {
 					parent.removeCell(c, t, z);
+					break;
 //					removeCell(c);
-				else
+				}
+				else {
 					parent.modifyCell(c, t, z);
+				}
 			
 			}
 		}
@@ -1120,16 +1196,16 @@ public class CellGraph implements java.io.Serializable {
 	////////
 	// returns the Cell that the point coord lies in
 	// returns null if it can't find one
-	public Cell cellAtPoint(int[] coord) {
+	public Cell cellAtPoint(double[] coord) {
 		return cellAtPoint(coord, cells());
 	}
-	public Cell activeCellAtPoint(int[] coord) {
+	public Cell activeCellAtPoint(double[] coord) {
 		return cellAtPoint(coord, activeCells());
 	}
-	public Cell inactiveCellAtPoint(int[] coord) {
+	public Cell inactiveCellAtPoint(double[] coord) {
 		return cellAtPoint(coord, inactiveCells());
 	}
-	private Cell cellAtPoint(int[] coord, Cell[] cells) {
+	private Cell cellAtPoint(double[] coord, Cell[] cells) {
 		if (coord[0] <= 0 || coord[0] > Ys || coord[1] <= 0 || coord[1] > Xs)
 			return null;
 		for (Cell c : cells) 

@@ -266,6 +266,11 @@ function mouseFunction(hObject,evnt)
     
     [T Z] = getTZ(handles);
  
+%     if ~isempty(handles.activeCell)
+%         handles.activeCell{1}
+%         handles.activeCell{1}.containsPoint(34.14269599548788, 109.5160744500846)
+%     end
+    
     % only select a cell if the polygon mode is on
     if ~get(handles.cbox_poly, 'Value');
         return

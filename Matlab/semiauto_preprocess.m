@@ -33,5 +33,12 @@ VERTEX_MERGE_DIST_THRESH = handles.info.refine_min_edge_length / handles.info.mi
 % also, note that the VERTEX_MERGE_DIST_THRESH may not end up being exactly
 % the same as a minimum edge length, but it's close enough
 
+% the minimum angle formed by vertices
+VERTEX_MIN_ANGLE_THRESH = deg2rad(handles.info.refine_min_angle);
+% convert it to radians
+% note this is also used for refining edges, but we enforce it here
+% by removing vertices that cause a violation
+
 % create the CellGraph object
-cg = CellGraph(regions, centroid_list, vertex_list, T, Z, VERTEX_MERGE_DIST_THRESH);
+cg = CellGraph(regions, centroid_list, vertex_list, T, Z, ...
+    VERTEX_MERGE_DIST_THRESH, VERTEX_MIN_ANGLE_THRESH);

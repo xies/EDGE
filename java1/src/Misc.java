@@ -1,7 +1,7 @@
 import java.util.Stack;
 
 public class Misc {	
-	// returns the angle (in radians) of a point given an origin
+	// returns the angle (in radians) of a point given an origin on the interval [0 2pi] i think
 	public static double angle(double[] origin, double[] point) {
         double dx = point[1] - origin[1];
         double dy = origin[0] - point[0];
@@ -11,7 +11,11 @@ public class Misc {
 	}
 	// returns the (non-negative) angle between a and b using the given origin (in radians)
 	public static double angle(double[] origin, double[] a, double[] b) {
-		return Math.abs(angle(origin, a) - angle(origin, b));
+		double angle = Math.abs(angle(origin, a) - angle(origin, b));
+		// don't want to get the big angle between them
+		if (angle > Math.PI)
+			angle = 2*Math.PI - angle;
+		return angle;
 	}
 	
 	// returns the distance between the points a and b
