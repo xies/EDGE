@@ -177,8 +177,9 @@ for i = 1:length(files)
     end
 
     % make sure they contain the string
-    if isempty(containsstring) || ...
-        (~isempty(containsstring) && ~isempty(strfind(files(i).name, containsstring)))
+    if (isempty(containsstring) || ...
+        (~isempty(containsstring) && ~isempty(strfind(files(i).name, containsstring)))) ...
+        || ~isempty(regexp(files(i).name, containsstring, 'once'))
 
     % only look for files with the same extension
         [this_file_pathstr, this_file_name, this_file_ext] = fileparts(files(i).name);
