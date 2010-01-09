@@ -77,7 +77,6 @@ function semiauto_OpeningFcn(hObject, eventdata, handles, varargin) %#ok<*INUSL>
         set(handles.dropdown_datasets, 'String', datanames);
         %%%
 
-        
         % default data set
         if ~isempty(passinfo)
             default_data_set = passinfo.data_set;
