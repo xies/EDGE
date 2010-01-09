@@ -28,8 +28,9 @@ for i = 1:length(files)
     end
 
     % make sure they contain the string
-    if isempty(containsstring) || ...
-        (~isempty(containsstring) && ~isempty(strfind(files(i).name, containsstring)))
+    if (isempty(containsstring) || ...
+        (~isempty(containsstring) && ~isempty(strfind(files(i).name, containsstring)))) ...
+        || ~isempty(regexp(files(i).name, containsstring, 'once'))
 
         try  % make sure this is an image file readable by IMREAD
             imread(fullfile(src, files(i).name));
