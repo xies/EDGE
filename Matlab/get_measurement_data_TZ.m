@@ -28,7 +28,24 @@ else
     % matches up with
 %     allmeasurementnames = get_measurement_names(handles, channel,
 %     measure_filename);
-    allindices = strfind(drop_str, measure_filename);
+
+
+% some messy code. in the end, index is the number of the measurement you
+% want to access. for example, if vertices.m gives 3 outputs (data{1} =
+% vertex_x, data{2} =  vertex_y, data{3} = # vertices, then index = 1 means
+% you want vertex_x.
+    drop_str_middle = drop_str;
+    dots = strfind(drop_str, IDENTIFIER);
+    for i = 1:length(dots)
+        if ~isempty(dots{i})
+            drop_str_middle{i} = drop_str{i}(dots{i}(1)+length(IDENTIFIER):dots{i}(2)-1);
+        end
+    end
+
+    allindices = strfind(drop_str_middle, measure_filename);
+
+
+
     % get the first non-empty value -- this is where all the measurements
     % for that measure_filename start
     for i = 1:length(allindices)
