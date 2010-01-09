@@ -9,7 +9,6 @@ MEASUREMENTS_NAME = 'Measurements';
 JAVA_MEMORY_STRING = '-Xmx512m';
 % ******************* %
 
-
 % get the path to this file
 [program_dir] = fileparts(mfilename('fullpath'));
 
