@@ -123,9 +123,13 @@ else  % time series
                 plot(x_vals, my_mean(data), 'k');
                 title(strcat(name, ' vs. time averaged over all depths'));
             else
-                for j = 1:size(data, 2)
-                    col = [(j-1)/(size(data,2)-1), 0, 1-(j-1)/(size(data,2)-1)];
-                    plot(x_vals, data(:, j), 'Color', col);
+                if size(data, 2) == 1
+                    plot(x_vals, data, 'r');
+                else
+                    for j = 1:size(data, 2)
+                        col = [(j-1)/(size(data,2)-1), 0, 1-(j-1)/(size(data,2)-1)];
+                        plot(x_vals, data(:, j), 'Color', col);
+                    end
                 end
                 title(strcat(name, ' vs. time for each depth (red = top, blue = bottom)'));    
             end

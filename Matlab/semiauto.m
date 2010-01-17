@@ -1952,6 +1952,7 @@ function button_import_Callback(hObject, eventdata, handles)
     end
     
     % make the image_filename files
+    rmfield(handles.info, 'image_file');  % just to avoid some weird errors
     handles.info.image_file = write_image_filename_function(handles.src.membranes, ...
         name, z_posn, z_digits, t_posn, t_digits, fixed, handles.data_set);
 
