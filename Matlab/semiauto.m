@@ -1673,24 +1673,41 @@ function button_import_Callback(hObject, eventdata, handles)
     %%% need to handle the case where this fails (inside this function)   
     
     
-    res = questdlg(strcat('The program found that the depths range from z = ', ...
-        num2str(z_min), ' to z = ', num2str(z_max), '. Which of these depths', ...
-        ' represents the TOP of the embryo?'), 'Select top image', ...
-        num2str(z_min), num2str(z_max), 'Cancel', num2str(z_max));
-    switch res
-        case 'Cancel'
-            return
-        case num2str(z_max)
-            handles.info.top_layer = z_max;
-            handles.info.bottom_layer = z_min;
-        case num2str(z_min)
-            handles.info.top_layer = z_min;
-            handles.info.bottom_layer = z_max;
+    % if there is only one layer
+    if z_min == z_max
+        handles.info.top_layer    = z_max;
+        handles.info.bottom_layer = z_max;
+        
+        res = questdlg(strcat('The program only found one layer, z = ', ...
+            num2str(z_min), '. Is this correct?'), 'One layer only', ...
+            'Ok', 'Cancel', 'Ok');
+        if strcmp(res, 'Cancel')
+            return;
+        end
+        
+    else
+    
+    
+        res = questdlg(strcat('The program found that the depths range from z = ', ...
+            num2str(z_min), ' to z = ', num2str(z_max), '. Which of these depths', ...
+            ' represents the TOP of the embryo?'), 'Select top image', ...
+            num2str(z_min), num2str(z_max), 'Cancel', num2str(z_max));
+        switch res
+            case 'Cancel'
+                return
+            case num2str(z_max)
+                handles.info.top_layer    = z_max;
+                handles.info.bottom_layer = z_min;
+            case num2str(z_min)
+                handles.info.top_layer    = z_min;
+                handles.info.bottom_layer = z_max;
+        end
     end
     
+
     if ~fixed
         handles.info.start_time = t_min;
-        handles.info.end_time = t_max;
+        handles.info.end_time   = t_max;
     else
         handles.info.start_time = 0;
         handles.info.end_time = 0;
@@ -1824,6 +1841,25 @@ function button_import_Callback(hObject, eventdata, handles)
             handles.info.microns_per_pixel = str2double(answer{1});
             handles.info.microns_per_z_step = str2double(answer{2});
             handles.info.seconds_per_frame = NaN;
+        elseif z_min == z_max
+            prompt = {'Enter XY spatial resolution ({\mu}m/pixel):', ...
+                      'Enter temporal resolution (sec/image):'};
+            dlg_title = 'Input image parameters';
+            num_lines = 1;
+            defaultanswer = {'',''};
+        %     options.Resize='on';
+            options.WindowStyle='normal';
+            options.Interpreter='tex';
+            answer = inputdlg(prompt, dlg_title, num_lines, defaultanswer, options);
+            if isempty(answer) || isempty(answer{1}) || isempty(answer{2})
+                return
+            end
+
+            handles.info.microns_per_pixel = str2double(answer{1});
+            handles.info.microns_per_z_step = NaN;
+            handles.info.seconds_per_frame = str2double(answer{2});
+            
+            
         else
             prompt = {'Enter XY spatial resolution ({\mu}m/pixel):', ...
                       'Enter Z spatial resolution ({\mu}m/image):' , ...
@@ -1872,16 +1908,17 @@ function button_import_Callback(hObject, eventdata, handles)
     handles.info.bandpass_low = 1.2;
     handles.info.bandpass_high = 12;
     handles.info.number_of_erosions = 0;
+    handles.info.preprocessing_threshold = 0;
     handles.info.refine_max_angle = 170;
     handles.info.refine_min_edge_length = 0.5;
     handles.info.refine_min_angle = 90;
-    handles.info.refine_split_threshold = 1.0;
     handles.info.tracking_area_change_Z = 0.3;
     handles.info.tracking_layers_back_Z = 3;
     handles.info.tracking_centroid_distance_Z = 3;
     handles.info.tracking_area_change_T = 0.3;
     handles.info.tracking_layers_back_T = 3;
     handles.info.tracking_centroid_distance_T = 3;
+
     
     channelnames = cell(length(channels));
     for i = 1:length(channels)
