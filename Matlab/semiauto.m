@@ -976,60 +976,6 @@ function button_export_Callback(hObject, eventdata, handles)
 %         handles.embryo.trackAllCells;
 % 
 
-
-%     %%%% perform tracking and create Embryo4d
-%         cgArray = javaArray('CellGraph', 1 + abs(handles.info.end_time - handles.info.start_time), ...
-%             1 + abs(handles.info.bottom_layer - handles.info.top_layer));
-%         indTime = 0; % initialize a counting variable
-%         for time_i = handles.info.start_time:handles.info.end_time
-%     %         set(handles.text_processing_time,  'String',
-%     %         num2str(time_i));
-%     %         drawnow;
-%             indTime = indTime + 1;
-% 
-%             indLayer = 0;
-%             for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
-%     %             set(handles.text_processing_layer,  'String', num2str(layer_i));
-%     %             drawnow;
-%                 indLayer = indLayer + 1;
-% 
-%                 % load the saved temporary CellGraph from temp directory
-%                 filename = handles.info.image_file(time_i, layer_i, handles.tempsrc.poly);
-%                 filename = chgext(filename, 'mat');
-%                 if ~exist(filename, 'file')
-%                     % this should never happen if I disable this button unless it is just processed
-%                     % so it's more of a safety net, to avoid errors
-%                     msgbox(strcat('Temporary file ', filename, ' does not exist. Tracking aborted.'), 'Save failed', 'error');
-%                     readyproc(handles, 'ready');
-%                     return;
-%                 else
-%                     load(filename);
-%                     cgArray(indTime, indLayer) = tempcg;
-%                     clear tempcg;
-% 
-%                 end
-% 
-%             end
-%             
-%             % get tracking parameters
-%             area_change_max_spatial = str2double(get(handles.info_text_tracking_area_change_Z, 'String'));
-%             layers_back_spatial     = str2double(get(handles.info_text_tracking_layers_back_Z, 'String'));
-%             centroid_dist_spatial   = str2double(get(handles.info_text_tracking_centroid_distance_Z, 'String'));       
-%             centroid_dist_spatial   = centroid_dist_spatial / handles.info.microns_per_pixel; % change to pixels!
-%         end
-% 
-%         % create the Embryo4D object and save it in the temp directory
-%         % (first, get tracking parameters from GUI)
-%         area_change_max_temporal = str2double(get(handles.info_text_tracking_area_change_T, 'String'));
-%         layers_back_temporal     = str2double(get(handles.info_text_tracking_layers_back_T, 'String'));
-%         centroid_dist_temporal   = str2double(get(handles.info_text_tracking_centroid_distance_T, 'String'));
-%         centroid_dist_temporal   = centroid_dist_temporal / handles.info.microns_per_pixel; % change to pixels!
-%                 embryo4d = Embryo4D(cgArray, handles.info.start_time, handles.info.end_time, handles.info.master_time, ...
-%                     handles.info.bottom_layer, handles.info.top_layer, handles.info.master_layer, ... 
-%             area_change_max_spatial, layers_back_spatial, centroid_dist_spatial, ...
-%             area_change_max_temporal, layers_back_temporal, centroid_dist_temporal);
-
-        
         % ** output all the measurements into the mat file **
         readyproc(handles, 'calculating');
         % the format of stored properties is a struct with field names
@@ -1037,7 +983,7 @@ function button_export_Callback(hObject, eventdata, handles)
         % field names equal to the measurement names. each field contains a
         % t x z x numCells cell array. could have made it a numCells x t x z
         % x datasize array, but... i don't know how to put stuff into to
-        % without knowing the dimensions...
+        % without knowing the number of dimensions...
         stored_properties = struct;
         
 %         % set the built-in names
@@ -1194,22 +1140,44 @@ function button_export_Callback(hObject, eventdata, handles)
                     
                     
                     
-                end
+                end   % for all layers
+            end  % for all times
+            
+            
+            % save everything for that measurement
+            names = stored_properties.(good_measurementchannels_j).(measurementnames{j}).names;
+            for indiv_meas = 1:length(names)
+                savename = [good_measurementchannels_j '--' measurementnames{j} '--' names{indiv_meas}];
+                filename = fullfile(handles.src.measurements, savename);
+                data = cell(size(stored_properties.(good_measurementchannels_j).(measurementnames{j}).data));
+                for copyt = 1:size(data, 1)
+                    for copyz = 1:size(data, 2)
+                        for copyc = 1:size(data, 3)
+                            data{copyt, copyz, copyc} = ...
+                                stored_properties.(good_measurementchannels_j).(measurementnames{j}).data{copyt, copyz, copyc};
+                        end
+                    end
+                end                  
+                save(filename, 'data');
             end
             
             
-        end
+            
+        end  % for all measurements
         cd(fullfile(handles.program_dir, 'Matlab'));
     
   
         %%%% save stored properties
-        filename = fullfile(handles.src.parent, 'measurements.mat');
-        if exist(filename, 'file')
-            delete(filename);
-        end
-        if ~isempty(measurementnames)
-            save(filename, 'stored_properties');   
-        end
+        % now there is a new version in which we no longer save everything
+        % just in one .mat file, but rather split them up into subfiles as
+        % we did with the exporting from EDGE        
+%         filename = fullfile(handles.src.parent, 'measurements.mat');
+%         if exist(filename, 'file')
+%             delete(filename);
+%         end
+%         if ~isempty(measurementnames)
+%             save(filename, 'stored_properties');   
+%         end
 
 
     %%%% save embryo4d in embryo_data.mat file
@@ -1785,7 +1753,7 @@ function button_import_Callback(hObject, eventdata, handles)
             continue;
         end
         xmlname = files(i).name;
-        [xml_pathstr, xml_name, xml_ext] = fileparts(xmlname); 
+        [~, ~, xml_ext] = fileparts(xmlname); 
         if strcmp(xml_ext, '.xml')
             try
                 tree = xml_read(fullfile(src, xmlname));
@@ -1802,7 +1770,7 @@ function button_import_Callback(hObject, eventdata, handles)
                 end
                 xml_success = 1;
                 break;
-            catch
+            catch 
                 %%%
             end
         end
@@ -1939,6 +1907,7 @@ function button_import_Callback(hObject, eventdata, handles)
     [a b c] = mkdir(handles.src.parent);
     [a b c] = mkdir(handles.src.raw);
     [a b c] = mkdir(handles.src.bord);
+    [a b c] = mkdir(handles.src.measurements);
     
     % make the directories in DATA_SEMIAUTO (remove old files)
     [a    ] = rmdir(handles.tempsrc.parent, 's');

@@ -3,6 +3,7 @@ function handles = clear_data_set_both(handles)
 % find all the other channels that are not Membranes
 handles.channelnames = get_folder_names(handles.src.parent);
 handles.channelnames(strcmp(handles.channelnames, 'Membranes')) = [];
+handles.channelnames(strcmp(handles.channelnames, 'Measurements')) = [];
 
 
 
