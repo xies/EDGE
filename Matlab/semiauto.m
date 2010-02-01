@@ -911,10 +911,11 @@ function button_export_Callback(hObject, eventdata, handles)
         end
         [measurementchannelsall measurementnamesall] = get_measurement_file_names(handles);
         [selection_meas ok] = listdlg('ListString', strcat(measurementchannelsall, '::', measurementnamesall), ...
-            'Name', 'Select measurements sets for export', 'ListSize', [300 300], 'CancelString', 'None');
+            'Name', 'Select measurements sets for export', 'ListSize', [300 300]);%, 'CancelString', 'None');
         if ~ok
-            measurementnames = cell(0);
-            measurementchannels = cell(0);
+            return;
+%             measurementnames = cell(0);
+%             measurementchannels = cell(0);
         else
             % the measurements array is the list of measurements that the user
             % selected
@@ -958,6 +959,9 @@ function button_export_Callback(hObject, eventdata, handles)
         if ~strcmp(handles.data_set, datanames{selection(i)})
             handles = clear_data_set_semiauto(handles, datanames{selection(i)});
         end
+        
+        % create the measurements folder
+        [~, ~, ~] = mkdir(handles.src.measurements);
 
         % choose the list of measurements
         if length(selection) > 1
@@ -1110,7 +1114,7 @@ function button_export_Callback(hObject, eventdata, handles)
                             % this with NaN everywhere
                             
                             
-                            stored_properties.(good_measurementchannels_j).(measurementnames{j}).data{indTime, indLayer, cell_i}  = NaN(data_size);
+                            stored_properties.(good_measurementchannels_j).(measurementnames{j}).data{indTime, indLayer, cell_i}  = num2cell(NaN(data_size));
 %                             stored_properties{indTime, indLayer, cell_i}.(good_measurementchannels_j).(measurementnames{j}).data  = NaN(data_size);
 %                             stored_properties{indTime, indLayer, cell_i}.(good_measurementchannels_j).(measurementnames{j}).names = cell(data_size);
 %                             stored_properties{indTime, indLayer, cell_i}.(good_measurementchannels_j).(measurementnames{j}).units = cell(data_size);
@@ -1146,6 +1150,7 @@ function button_export_Callback(hObject, eventdata, handles)
             
             % save everything for that measurement
             names = stored_properties.(good_measurementchannels_j).(measurementnames{j}).names;
+            units = stored_properties.(good_measurementchannels_j).(measurementnames{j}).units;
             for indiv_meas = 1:length(names)
                 savename = [good_measurementchannels_j '--' measurementnames{j} '--' names{indiv_meas}];
                 filename = fullfile(handles.src.measurements, savename);
@@ -1154,11 +1159,13 @@ function button_export_Callback(hObject, eventdata, handles)
                     for copyz = 1:size(data, 2)
                         for copyc = 1:size(data, 3)
                             data{copyt, copyz, copyc} = ...
-                                stored_properties.(good_measurementchannels_j).(measurementnames{j}).data{copyt, copyz, copyc};
+                                stored_properties.(good_measurementchannels_j).(measurementnames{j}).data{copyt, copyz, copyc}{indiv_meas};                           
                         end
                     end
-                end                  
-                save(filename, 'data');
+                end         
+                name = names{indiv_meas};
+                unit = units{indiv_meas};
+                save(filename, 'data', 'name', 'unit');
             end
             
             

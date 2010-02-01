@@ -62,15 +62,10 @@ if isempty(channel)
     end
 else
 
-    % extract the channel and measurement name from 'measure'
-%     IDENTIFIER = '::';
-%     dots = strfind(measure, IDENTIFIER);
-%     channel = measure(1:dots(1)-1);
-%     filename = measure(dots(1)+length(IDENTIFIER):dots(2)-1);
-%     measurename = measure(dots(2)+length(IDENTIFIER):end);
-
     channel = genvarname(channel);
 
+    
+    
     data  = handles.stored_properties.(channel).(measure_filename).data{storedT, storedZ, C};
     name  = handles.stored_properties.(channel).(measure_filename).names;
     units = handles.stored_properties.(channel).(measure_filename).units;

@@ -528,6 +528,25 @@ function panel_3d_change(hObject, eventdata)
 
 % --- Executes on selection change in dropdown_measurements.
 function dropdown_measurements_Callback(hObject, eventdata, handles)
+    % if needed, load the file
+    dropdown_val = get(handles.dropdown_measurements, 'Value');
+    big_measure_name = handles.allmeasures{dropdown_val};
+    
+    already_loaded = fieldnames(handles.loaded_measurements);
+    if ~any(strcmp(already_loaded, genvarname(big_measure_name))) 
+set(handles.text_readyproc, 'Visible', 'on');
+set(handles.text_readyproc, 'String', 'Loading...');
+set(handles.text_readyproc, 'ForegroundColor', [1 0 0]);
+drawnow;
+        load(fullfile(handles.src.measurements, [big_measure_name '.mat']));  % loads 'data', 'name', 'unit'
+        handles.loaded_measurements.(genvarname(big_measure_name)).data = data;
+        handles.loaded_measurements.(genvarname(big_measure_name)).name = name;
+        handles.loaded_measurements.(genvarname(big_measure_name)).unit = unit;
+set(handles.text_readyproc, 'Visible', 'off');
+    end
+    guidata(hObject, handles);
+
+
     slider_callbacks_draw_measurement(handles);
  
 
@@ -592,291 +611,311 @@ function smoothing_strength_slider_CreateFcn(hObject, eventdata, handles)
 
 % --- Executes on button press in export_button.
 function export_button_Callback(hObject, eventdata, handles)
-    % select which data sets to export
-    datanames = get_folder_names(fullfile('..', 'DATA_GUI'));
-    default_val = find(strcmp(datanames, handles.data_set));
-    if length(datanames) > 1
-        [selection_data ok] = listdlg('ListString', datanames, 'Name', 'Select data sets for export', ...
-            'ListSize', [300 300], 'InitialValue', default_val);
-        if ~ok
-            return;
-        end
-    else
-        selection_data = default_val;
+    if isempty(handles.activeCell)
+        msgbox('Error: No cells selected.', 'Export aborted', 'error');
+%         uiwait;
+        return;
     end
-    data_set = handles.data_set;
-    selectbutton_val = get(handles.button_manually_select_cells, 'Value');
+
+    % create the directories if necessary
+    dirname = fullfile(handles.program_dir, 'DATA_OUTPUT');
+    [a b c] = mkdir(dirname);
+    dirname = fullfile(dirname, handles.data_set);
+    [a b c] = mkdir(dirname);
+%     dirname = fullfile(dirname, date_and_time_saving);
+%     [a b c] = mkdir(dirname);
+
+    [T Z] = getTZ(handles);
+    cell_indices = handles.activeCell;
+    save(fullfile(dirname, date_and_time_saving), 'cell_indices', 'T', 'Z');
     
-    if length(selection_data) == 1
-        % note: if you don't select any cells, it just exports for all
-        % cells..!
-        
-        % change datasets immediately so that it gives the correct list of
-        % measurements
-        if ~strcmp(data_set, datanames{selection_data})
-            handles = clear_data_set_maingui(handles, datanames{selection_data});
-            handles.activeCell = handles.embryo.getCellGraph(handles.info.master_time, handles.info.master_layer).activeCellIndices;
-            set(handles.button_manually_select_cells, 'Value', 1);
-        end
-            
-                
-        % for just one data set, do the usual thing
-        default_val = get(handles.dropdown_measurements, 'Value');
-        [selection_meas ok] = listdlg('ListString', handles.allmeasures, ...
-            'Name', 'Select measurements sets for processing', ...
-            'InitialValue', default_val, 'ListSize', [300 300]);
-        if ~ok
-            return;
-        end
-                
-        
-    else
-        res = questdlg('For exporting multiple data sets, all cells and all measurements will be exported.', ...
-                  'Export all cells all measurements?', 'Ok', 'Cancel', 'Ok');
-        if strcmp(res, 'Cancel')
-            return;
-        end
-   
-   
-%         % for multiple data sets, pick the measurements
-%         [measurementchannelsall measurementnamesall] = get_measurement_file_names_specific_ch(...
-%             fullfile(handles.program_dir, 'Measurements'), ...
-%             handles.all_channelnames);
-%         allmeasurements_list = strcat(measurementchannelsall, '::', measurementnamesall);
-%         allmeasurements_list = [handles.builtin; allmeasurements_list(:)];
-%         % let the user slect
-%         [selection_meas_multi ok] = listdlg('ListString', allmeasurements_list, ...
-%             'Name', 'Select measurements sets for export', 'ListSize', [300 300]);
+    msgbox('Successfully exported data to the DATA_OUTPUT folder.');
+    
+%     % select which data sets to export
+%     datanames = get_folder_names(fullfile('..', 'DATA_GUI'));
+%     default_val = find(strcmp(datanames, handles.data_set));
+%     if length(datanames) > 1
+%         [selection_data ok] = listdlg('ListString', datanames, 'Name', 'Select data sets for export', ...
+%             'ListSize', [300 300], 'InitialValue', default_val);
 %         if ~ok
 %             return;
 %         end
-
-    end
-    
-    
-    
-     % old:
-    % first, ask which measurements to export (by FILE?? no, no point, you can select multiple)
-%     [measurementchannelsall measurementnamesall] = get_measurement_file_names(handles);
-%     built_in_measurements = {'Area', 'Perimeter', 'Centroid-x', 'Centroid-y'};
-% 
-%     listnames = strcat(measurementchannelsall, '::', measurementnamesall);
-%     listnames = [built_in_measurements listnames];
-
-    
-
-    for export_datasets_i = 1:length(selection_data)
-        % if it's already at this data set, don't need to clear_data_set
-        if ~strcmp(handles.data_set, datanames{selection_data(export_datasets_i)})
-            handles = clear_data_set_maingui(handles, datanames{selection_data(export_datasets_i)});
-        end
-        
-        % if no cells selected, select all of them
-        if isempty(handles.activeCell)
-            handles.activeCell = handles.embryo.getCellGraph(handles.info.master_time, handles.info.master_layer).activeCellIndices;
-            set(handles.button_manually_select_cells, 'Value', 1);
-        end
-        
-        set(handles.text_readyproc, 'Visible', 'on');
-        set(handles.text_readyproc, 'String', 'Exporting...');
-        set(handles.text_readyproc, 'ForegroundColor', [1 0 0]);
-        drawnow;
-    
-        
-        if length(selection_data) > 1
-            selection_meas = 1:length(handles.allmeasures);
-        end
-        
-%         % choose the appropriate measurements if multiple data sets
-%         if length(selection_data) > 1
-%             % now, find all the measurements that are common to 
-%             % measurementnames_thisdata AND measurementnames_multi
-%             % the former is a list of all measurements for this data set,
-%             % and the latter is the selection of all choices
-%             selection_meas = CStrAinBP(handles.allmeasures, allmeasurements_list);
+%     else
+%         selection_data = default_val;
+%     end
+%     data_set = handles.data_set;
+%     selectbutton_val = get(handles.button_manually_select_cells, 'Value');
+%     
+%     if length(selection_data) == 1
+%         % note: if you don't select any cells, it just exports for all
+%         % cells..!
+%         
+%         % change datasets immediately so that it gives the correct list of
+%         % measurements
+%         if ~strcmp(data_set, datanames{selection_data})
+%             handles = clear_data_set_maingui(handles, datanames{selection_data});
+%             handles.activeCell = handles.embryo.getCellGraph(handles.info.master_time, handles.info.master_layer).activeCellIndices;
+%             set(handles.button_manually_select_cells, 'Value', 1);
 %         end
-        
-        
-    
-        % create the directories if necessary
-        dirname = fullfile(handles.program_dir, 'DATA_OUTPUT');
-        [a b c] = mkdir(dirname);
-        dirname = fullfile(dirname, handles.data_set);
-        [a b c] = mkdir(dirname);
-        dirname = fullfile(dirname, date_and_time_saving);
-        [a b c] = mkdir(dirname);
-
-        x_vals = [];
-        savedata = [];
-        savedata_neighbors = [];
-
-        % for each measurement you selected
-        for export_measurements_i = 1:length(selection_meas)
-
-            % can make use of the file get_measurement_data_TZ
-            [T Z] = getTZ(handles);
-
-            % plots the data
-    %         totaldata = [];  % can define size of this later
-
-            % get the measure name from the dropdown menu
-            dropdown_val = selection_meas(export_measurements_i);
-
-
-            if handles.fixed
-                x_vals = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer;
-                x_vals = x_vals * handles.info.microns_per_z_step;
-                x_vals = x_vals(:);
-
-                if get(handles.button_manually_select_cells, 'Value')  % multiple cells selected
-
-                    totaldata = cell(abs(handles.info.top_layer-handles.info.bottom_layer)+1, length(handles.activeCell));
-                    for i = 1:length(handles.activeCell)
-                        [data name units] = get_measurement_data_TZ(...
-                            handles, dropdown_val, handles.activeCell(i), handles.info.start_time, handles.info.end_time, ...
-                            handles.info.bottom_layer, handles.info.top_layer);           
-    %                     data = convert_cell_data_to_numerical(data);
-                        totaldata(:, i) = data(:);
-                    end
-
-                    savedata = totaldata; 
-    %                 if get(handles.radiobutton_neighbors_averages, 'Value') % if we need to average
-    %                     savedata = my_mean(savedata);
-    %                 end
-
-                else  % single cell selected
-                    [data name units] = get_measurement_data_TZ(...
-                        handles, dropdown_val, handles.activeCell, handles.info.start_time, handles.info.end_time, ...
-                        handles.info.bottom_layer, handles.info.top_layer);   
-    %                 data = convert_cell_data_to_numerical(data);
-                    savedata = data;
-
-                    % get the measurements for the neighbors as well
-                    if ~isempty(handles.activeCellNeighbors)    
-                        savedata_neighbors = cell(length(handles.activeCellNeighbors), 1);
-                        for i = 1:length(handles.activeCellNeighbors)
-                            for j = 1:length(handles.activeCellNeighbors{i})
-                                [data name units] = get_measurement_data_TZ(...
-                                    handles, dropdown_val, handles.activeCellNeighbors{i}(j), handles.info.start_time, handles.info.end_time, ...
-                                    handles.info.bottom_layer, handles.info.top_layer);           
-    %                             data = convert_cell_data_to_numerical(data);
-                                totaldata(:, j) = data(:);
-                            end
-                            if get(handles.radiobutton_neighbors_averages, 'Value') % if we need to average
-                                savedata_neighbors{i} = my_mean(totaldata);
-                            else
-                                savedata_neighbors{i} = totaldata;
-                            end
-                        end
-                    end
-
-                end
-
-            else  % time series
-
-                x_vals = handles.info.start_time:handles.info.end_time;
-                x_vals = x_vals * handles.info.seconds_per_frame / 60;
-                x_vals = x_vals(:);
-
-                if get(handles.button_manually_select_cells, 'Value')  % for multiple cells
-
-                    totaldata = cell(abs(handles.info.end_time-handles.info.start_time)+1, ...
-                                   abs(handles.info.top_layer-handles.info.bottom_layer)+1, ...
-                                   length(handles.activeCell));
-                    for i = 1:length(handles.activeCell)
-
-                        [data name units] = get_measurement_data_TZ(...
-                            handles, dropdown_val, handles.activeCell(i), handles.info.start_time, handles.info.end_time, ...
-                            handles.info.bottom_layer, handles.info.top_layer);
-    %                     data = convert_cell_data_to_numerical(data);
-                        totaldata(:, :, i) = data;
-                    end
-
-    %                 if get(handles.radiobutton_neighbors_averages, 'Value') % if we need to average
-    %                     savedata = my_mean(totaldata);
-    %                 else
-                        savedata = totaldata;
-    %                 end
-                else  % just one cell selected
-
-                    % in this case, it's a bit tricky. if there are no neighbors, we do
-                    % something special and plot all layers, with red-->blue
-                    % representing top-->bottom. however, if there are neighbors we
-                    % skip this and just plot the middle cell at this current depth,
-                    % and the same goes for all the neighbors
-                    if isempty(handles.activeCellNeighbors)
-                        [data name units] = get_measurement_data_TZ(...
-                            handles, dropdown_val, handles.activeCell, handles.info.start_time, handles.info.end_time, ...
-                            handles.info.bottom_layer, handles.info.top_layer);
-    %                     data = convert_cell_data_to_numerical(data);
-
-                        % if we are on averages, we average over all layers!!
-    %                     if get(handles.radiobutton_neighbors_averages, 'Value')
-    %                         savedata = my_mean(data);
-    %                     else
-                            savedata = data;
-    %                     end
-                    else
-                        % in the neighbors case, we first need to plot the active
-                        % (middle) cell in the non-special way (i.e., we just want this
-                        % layer, not all layers), and then we plot all the neighbors as
-                        % well.
-                        [data name units] = get_measurement_data_TZ(...
-                            handles, dropdown_val, handles.activeCell, handles.info.start_time, handles.info.end_time, ...
-                            Z, Z);   
-    %                     data = convert_cell_data_to_numerical(data);
-                        savedata = data;
-
-                        % now we plot for all the neighbors
-                        savedata_neighbors = cell(length(handles.activeCellNeighbors), 1);
-                        for i = 1:length(handles.activeCellNeighbors)
-                            totaldata = cell(abs(handles.info.end_time-handles.info.start_time)+1, length(handles.activeCellNeighbors{i}));
-                            for j = 1:length(handles.activeCellNeighbors{i})
-                                [data name units] = get_measurement_data_TZ(...
-                                    handles, dropdown_val, handles.activeCellNeighbors{i}(j), handles.info.start_time, handles.info.end_time, ...
-                                    Z, Z);           
-    %                             data = convert_cell_data_to_numerical(data);
-                                totaldata(:, j) = data(:);
-                            end
-    %                         if get(handles.radiobutton_neighbors_averages, 'Value') % if we need to average
-    %                             savedata_neighbors{i} = my_mean(totaldata);
-    %                         else
-                                savedata_neighbors{i} = totaldata;
-    %                         end
-                        end
-                    end
-
-
-                end
-
-            end
-
-            % saving
-            name = handles.allmeasures{selection_meas(export_measurements_i)};
-            name(name == ':') = '-';
-
-    %         IDENTIFIER = '::';
-    %         dots = strfind(name, IDENTIFIER);
-    %         dots = dots(end);
-    %         if ~isempty(dots)
-    %             name = name(dots + length(IDENTIFIER) : end);
-    %         end
-
-            % save cell numbers
-            cell_indices = handles.activeCell;
-
-            filename = fullfile(dirname, name);
-            save(filename, 'x_vals', 'savedata', 'savedata_neighbors', 'cell_indices');
-
-        end
-    end  % end for multiple data sets
-    if ~strcmp(handles.data_set, data_set)
-        handles = clear_data_set_maingui(handles, data_set);
-    end
-    set(handles.button_manually_select_cells, 'Value', selectbutton_val);
-
-    set(handles.text_readyproc, 'Visible', 'off');
-    msgbox(strcat('Successfully exported data to the DATA_OUTPUT folder.'));
+%             
+%                 
+%         % for just one data set, do the usual thing
+%         default_val = get(handles.dropdown_measurements, 'Value');
+%         [selection_meas ok] = listdlg('ListString', handles.allmeasures, ...
+%             'Name', 'Select measurements sets for processing', ...
+%             'InitialValue', default_val, 'ListSize', [300 300]);
+%         if ~ok
+%             return;
+%         end
+%                 
+%         
+%     else
+%         res = questdlg('For exporting multiple data sets, all cells and all measurements will be exported.', ...
+%                   'Export all cells all measurements?', 'Ok', 'Cancel', 'Ok');
+%         if strcmp(res, 'Cancel')
+%             return;
+%         end
+%    
+%    
+% %         % for multiple data sets, pick the measurements
+% %         [measurementchannelsall measurementnamesall] = get_measurement_file_names_specific_ch(...
+% %             fullfile(handles.program_dir, 'Measurements'), ...
+% %             handles.all_channelnames);
+% %         allmeasurements_list = strcat(measurementchannelsall, '::', measurementnamesall);
+% %         allmeasurements_list = [handles.builtin; allmeasurements_list(:)];
+% %         % let the user slect
+% %         [selection_meas_multi ok] = listdlg('ListString', allmeasurements_list, ...
+% %             'Name', 'Select measurements sets for export', 'ListSize', [300 300]);
+% %         if ~ok
+% %             return;
+% %         end
+% 
+%     end
+%     
+%     
+%     
+%      % old:
+%     % first, ask which measurements to export (by FILE?? no, no point, you can select multiple)
+% %     [measurementchannelsall measurementnamesall] = get_measurement_file_names(handles);
+% %     built_in_measurements = {'Area', 'Perimeter', 'Centroid-x', 'Centroid-y'};
+% % 
+% %     listnames = strcat(measurementchannelsall, '::', measurementnamesall);
+% %     listnames = [built_in_measurements listnames];
+% 
+%     
+% 
+%     for export_datasets_i = 1:length(selection_data)
+%         % if it's already at this data set, don't need to clear_data_set
+%         if ~strcmp(handles.data_set, datanames{selection_data(export_datasets_i)})
+%             handles = clear_data_set_maingui(handles, datanames{selection_data(export_datasets_i)});
+%         end
+%         
+%         % if no cells selected, select all of them
+%         if isempty(handles.activeCell)
+%             handles.activeCell = handles.embryo.getCellGraph(handles.info.master_time, handles.info.master_layer).activeCellIndices;
+%             set(handles.button_manually_select_cells, 'Value', 1);
+%         end
+%         
+%         set(handles.text_readyproc, 'Visible', 'on');
+%         set(handles.text_readyproc, 'String', 'Exporting...');
+%         set(handles.text_readyproc, 'ForegroundColor', [1 0 0]);
+%         drawnow;
+%     
+%         
+%         if length(selection_data) > 1
+%             selection_meas = 1:length(handles.allmeasures);
+%         end
+%         
+% %         % choose the appropriate measurements if multiple data sets
+% %         if length(selection_data) > 1
+% %             % now, find all the measurements that are common to 
+% %             % measurementnames_thisdata AND measurementnames_multi
+% %             % the former is a list of all measurements for this data set,
+% %             % and the latter is the selection of all choices
+% %             selection_meas = CStrAinBP(handles.allmeasures, allmeasurements_list);
+% %         end
+%         
+%         
+%     
+%         % create the directories if necessary
+%         dirname = fullfile(handles.program_dir, 'DATA_OUTPUT');
+%         [a b c] = mkdir(dirname);
+%         dirname = fullfile(dirname, handles.data_set);
+%         [a b c] = mkdir(dirname);
+%         dirname = fullfile(dirname, date_and_time_saving);
+%         [a b c] = mkdir(dirname);
+% 
+%         x_vals = [];
+%         savedata = [];
+%         savedata_neighbors = [];
+% 
+%         % for each measurement you selected
+%         for export_measurements_i = 1:length(selection_meas)
+% 
+%             % can make use of the file get_measurement_data_TZ
+%             [T Z] = getTZ(handles);
+% 
+%             % plots the data
+%     %         totaldata = [];  % can define size of this later
+% 
+%             % get the measure name from the dropdown menu
+%             dropdown_val = selection_meas(export_measurements_i);
+% 
+% 
+%             if handles.fixed
+%                 x_vals = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer;
+%                 x_vals = x_vals * handles.info.microns_per_z_step;
+%                 x_vals = x_vals(:);
+% 
+%                 if get(handles.button_manually_select_cells, 'Value')  % multiple cells selected
+% 
+%                     totaldata = cell(abs(handles.info.top_layer-handles.info.bottom_layer)+1, length(handles.activeCell));
+%                     for i = 1:length(handles.activeCell)
+%                         [data name units] = get_measurement_data_TZ(...
+%                             handles, dropdown_val, handles.activeCell(i), handles.info.start_time, handles.info.end_time, ...
+%                             handles.info.bottom_layer, handles.info.top_layer);           
+%     %                     data = convert_cell_data_to_numerical(data);
+%                         totaldata(:, i) = data(:);
+%                     end
+% 
+%                     savedata = totaldata; 
+%     %                 if get(handles.radiobutton_neighbors_averages, 'Value') % if we need to average
+%     %                     savedata = my_mean(savedata);
+%     %                 end
+% 
+%                 else  % single cell selected
+%                     [data name units] = get_measurement_data_TZ(...
+%                         handles, dropdown_val, handles.activeCell, handles.info.start_time, handles.info.end_time, ...
+%                         handles.info.bottom_layer, handles.info.top_layer);   
+%     %                 data = convert_cell_data_to_numerical(data);
+%                     savedata = data;
+% 
+%                     % get the measurements for the neighbors as well
+%                     if ~isempty(handles.activeCellNeighbors)    
+%                         savedata_neighbors = cell(length(handles.activeCellNeighbors), 1);
+%                         for i = 1:length(handles.activeCellNeighbors)
+%                             for j = 1:length(handles.activeCellNeighbors{i})
+%                                 [data name units] = get_measurement_data_TZ(...
+%                                     handles, dropdown_val, handles.activeCellNeighbors{i}(j), handles.info.start_time, handles.info.end_time, ...
+%                                     handles.info.bottom_layer, handles.info.top_layer);           
+%     %                             data = convert_cell_data_to_numerical(data);
+%                                 totaldata(:, j) = data(:);
+%                             end
+%                             if get(handles.radiobutton_neighbors_averages, 'Value') % if we need to average
+%                                 savedata_neighbors{i} = my_mean(totaldata);
+%                             else
+%                                 savedata_neighbors{i} = totaldata;
+%                             end
+%                         end
+%                     end
+% 
+%                 end
+% 
+%             else  % time series
+% 
+%                 x_vals = handles.info.start_time:handles.info.end_time;
+%                 x_vals = x_vals * handles.info.seconds_per_frame / 60;
+%                 x_vals = x_vals(:);
+% 
+%                 if get(handles.button_manually_select_cells, 'Value')  % for multiple cells
+% 
+%                     totaldata = cell(abs(handles.info.end_time-handles.info.start_time)+1, ...
+%                                    abs(handles.info.top_layer-handles.info.bottom_layer)+1, ...
+%                                    length(handles.activeCell));
+%                     for i = 1:length(handles.activeCell)
+% 
+%                         [data name units] = get_measurement_data_TZ(...
+%                             handles, dropdown_val, handles.activeCell(i), handles.info.start_time, handles.info.end_time, ...
+%                             handles.info.bottom_layer, handles.info.top_layer);
+%     %                     data = convert_cell_data_to_numerical(data);
+%                         totaldata(:, :, i) = data;
+%                     end
+% 
+%     %                 if get(handles.radiobutton_neighbors_averages, 'Value') % if we need to average
+%     %                     savedata = my_mean(totaldata);
+%     %                 else
+%                         savedata = totaldata;
+%     %                 end
+%                 else  % just one cell selected
+% 
+%                     % in this case, it's a bit tricky. if there are no neighbors, we do
+%                     % something special and plot all layers, with red-->blue
+%                     % representing top-->bottom. however, if there are neighbors we
+%                     % skip this and just plot the middle cell at this current depth,
+%                     % and the same goes for all the neighbors
+%                     if isempty(handles.activeCellNeighbors)
+%                         [data name units] = get_measurement_data_TZ(...
+%                             handles, dropdown_val, handles.activeCell, handles.info.start_time, handles.info.end_time, ...
+%                             handles.info.bottom_layer, handles.info.top_layer);
+%     %                     data = convert_cell_data_to_numerical(data);
+% 
+%                         % if we are on averages, we average over all layers!!
+%     %                     if get(handles.radiobutton_neighbors_averages, 'Value')
+%     %                         savedata = my_mean(data);
+%     %                     else
+%                             savedata = data;
+%     %                     end
+%                     else
+%                         % in the neighbors case, we first need to plot the active
+%                         % (middle) cell in the non-special way (i.e., we just want this
+%                         % layer, not all layers), and then we plot all the neighbors as
+%                         % well.
+%                         [data name units] = get_measurement_data_TZ(...
+%                             handles, dropdown_val, handles.activeCell, handles.info.start_time, handles.info.end_time, ...
+%                             Z, Z);   
+%     %                     data = convert_cell_data_to_numerical(data);
+%                         savedata = data;
+% 
+%                         % now we plot for all the neighbors
+%                         savedata_neighbors = cell(length(handles.activeCellNeighbors), 1);
+%                         for i = 1:length(handles.activeCellNeighbors)
+%                             totaldata = cell(abs(handles.info.end_time-handles.info.start_time)+1, length(handles.activeCellNeighbors{i}));
+%                             for j = 1:length(handles.activeCellNeighbors{i})
+%                                 [data name units] = get_measurement_data_TZ(...
+%                                     handles, dropdown_val, handles.activeCellNeighbors{i}(j), handles.info.start_time, handles.info.end_time, ...
+%                                     Z, Z);           
+%     %                             data = convert_cell_data_to_numerical(data);
+%                                 totaldata(:, j) = data(:);
+%                             end
+%     %                         if get(handles.radiobutton_neighbors_averages, 'Value') % if we need to average
+%     %                             savedata_neighbors{i} = my_mean(totaldata);
+%     %                         else
+%                                 savedata_neighbors{i} = totaldata;
+%     %                         end
+%                         end
+%                     end
+% 
+% 
+%                 end
+% 
+%             end
+% 
+%             % saving
+%             name = handles.allmeasures{selection_meas(export_measurements_i)};
+%             name(name == ':') = '-';
+% 
+%     %         IDENTIFIER = '::';
+%     %         dots = strfind(name, IDENTIFIER);
+%     %         dots = dots(end);
+%     %         if ~isempty(dots)
+%     %             name = name(dots + length(IDENTIFIER) : end);
+%     %         end
+% 
+%             % save cell numbers
+%             cell_indices = handles.activeCell;
+% 
+%             filename = fullfile(dirname, name);
+%             save(filename, 'x_vals', 'savedata', 'savedata_neighbors', 'cell_indices');
+% 
+%         end
+%     end  % end for multiple data sets
+%     if ~strcmp(handles.data_set, data_set)
+%         handles = clear_data_set_maingui(handles, data_set);
+%     end
+%     set(handles.button_manually_select_cells, 'Value', selectbutton_val);
+% 
+%     set(handles.text_readyproc, 'Visible', 'off');
+%     msgbox(strcat('Successfully exported data to the DATA_OUTPUT folder.'));
     
 
 
