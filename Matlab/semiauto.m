@@ -911,10 +911,11 @@ function button_export_Callback(hObject, eventdata, handles)
         end
         [measurementchannelsall measurementnamesall] = get_measurement_file_names(handles);
         [selection_meas ok] = listdlg('ListString', strcat(measurementchannelsall, '::', measurementnamesall), ...
-            'Name', 'Select measurements sets for export', 'ListSize', [300 300], 'CancelString', 'None');
+            'Name', 'Select measurements sets for export', 'ListSize', [300 300]);%, 'CancelString', 'None');
         if ~ok
-            measurementnames = cell(0);
-            measurementchannels = cell(0);
+            return;
+%             measurementnames = cell(0);
+%             measurementchannels = cell(0);
         else
             % the measurements array is the list of measurements that the user
             % selected
@@ -958,6 +959,9 @@ function button_export_Callback(hObject, eventdata, handles)
         if ~strcmp(handles.data_set, datanames{selection(i)})
             handles = clear_data_set_semiauto(handles, datanames{selection(i)});
         end
+        
+        % create the measurements folder
+        [~, ~, ~] = mkdir(handles.src.measurements);
 
         % choose the list of measurements
         if length(selection) > 1
@@ -976,60 +980,6 @@ function button_export_Callback(hObject, eventdata, handles)
 %         handles.embryo.trackAllCells;
 % 
 
-
-%     %%%% perform tracking and create Embryo4d
-%         cgArray = javaArray('CellGraph', 1 + abs(handles.info.end_time - handles.info.start_time), ...
-%             1 + abs(handles.info.bottom_layer - handles.info.top_layer));
-%         indTime = 0; % initialize a counting variable
-%         for time_i = handles.info.start_time:handles.info.end_time
-%     %         set(handles.text_processing_time,  'String',
-%     %         num2str(time_i));
-%     %         drawnow;
-%             indTime = indTime + 1;
-% 
-%             indLayer = 0;
-%             for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
-%     %             set(handles.text_processing_layer,  'String', num2str(layer_i));
-%     %             drawnow;
-%                 indLayer = indLayer + 1;
-% 
-%                 % load the saved temporary CellGraph from temp directory
-%                 filename = handles.info.image_file(time_i, layer_i, handles.tempsrc.poly);
-%                 filename = chgext(filename, 'mat');
-%                 if ~exist(filename, 'file')
-%                     % this should never happen if I disable this button unless it is just processed
-%                     % so it's more of a safety net, to avoid errors
-%                     msgbox(strcat('Temporary file ', filename, ' does not exist. Tracking aborted.'), 'Save failed', 'error');
-%                     readyproc(handles, 'ready');
-%                     return;
-%                 else
-%                     load(filename);
-%                     cgArray(indTime, indLayer) = tempcg;
-%                     clear tempcg;
-% 
-%                 end
-% 
-%             end
-%             
-%             % get tracking parameters
-%             area_change_max_spatial = str2double(get(handles.info_text_tracking_area_change_Z, 'String'));
-%             layers_back_spatial     = str2double(get(handles.info_text_tracking_layers_back_Z, 'String'));
-%             centroid_dist_spatial   = str2double(get(handles.info_text_tracking_centroid_distance_Z, 'String'));       
-%             centroid_dist_spatial   = centroid_dist_spatial / handles.info.microns_per_pixel; % change to pixels!
-%         end
-% 
-%         % create the Embryo4D object and save it in the temp directory
-%         % (first, get tracking parameters from GUI)
-%         area_change_max_temporal = str2double(get(handles.info_text_tracking_area_change_T, 'String'));
-%         layers_back_temporal     = str2double(get(handles.info_text_tracking_layers_back_T, 'String'));
-%         centroid_dist_temporal   = str2double(get(handles.info_text_tracking_centroid_distance_T, 'String'));
-%         centroid_dist_temporal   = centroid_dist_temporal / handles.info.microns_per_pixel; % change to pixels!
-%                 embryo4d = Embryo4D(cgArray, handles.info.start_time, handles.info.end_time, handles.info.master_time, ...
-%                     handles.info.bottom_layer, handles.info.top_layer, handles.info.master_layer, ... 
-%             area_change_max_spatial, layers_back_spatial, centroid_dist_spatial, ...
-%             area_change_max_temporal, layers_back_temporal, centroid_dist_temporal);
-
-        
         % ** output all the measurements into the mat file **
         readyproc(handles, 'calculating');
         % the format of stored properties is a struct with field names
@@ -1037,7 +987,7 @@ function button_export_Callback(hObject, eventdata, handles)
         % field names equal to the measurement names. each field contains a
         % t x z x numCells cell array. could have made it a numCells x t x z
         % x datasize array, but... i don't know how to put stuff into to
-        % without knowing the dimensions...
+        % without knowing the number of dimensions...
         stored_properties = struct;
         
 %         % set the built-in names
@@ -1164,7 +1114,7 @@ function button_export_Callback(hObject, eventdata, handles)
                             % this with NaN everywhere
                             
                             
-                            stored_properties.(good_measurementchannels_j).(measurementnames{j}).data{indTime, indLayer, cell_i}  = NaN(data_size);
+                            stored_properties.(good_measurementchannels_j).(measurementnames{j}).data{indTime, indLayer, cell_i}  = num2cell(NaN(data_size));
 %                             stored_properties{indTime, indLayer, cell_i}.(good_measurementchannels_j).(measurementnames{j}).data  = NaN(data_size);
 %                             stored_properties{indTime, indLayer, cell_i}.(good_measurementchannels_j).(measurementnames{j}).names = cell(data_size);
 %                             stored_properties{indTime, indLayer, cell_i}.(good_measurementchannels_j).(measurementnames{j}).units = cell(data_size);
@@ -1194,22 +1144,47 @@ function button_export_Callback(hObject, eventdata, handles)
                     
                     
                     
-                end
+                end   % for all layers
+            end  % for all times
+            
+            
+            % save everything for that measurement
+            names = stored_properties.(good_measurementchannels_j).(measurementnames{j}).names;
+            units = stored_properties.(good_measurementchannels_j).(measurementnames{j}).units;
+            for indiv_meas = 1:length(names)
+                savename = [good_measurementchannels_j '--' measurementnames{j} '--' names{indiv_meas}];
+                filename = fullfile(handles.src.measurements, savename);
+                data = cell(size(stored_properties.(good_measurementchannels_j).(measurementnames{j}).data));
+                for copyt = 1:size(data, 1)
+                    for copyz = 1:size(data, 2)
+                        for copyc = 1:size(data, 3)
+                            data{copyt, copyz, copyc} = ...
+                                stored_properties.(good_measurementchannels_j).(measurementnames{j}).data{copyt, copyz, copyc}{indiv_meas};                           
+                        end
+                    end
+                end         
+                name = names{indiv_meas};
+                unit = units{indiv_meas};
+                save(filename, 'data', 'name', 'unit');
             end
             
             
-        end
+            
+        end  % for all measurements
         cd(fullfile(handles.program_dir, 'Matlab'));
     
   
         %%%% save stored properties
-        filename = fullfile(handles.src.parent, 'measurements.mat');
-        if exist(filename, 'file')
-            delete(filename);
-        end
-        if ~isempty(measurementnames)
-            save(filename, 'stored_properties');   
-        end
+        % now there is a new version in which we no longer save everything
+        % just in one .mat file, but rather split them up into subfiles as
+        % we did with the exporting from EDGE        
+%         filename = fullfile(handles.src.parent, 'measurements.mat');
+%         if exist(filename, 'file')
+%             delete(filename);
+%         end
+%         if ~isempty(measurementnames)
+%             save(filename, 'stored_properties');   
+%         end
 
 
     %%%% save embryo4d in embryo_data.mat file
@@ -1673,24 +1648,41 @@ function button_import_Callback(hObject, eventdata, handles)
     %%% need to handle the case where this fails (inside this function)   
     
     
-    res = questdlg(strcat('The program found that the depths range from z = ', ...
-        num2str(z_min), ' to z = ', num2str(z_max), '. Which of these depths', ...
-        ' represents the TOP of the embryo?'), 'Select top image', ...
-        num2str(z_min), num2str(z_max), 'Cancel', num2str(z_max));
-    switch res
-        case 'Cancel'
-            return
-        case num2str(z_max)
-            handles.info.top_layer = z_max;
-            handles.info.bottom_layer = z_min;
-        case num2str(z_min)
-            handles.info.top_layer = z_min;
-            handles.info.bottom_layer = z_max;
+    % if there is only one layer
+    if z_min == z_max
+        handles.info.top_layer    = z_max;
+        handles.info.bottom_layer = z_max;
+        
+        res = questdlg(strcat('The program only found one layer, z = ', ...
+            num2str(z_min), '. Is this correct?'), 'One layer only', ...
+            'Ok', 'Cancel', 'Ok');
+        if strcmp(res, 'Cancel')
+            return;
+        end
+        
+    else
+    
+    
+        res = questdlg(strcat('The program found that the depths range from z = ', ...
+            num2str(z_min), ' to z = ', num2str(z_max), '. Which of these depths', ...
+            ' represents the TOP of the embryo?'), 'Select top image', ...
+            num2str(z_min), num2str(z_max), 'Cancel', num2str(z_max));
+        switch res
+            case 'Cancel'
+                return
+            case num2str(z_max)
+                handles.info.top_layer    = z_max;
+                handles.info.bottom_layer = z_min;
+            case num2str(z_min)
+                handles.info.top_layer    = z_min;
+                handles.info.bottom_layer = z_max;
+        end
     end
     
+
     if ~fixed
         handles.info.start_time = t_min;
-        handles.info.end_time = t_max;
+        handles.info.end_time   = t_max;
     else
         handles.info.start_time = 0;
         handles.info.end_time = 0;
@@ -1768,7 +1760,7 @@ function button_import_Callback(hObject, eventdata, handles)
             continue;
         end
         xmlname = files(i).name;
-        [xml_pathstr, xml_name, xml_ext] = fileparts(xmlname); 
+        [~, ~, xml_ext] = fileparts(xmlname); 
         if strcmp(xml_ext, '.xml')
             try
                 tree = xml_read(fullfile(src, xmlname));
@@ -1785,7 +1777,7 @@ function button_import_Callback(hObject, eventdata, handles)
                 end
                 xml_success = 1;
                 break;
-            catch
+            catch 
                 %%%
             end
         end
@@ -1824,6 +1816,25 @@ function button_import_Callback(hObject, eventdata, handles)
             handles.info.microns_per_pixel = str2double(answer{1});
             handles.info.microns_per_z_step = str2double(answer{2});
             handles.info.seconds_per_frame = NaN;
+        elseif z_min == z_max
+            prompt = {'Enter XY spatial resolution ({\mu}m/pixel):', ...
+                      'Enter temporal resolution (sec/image):'};
+            dlg_title = 'Input image parameters';
+            num_lines = 1;
+            defaultanswer = {'',''};
+        %     options.Resize='on';
+            options.WindowStyle='normal';
+            options.Interpreter='tex';
+            answer = inputdlg(prompt, dlg_title, num_lines, defaultanswer, options);
+            if isempty(answer) || isempty(answer{1}) || isempty(answer{2})
+                return
+            end
+
+            handles.info.microns_per_pixel = str2double(answer{1});
+            handles.info.microns_per_z_step = NaN;
+            handles.info.seconds_per_frame = str2double(answer{2});
+            
+            
         else
             prompt = {'Enter XY spatial resolution ({\mu}m/pixel):', ...
                       'Enter Z spatial resolution ({\mu}m/image):' , ...
@@ -1872,16 +1883,17 @@ function button_import_Callback(hObject, eventdata, handles)
     handles.info.bandpass_low = 1.2;
     handles.info.bandpass_high = 12;
     handles.info.number_of_erosions = 0;
+    handles.info.preprocessing_threshold = 0;
     handles.info.refine_max_angle = 170;
     handles.info.refine_min_edge_length = 0.5;
     handles.info.refine_min_angle = 90;
-    handles.info.refine_split_threshold = 1.0;
     handles.info.tracking_area_change_Z = 0.3;
     handles.info.tracking_layers_back_Z = 3;
     handles.info.tracking_centroid_distance_Z = 3;
     handles.info.tracking_area_change_T = 0.3;
     handles.info.tracking_layers_back_T = 3;
     handles.info.tracking_centroid_distance_T = 3;
+
     
     channelnames = cell(length(channels));
     for i = 1:length(channels)
@@ -1902,6 +1914,7 @@ function button_import_Callback(hObject, eventdata, handles)
     [a b c] = mkdir(handles.src.parent);
     [a b c] = mkdir(handles.src.raw);
     [a b c] = mkdir(handles.src.bord);
+    [a b c] = mkdir(handles.src.measurements);
     
     % make the directories in DATA_SEMIAUTO (remove old files)
     [a    ] = rmdir(handles.tempsrc.parent, 's');
@@ -1915,6 +1928,7 @@ function button_import_Callback(hObject, eventdata, handles)
     end
     
     % make the image_filename files
+    rmfield(handles.info, 'image_file');  % just to avoid some weird errors
     handles.info.image_file = write_image_filename_function(handles.src.membranes, ...
         name, z_posn, z_digits, t_posn, t_digits, fixed, handles.data_set);
 

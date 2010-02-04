@@ -1,16 +1,39 @@
 function handles = initialize_tz_sliders(handles)
 
-% set the text for z
-start_layer = abs(handles.info.master_layer - handles.info.bottom_layer);
-set(handles.z_slider, 'Value', start_layer);
-set(handles.z_text, 'String', num2str(handles.info.master_layer));
 
-% set the step values
-z_max = abs(handles.info.bottom_layer - handles.info.top_layer);
-set(handles.z_slider, 'Max', z_max);
-set(handles.z_slider, 'Min', 0);
-set(handles.z_slider, 'SliderStep', ... 
-    [1/z_max; 1/z_max]);
+% if handles.info.bottom_layer ~= handles.info.top_layer
+    % set the text for z
+    start_layer = abs(handles.info.master_layer - handles.info.bottom_layer);
+    set(handles.z_slider, 'Value', start_layer);
+    set(handles.z_text, 'String', num2str(handles.info.master_layer));
+
+    % set the step values
+    z_max = abs(handles.info.bottom_layer - handles.info.top_layer);
+    
+if handles.info.bottom_layer ~= handles.info.top_layer
+    set(handles.z_slider, 'SliderStep', [1/z_max; 1/z_max]); 
+    set(handles.z_slider, 'Max', z_max);
+    set(handles.z_slider, 'Min', 0);
+    
+%     set(handles.z_slider, 'Enable', 'on');
+else
+    set(handles.z_slider, 'SliderStep', [0; 0]);
+    set(handles.z_slider, 'Max', 1);
+    set(handles.z_slider, 'Min', 0);
+    
+%     set(handles.z_slider, 'Enable', 'off');
+end
+   
+    
+%     set(handles.z_slider, 'Visible', 'on');
+%     set(handles.z_text_label, 'Visible', 'on');
+%     set(handles.z_text, 'Visible', 'on');
+% else
+    % data set with only one layer
+%     set(handles.z_slider, 'Visible', 'off');
+%     set(handles.z_text_label, 'Visible', 'off');
+%     set(handles.z_text, 'Visible', 'off');
+% end
 
 % turn temporal slider off if fixed data set
 if ~handles.fixed

@@ -71,49 +71,55 @@ end
 
 
 % just write this once in case I want to change this list
-handles.builtin = {'Area'; 'Perimeter'; 'Centroid-x'; 'Centroid-y'};
-
+% handles.builtin = {'Area'; 'Perimeter'; 'Centroid-x'; 'Centroid-y'};
 
 % initialize the measurements dropdown menu and load stored_properties
 % measures = get_measurement_names(handles);
-allmeasures = handles.builtin;
- 
- prop_filename = fullfile(handles.src.parent, 'measurements.mat');
-if exist(prop_filename, 'file')
-    load(prop_filename);
-    handles.stored_properties = stored_properties;
-    clear stored_properties;
-    
-    % find what measurements are saved in here
-    % by checking out cell #1 of the master_image (this is sure to exist)
-%     master_t = abs(handles.info.master_time - handles.info.start_time) + 1;
-%     master_z = abs(handles.info.master_layer - handles.info.bottom_layer)
-%     + 1;
-    channels = fieldnames(handles.stored_properties);
-    for i = 1:length(channels)
-        measures = fieldnames(handles.stored_properties.(channels{i}));
-        for j = 1:length(measures)
-            % get the correct name and units by calling it at the master image and cell #1
-%             [dummy names dummy] = get_measurement_data(handles, channels{i}, ...
-%                 measures{j}, ...
-%                 handles.info.master_time, handles.info.master_layer, ...
-%                 abs(handles.info.master_time-handles.info.start_time)+1, ...
-%                 abs(handles.info.master_layer-handles.info.bottom_layer)+1, 1);
-            names = handles.stored_properties.(channels{i}).(measures{j}).names;
+% allmeasures = handles.builtin;
 
-            new_names = strcat(channels{i}, '::', measures{j}, '::', names);
-            allmeasures = [allmeasures; new_names(:)];
-        end
+% get the names of all the saved files
+saved = dir(handles.src.measurements);
+goodnames = cell(0);
+for i = length(saved):-1:1
+   [~, name, ext] = fileparts(saved(i).name); 
+    if strcmp(ext, '.mat')
+       good = name;
+%        good(good == '-') = ':';
+       goodnames{end+1, 1} = good;
     end
-else
-    handles.stored_properties = [];
 end
+% allmeasures = [allmeasures; goodnames];
+allmeasures = goodnames(end:-1:1);
+
+
+%%%% we no longer save things in one big file...
+%%%% in fact we do not load anything at this point, we just load things as
+%%%% they are needed and then if they are needed again they are already
+%%%% loaded, i think that makes mnore sense than re-loading every time
+%%%% although both options are reasonable at this point
+% prop_filename = fullfile(handles.src.parent, 'measurements.mat');
+% if exist(prop_filename, 'file')
+%     load(prop_filename);
+%     handles.stored_properties = stored_properties;
+%     clear stored_properties;
+%     channels = fieldnames(handles.stored_properties);
+%     for i = 1:length(channels)
+%         measures = fieldnames(handles.stored_properties.(channels{i}));
+%         for j = 1:length(measures)
+%             names = handles.stored_properties.(channels{i}).(measures{j}).names;
+% 
+%             new_names = strcat(channels{i}, '::', measures{j}, '::', names);
+%             allmeasures = [allmeasures; new_names(:)];
+%         end
+%     end
+% else
+%     handles.stored_properties = [];
+% end
 set(handles.dropdown_measurements, 'String', allmeasures);
 handles.allmeasures = allmeasures; % save for exporting
-set(handles.dropdown_measurements, 'Value', 1);
+DEFAULT_MEASURE = 1;
+set(handles.dropdown_measurements, 'Value', DEFAULT_MEASURE);
 
-% handles.plot_times = [];
-% handles.plot_data  = [];
 
 % if only 1 other channel, set the name of that checkbox to be that
 if length(handles.channelnames) == 1
@@ -167,6 +173,18 @@ else
     set(handles.smoothing_strength_text, 'String', '0');
 %     set(handles.export_panel, 'Visible', 'off');
 end
+
+
+% initialize with empty struct
+handles.loaded_measurements = struct;
+
+% load in the current measurements
+big_measure_name = handles.allmeasures{DEFAULT_MEASURE};
+% big_measure_name(big_measure_name == ':') = '-';
+load(fullfile(handles.src.measurements, [big_measure_name '.mat']));  % loads 'data', 'name', 'unit'
+handles.loaded_measurements.(genvarname(big_measure_name)).data = data;
+handles.loaded_measurements.(genvarname(big_measure_name)).name = name;
+handles.loaded_measurements.(genvarname(big_measure_name)).unit = unit;
 
 
 % clear current Cell

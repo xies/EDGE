@@ -34,8 +34,8 @@ if handles.fixed
         totaldata = zeros(abs(handles.info.top_layer-handles.info.bottom_layer)+1, length(handles.activeCell));
         for i = 1:length(handles.activeCell)
             [data name units] = get_measurement_data_TZ(...
-                handles, dropdown_val, handles.activeCell(i), handles.info.start_time, handles.info.end_time, ...
-                handles.info.bottom_layer, handles.info.top_layer);           
+                handles, dropdown_val, handles.activeCell(i));%, handles.info.start_time, handles.info.end_time, ...
+%                 handles.info.bottom_layer, handles.info.top_layer);           
 %             plot(x_vals, data, 'r'); % data should be 1-dimensional
             data = convert_cell_data_to_numerical(data);
             totaldata(:, i) = data(:);
@@ -48,8 +48,8 @@ if handles.fixed
         end
     else  % single cell selected
         [data name units] = get_measurement_data_TZ(...
-            handles, dropdown_val, handles.activeCell, handles.info.start_time, handles.info.end_time, ...
-            handles.info.bottom_layer, handles.info.top_layer);   
+            handles, dropdown_val, handles.activeCell);%, handles.info.start_time, handles.info.end_time, ...
+%             handles.info.bottom_layer, handles.info.top_layer);   
         data = convert_cell_data_to_numerical(data);
         plot(x_vals, data, 'r'); % data should be 1-dimensional
         
@@ -59,8 +59,8 @@ if handles.fixed
                 totaldata = zeros(abs(handles.info.top_layer-handles.info.bottom_layer)+1, length(handles.activeCellNeighbors{i}));
                 for j = 1:length(handles.activeCellNeighbors{i})
                     [data name units] = get_measurement_data_TZ(...
-                        handles, dropdown_val, handles.activeCellNeighbors{i}(j), handles.info.start_time, handles.info.end_time, ...
-                        handles.info.bottom_layer, handles.info.top_layer);           
+                        handles, dropdown_val, handles.activeCellNeighbors{i}(j));%, handles.info.start_time, handles.info.end_time, ...
+%                         handles.info.bottom_layer, handles.info.top_layer);           
                     data = convert_cell_data_to_numerical(data);
                     totaldata(:, j) = data(:);
                 end
@@ -93,8 +93,9 @@ else  % time series
         for i = 1:length(handles.activeCell)
 
             [data name units] = get_measurement_data_TZ(...
-                handles, dropdown_val, handles.activeCell(i), handles.info.start_time, handles.info.end_time, ...
-                Z, Z);
+                handles, dropdown_val, handles.activeCell(i));%, handles.info.start_time, handles.info.end_time, ...
+%                 Z, Z);
+            data = data(:, handles.embryo.translateZ(Z)+1);
             data = convert_cell_data_to_numerical(data);
             totaldata(:, i) = data(:);
         end
@@ -114,8 +115,8 @@ else  % time series
         % and the same goes for all the neighbors
         if isempty(handles.activeCellNeighbors)
             [data name units] = get_measurement_data_TZ(...
-                handles, dropdown_val, handles.activeCell, handles.info.start_time, handles.info.end_time, ...
-                handles.info.bottom_layer, handles.info.top_layer);
+                handles, dropdown_val, handles.activeCell);%, handles.info.start_time, handles.info.end_time, ...
+%                 handles.info.bottom_layer, handles.info.top_layer);
             data = convert_cell_data_to_numerical(data);
             
             % if we are on averages, we average over all layers!!
@@ -123,9 +124,13 @@ else  % time series
                 plot(x_vals, my_mean(data), 'k');
                 title(strcat(name, ' vs. time averaged over all depths'));
             else
-                for j = 1:size(data, 2)
-                    col = [(j-1)/(size(data,2)-1), 0, 1-(j-1)/(size(data,2)-1)];
-                    plot(x_vals, data(:, j), 'Color', col);
+                if size(data, 2) == 1
+                    plot(x_vals, data, 'r');
+                else
+                    for j = 1:size(data, 2)
+                        col = [(j-1)/(size(data,2)-1), 0, 1-(j-1)/(size(data,2)-1)];
+                        plot(x_vals, data(:, j), 'Color', col);
+                    end
                 end
                 title(strcat(name, ' vs. time for each depth (red = top, blue = bottom)'));    
             end
@@ -135,8 +140,9 @@ else  % time series
             % layer, not all layers), and then we plot all the neighbors as
             % well.
             [data name units] = get_measurement_data_TZ(...
-                handles, dropdown_val, handles.activeCell, handles.info.start_time, handles.info.end_time, ...
-                Z, Z);   
+                handles, dropdown_val, handles.activeCell);%, handles.info.start_time, handles.info.end_time, ...
+%                 Z, Z);   
+            data = data(:, handles.embryo.translateZ(Z)+1);
             data = convert_cell_data_to_numerical(data);
             plot(x_vals, data, 'r'); % data should be 1-dimensional
             
@@ -145,8 +151,9 @@ else  % time series
                 totaldata = zeros(abs(handles.info.end_time-handles.info.start_time)+1, length(handles.activeCellNeighbors{i}));
                 for j = 1:length(handles.activeCellNeighbors{i})
                     [data name units] = get_measurement_data_TZ(...
-                        handles, dropdown_val, handles.activeCellNeighbors{i}(j), handles.info.start_time, handles.info.end_time, ...
-                        Z, Z);           
+                        handles, dropdown_val, handles.activeCellNeighbors{i}(j));%, handles.info.start_time, handles.info.end_time, ...
+%                         Z, Z);           
+                    data = data(:, handles.embryo.translateZ(Z)+1);
                     data = convert_cell_data_to_numerical(data);
                     totaldata(:, j) = data(:);
                 end

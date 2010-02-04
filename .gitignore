@@ -1,5 +1,5 @@
 .metadata/
-4D Project documents/
+documents/
 DATA_GUI/
 DATA_INFO.csv
 DATA_MOVIES/
@@ -11,4 +11,6 @@ old_gastrulation/
 other movies/
 Matlab.zip
 java1.zip
+EDGE.zip
+EDGE_install/
 *~

@@ -6,3 +6,4 @@ handles.src.parent = source;        % the subdirectory for this data set
 handles.src.membranes = fullfile(source, 'Membranes');
 handles.src.raw = fullfile(source, 'Membranes', 'Raw');  % subsub dirctory: raw
 handles.src.bord = fullfile(source, 'Membranes', 'Processed');
+handles.src.measurements = fullfile(source, 'Measurements');
