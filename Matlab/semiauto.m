@@ -910,7 +910,7 @@ function button_export_Callback(hObject, eventdata, handles)
             handles = clear_data_set_semiauto(handles, datanames{selection});
         end
         [measurementchannelsall measurementnamesall] = get_measurement_file_names(handles);
-        [selection_meas ok] = listdlg('ListString', strcat(measurementchannelsall, '::', measurementnamesall), ...
+        [selection_meas ok] = listdlg('ListString', strcat(measurementchannelsall, '--', measurementnamesall), ...
             'Name', 'Select measurements sets for export', 'ListSize', [300 300]);%, 'CancelString', 'None');
         if ~ok
             return;
@@ -961,7 +961,7 @@ function button_export_Callback(hObject, eventdata, handles)
         end
         
         % create the measurements folder
-        [~, ~, ~] = mkdir(handles.src.measurements);
+        [a, b, c] = mkdir(handles.src.measurements);
 
         % choose the list of measurements
         if length(selection) > 1
@@ -1760,7 +1760,7 @@ function button_import_Callback(hObject, eventdata, handles)
             continue;
         end
         xmlname = files(i).name;
-        [~, ~, xml_ext] = fileparts(xmlname); 
+        [dummy1, dummy2, xml_ext] = fileparts(xmlname); 
         if strcmp(xml_ext, '.xml')
             try
                 tree = xml_read(fullfile(src, xmlname));

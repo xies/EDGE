@@ -81,7 +81,7 @@ end
 saved = dir(handles.src.measurements);
 goodnames = cell(0);
 for i = length(saved):-1:1
-   [~, name, ext] = fileparts(saved(i).name); 
+   [dummy, name, ext] = fileparts(saved(i).name); 
     if strcmp(ext, '.mat')
        good = name;
 %        good(good == '-') = ':';

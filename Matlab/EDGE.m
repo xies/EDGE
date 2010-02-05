@@ -619,15 +619,17 @@ function export_button_Callback(hObject, eventdata, handles)
 
     % create the directories if necessary
     dirname = fullfile(handles.program_dir, 'DATA_OUTPUT');
-    [a b c] = mkdir(dirname);
+    [a,b,c] = mkdir(dirname);
     dirname = fullfile(dirname, handles.data_set);
-    [a b c] = mkdir(dirname);
+    [a,b,c] = mkdir(dirname);
 %     dirname = fullfile(dirname, date_and_time_saving);
 %     [a b c] = mkdir(dirname);
 
     [T Z] = getTZ(handles);
     cell_indices = handles.activeCell;
-    save(fullfile(dirname, date_and_time_saving), 'cell_indices', 'T', 'Z');
+    neighbor_indices = handles.activeCellNeighbors;
+    save(fullfile(dirname, date_and_time_saving), ...
+        'cell_indices', 'neighbor_indices', 'T', 'Z');
     
     msgbox('Successfully exported data to the DATA_OUTPUT folder.');
     
