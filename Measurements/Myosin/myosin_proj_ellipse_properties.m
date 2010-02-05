@@ -1,4 +1,4 @@
-function [data names units] = myosin_proj_ellipse_properties(embryo, getMyosin, t, z, c, dx, dz, dt, other)
+function [data names units] = myosin_proj_ellipse_properties(embryo, getMyosin, t, z, c, dx, dz, dt)
     % computes the ellipse properties of the projected myosin at (t, z) 
     % for Cell i given the Embryo4D,
     % the membranes, and the relevant resolutions
