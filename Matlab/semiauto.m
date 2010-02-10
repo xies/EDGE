@@ -482,6 +482,11 @@ function button_applyall_Callback(hObject, eventdata, handles)
         badimages = '';
         for time_i = handles.info.start_time:handles.info.end_time
             for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+                
+                if time_i == handles.info.master_time && layer_i == handles.info.master_layer
+                    continue;
+                end
+                
                 set(handles.text_processing_time,  'String', num2str(time_i));
                 set(handles.text_processing_layer, 'String', num2str(layer_i));
                 drawnow;

@@ -200,8 +200,8 @@ public class Embryo4D implements java.io.Serializable {
 			
 			// if we reach here then we didn't find anything looking forward by that many layers.
 			// in this case, we should give up.
-			if (j == z() || j == i + layersToLookBackZ || j == -1 || j == i - layersToLookBackZ)
-				break;
+//			if (j == z() || j == i + layersToLookBackZ || j == -1 || j == i - layersToLookBackZ)
+//				break;
 			
 		} //
 	}
@@ -329,8 +329,8 @@ public class Embryo4D implements java.io.Serializable {
 					
 			} 
 			
-			if (j == t() || j == i + layersToLookBackT || j == -1 || j == i - layersToLookBackT)
-				break;
+//			if (j == t() || j == i + layersToLookBackT || j == -1 || j == i - layersToLookBackT)
+//				break;
 			
 		} // for each time
 		
