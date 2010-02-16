@@ -179,6 +179,7 @@ public class Embryo4D implements java.io.Serializable {
 		for (int i = from + dir; i < z() && i >= 0; i += dir) {				
 			// for each Cell in the layer being tracked
 			int j = i;
+			// Tracking now looks FORWARD, not back!!
 			for ( ; j < z() && j < i + layersToLookBackZ && j >= 0 && j > i - layersToLookBackZ; j += dir) {
 				
 				// the use of inactiveCellAtPoint means that you don't search for cell that have already been tracked
@@ -200,11 +201,12 @@ public class Embryo4D implements java.io.Serializable {
 			
 			// if we reach here then we didn't find anything looking forward by that many layers.
 			// in this case, we should give up.
-//			if (j == z() || j == i + layersToLookBackZ || j == -1 || j == i - layersToLookBackZ)
-//				break;
+			if (j == z() || j == i + layersToLookBackZ || j == -1 || j == i - layersToLookBackZ)
+				break;
+			
 			
 		} //
-	}
+	}  // end of function
 
 	private void trackSingleCellZ(int c, int t) {
 		//here t is the array index form, it doesn't need to be "translated"
@@ -316,7 +318,7 @@ public class Embryo4D implements java.io.Serializable {
 				if (isCellMatch(cTrack, cMatchCandidate, areaChangeMaxT, centroidDistMaxT)) {
 					cMatchCandidate.changeIndex(c);  // change the index to Z at the master layer 
 					// (because cMatchCandidate is always from the master layer)
-					trackSingleCellZ(c, j);  // this automatically changes the indeces there
+					trackSingleCellZ(c, j);  // this automatically changes the indices there
 //					int cMatchCandidateIndex = cMatchCandidate.index();
 //					for (int z = 0; z < z(); z++)
 //						if (cellGraphs[j][z].getCell(cMatchCandidateIndex) != null)
@@ -329,8 +331,10 @@ public class Embryo4D implements java.io.Serializable {
 					
 			} 
 			
-//			if (j == t() || j == i + layersToLookBackT || j == -1 || j == i - layersToLookBackT)
-//				break;
+			// this code basically removes the looking back feature ... I don't think it's so good
+			if (j == t() || j == i + layersToLookBackT || j == -1 || j == i - layersToLookBackT)
+				break;
+			
 			
 		} // for each time
 		

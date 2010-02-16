@@ -149,7 +149,9 @@ function closeGUI(hObject, eventdata) %#ok<*INUSD>
     cd(fullfile(handles.program_dir, 'Matlab'));
     
     if isfield(handles, 'data_set') % if you've never imported anything, don't do a check
-        handles = exit_data_set_semiauto(handles);
+        try  % want to let it close even if there's an error!!
+            handles = exit_data_set_semiauto(handles);
+        end
     end
     
     % close the GUI
@@ -1933,7 +1935,9 @@ function button_import_Callback(hObject, eventdata, handles)
     end
     
     % make the image_filename files
-    rmfield(handles.info, 'image_file');  % just to avoid some weird errors
+    if isfield(handles.info, 'image_file')
+        handles.info = rmfield(handles.info, 'image_file');  % just to avoid some weird errors
+    end
     handles.info.image_file = write_image_filename_function(handles.src.membranes, ...
         name, z_posn, z_digits, t_posn, t_digits, fixed, handles.data_set);
 

@@ -552,12 +552,37 @@ public class CellGraph implements java.io.Serializable {
 		for (Cell can : cells())
 			if (can.containsEdge(v, w))
 				cellVector.add(can);
-		if (cellVector.size() != 2) return 0;
+		if (cellVector.size() == 1) removeEdgeOneCellNull(v, w, cellVector.elementAt(0));
+		else if (cellVector.size() != 2) return 0;
 		
 		Cell c = cellVector.elementAt(0);
 		Cell d = cellVector.elementAt(1);
 		return removeEdge(v, w, c, d);
 	}
+	private int removeEdgeOneCellNull(Vertex v, Vertex w, Cell c) {
+		// sadly we need a special case when one of the cells is null...
+		// to do this we need to BFS from v until we find w (but do not use vertices
+		// belonging to c) and then add all of these to c
+		Set<Vertex> visited = new HashSet<Vertex>();
+		
+		//add all of the vertices of c so that they cannot be visited
+		for (Vertex cv : c.vertices())
+			visited.add(cv);
+		
+		while (!visited.contains(w)) {
+			for (Vertex neigh : verticesNeighboringVertex(v)) {
+				
+			}
+		}
+		
+		return 0;
+	}
+	// find the shortest path from Vertex v to Vertex w in the graph
+	//
+	
+//	private Vertex[] shortestPath(Vertex v, Vertex w) {
+//		
+//	}
 	private int removeEdge(Vertex v, Vertex w, Cell c, Cell d) {
 		// the vertices of the new Cell
 		int newNumV = c.numV() + d.numV() - 2;  // -2 because they share v and w
@@ -1027,6 +1052,22 @@ public class CellGraph implements java.io.Serializable {
 	public Cell[] cellNeighborsActive(Cell input) {
 		return cellNeighborsActive(input, 1);
 	}
+	
+	// find the Vertices touching the Vertex input
+	public Vertex[] verticesNeighboringVertex(Vertex input) {
+		Set<Vertex> neighborVector = new HashSet<Vertex>();
+		
+		for (Cell c : cellsNeighboringVertex(input))
+			for (Vertex v : c.vertices())
+				neighborVector.add(v);
+		
+		// convert the Set into an array and return it
+		Vertex[] neighbors = new Vertex[neighborVector.size()];
+		neighborVector.toArray(neighbors);
+		
+		return neighbors;
+	}
+	
 	
 	// find the Cells touching the Vertex input
 	public Cell[] cellsNeighboringVertex(Vertex input) {
