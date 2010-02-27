@@ -1,5 +1,7 @@
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Vector;
 import java.util.Set;
 import java.util.HashSet;
@@ -552,37 +554,140 @@ public class CellGraph implements java.io.Serializable {
 		for (Cell can : cells())
 			if (can.containsEdge(v, w))
 				cellVector.add(can);
-		if (cellVector.size() == 1) removeEdgeOneCellNull(v, w, cellVector.elementAt(0));
+		if (cellVector.size() == 1)
+			return 0;
+//			return removeEdgeOneCellNull(v, w, cellVector.elementAt(0));
 		else if (cellVector.size() != 2) return 0;
 		
 		Cell c = cellVector.elementAt(0);
 		Cell d = cellVector.elementAt(1);
 		return removeEdge(v, w, c, d);
 	}
-	private int removeEdgeOneCellNull(Vertex v, Vertex w, Cell c) {
-		// sadly we need a special case when one of the cells is null...
-		// to do this we need to BFS from v until we find w (but do not use vertices
-		// belonging to c) and then add all of these to c
-		Set<Vertex> visited = new HashSet<Vertex>();
-		
-		//add all of the vertices of c so that they cannot be visited
-		for (Vertex cv : c.vertices())
-			visited.add(cv);
-		
-		while (!visited.contains(w)) {
-			for (Vertex neigh : verticesNeighboringVertex(v)) {
-				
-			}
-		}
-		
-		return 0;
-	}
-	// find the shortest path from Vertex v to Vertex w in the graph
-	//
-	
-//	private Vertex[] shortestPath(Vertex v, Vertex w) {
+//	private int removeEdgeOneCellNull(Vertex v, Vertex w, Cell c) {
+//		// sadly we need a special case when one of the cells is null...
+//		// to do this we need to BFS from v until we find w (but do not use vertices
+//		// belonging to c) and then add all of these to c
+//		// --- the alternative option is just not to let empty cells form in the mesh
+//		// but this decreases flexibility, doesn't it? (it would be easy to enforce, because
+//		// such things only happen from Remove Cell and Remove Vertex)
+//		Set<Vertex> visited = new HashSet<Vertex>();
+//		
+//		// use a Queue for BFS
+//		Queue<Vertex> q = new LinkedList<Vertex>();
+//		q.add(v);
+//		
+//		//add all of the vertices of c so that they cannot be visited
+//		for (Vertex cv : c.vertices())
+//			visited.add(cv);
+//		visited.remove(w);
+//		
+//		while (!visited.contains(w)) {
+//			
+//			for (Vertex neigh : verticesNeighboringVertex(q.remove())) {
+//				if (visited.contains(neigh)) continue; // skip that one if it's visited
+//				q.add(neigh);
+//				visited.add(neigh);
+//			}
+//		}
+//		
+//		// create a new cell
+//		Vertex[] newVerts = new Vertex[visited.size()];
+//		visited.toArray(newVerts);
+////		addCell
+////		parent.addCell(newCell, t, z);
+////		return newCell.index();
+//		
+//		return 0;
+//	}
+//	
+//	
+//	// find the shortest path from Vertex v to Vertex w in the graph
+//	//
+//	
+////	private Vertex[] shortestPath(Vertex v, Vertex w) {
+////		
+////	}
+//	
+//	// finds all the empty spaces in the middle of the graph where no cell exists and "fills" the hole
+//	// by creating a new cell there. this is a rather experimental function that might be used for the
+//	// remove edge problem above, or maybe should even be a button??
+//	// ..  the algorithm is to 
+//	public void fillHoles() {
+//		
+//		Set<Vertex> problematic = new HashSet<Vertex>();
+//		// for each vertex
+//		for (Vertex v : vertices()) {
+//			// if it is neighboring more vertices than cells THIS FAILS FOR EDGES 
+//			if (verticesNeighboringVertex(v).length >= 3 &&
+//				verticesNeighboringVertex(v).length > cellsNeighboringVertex(v).length) {
+//				
+////				System.out.println(verticesNeighboringVertex(v).length + " " + cellsNeighboringVertex(v).length);
+//				// add it to the Vector
+//				problematic.add(v);
+//			}
+//		}
+//		
+//		System.out.println("problematic.size() = " + problematic.size());
+//		
+//		// now, find connected components, i.e., groups of Vertices that are connected to each other
+//		// each of these "components", assuming it is "closed" and that there are >=3 vertices, becomes
+//		// a cell
+//		Vector<Vector<Vertex>> connComponents = new Vector<Vector<Vertex>>();
+//		// for each problematic Vertex
+//		for (Vertex v : problematic) {
+//			// create a new Vector and add this vertex to it
+//			Vector<Vertex> temp = new Vector<Vertex>();
+//			temp.add(v);
+//			// find all the vertices that are connected to this, and add them to temp as well
+//			// also, remove them from "problematic" so that they don't get counted again
+//			
+//			System.out.println("allNeighbors(v, problematic).length = " + allNeighbors(v, problematic).length);
+//			
+//			for (Vertex w : allNeighbors(v, problematic))
+//				temp.add(w);
+//			// add this vector to the 2d array
+//			connComponents.add(temp);
+//			
+//		}
+//		
+//		System.out.println("connComponents.size() = " + connComponents.size());
+//		
+//		// for each connected component, create a cell with those vertices
+//		for (int i = 0; i < connComponents.size(); i++) {
+//			Vertex[] temp = new Vertex[connComponents.elementAt(i).size()];
+//			connComponents.elementAt(i).toArray(temp);
+//			addCell(temp);
+//		}
+//		
 //		
 //	}
+//	
+//	// find all the Vertices that are connected to v within the subset verts (using the usual connectivity)
+//	// uses a BFS-like algorithm
+//	private Vertex[] allNeighbors(Vertex v, Set<Vertex> verts) {
+//		Set<Vertex> neighbors = new HashSet<Vertex>();
+//		neighbors.add(v);
+//		
+//		Queue<Vertex> q = new LinkedList<Vertex>();
+//		q.add(v);
+//		while (!q.isEmpty()) {
+//			// for all the neighbors
+//			for (Vertex w : verticesNeighboringVertex(q.remove())) {
+//				// if it is in the subset verts but NOT already in beighbors
+//				if (verts.contains(w) && !neighbors.contains(w)) {
+//					q.add(w);
+//					neighbors.add(w);
+//				}
+//			}
+//		}
+//		
+//		// toarray	
+//		Vertex[] out = new Vertex[neighbors.size()];
+//		neighbors.toArray(out);
+//		return out;
+//	}
+	
+	
 	private int removeEdge(Vertex v, Vertex w, Cell c, Cell d) {
 		// the vertices of the new Cell
 		int newNumV = c.numV() + d.numV() - 2;  // -2 because they share v and w
@@ -1057,9 +1162,14 @@ public class CellGraph implements java.io.Serializable {
 	public Vertex[] verticesNeighboringVertex(Vertex input) {
 		Set<Vertex> neighborVector = new HashSet<Vertex>();
 		
+		// this is really slow
+		// i could do something much more reasonable, but for now, it doesn't matter (i hope)
 		for (Cell c : cellsNeighboringVertex(input))
 			for (Vertex v : c.vertices())
-				neighborVector.add(v);
+				if (connected(v, input))
+					neighborVector.add(v);
+		// remove the input vertex
+		neighborVector.remove(input);
 		
 		// convert the Set into an array and return it
 		Vertex[] neighbors = new Vertex[neighborVector.size()];

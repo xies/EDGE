@@ -23,7 +23,7 @@ function varargout = semiauto(varargin)
 
     % Edit the above text to modify the response to help semiauto
 
-    % Last Modified by GUIDE v2.5 20-Dec-2009 00:46:55
+    % Last Modified by GUIDE v2.5 27-Feb-2010 13:52:55
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -267,6 +267,11 @@ function mouseFunction(hObject,evnt)
     
     [T Z] = getTZ(handles);
  
+% %         v = handles.embryo.getCellGraph(T, Z).vertices;
+% %     handles.embryo.getCellGraph(T, Z).verticesNeighboringVertex(v(1));
+% %     
+% %     handles.embryo.getCellGraph(T, Z).fillHoles;
+%     
 %     if ~isempty(handles.activeCell)
 %         handles.activeCell{1}
 %         handles.activeCell{1}.containsPoint(34.14269599548788, 109.5160744500846)
@@ -279,6 +284,7 @@ function mouseFunction(hObject,evnt)
     if isempty(handles.embryo.getCellGraph(T, Z))
         return
     end
+    
     
     Ys = handles.info.Ys; Xs = handles.info.Xs;
     [location whichbutton] = get_mouse_location_zoom(handles);
@@ -384,6 +390,14 @@ function mouseFunction(hObject,evnt)
         end
         
         handles = slider_callbacks_draw_image_slice_dots_semiauto(handles);
+    end
+    
+    
+    % do the cell text thing
+    if length(handles.activeCell) == 1
+        set(handles.cell_text, 'String', num2str(handles.activeCell{1}.index)); 
+    else
+        set(handles.cell_text, 'String', '-'); 
     end
 
 
@@ -2093,11 +2107,19 @@ function vec_remove_edge_Callback(hObject, eventdata, handles)
             if ~handles.embryo.getCellGraph(T, Z).connected(vert1, vert2)
                 msgbox('Edge removal only works for vertices that are connected.', ...
                     'Edge removal failed', 'error');
+                uiwait;
                 return;
             end
 
-            handles.embryo.getCellGraph(T, Z).removeEdge(vert1, vert2); 
-
+            remove_out = handles.embryo.getCellGraph(T, Z).removeEdge(vert1, vert2); 
+            if remove_out == 0
+                msgbox(['Error: the two selected vertices must be shared by exactly two cells' ...
+                    '. It is possible that one of the two cells does not actually exist. ' ...
+                    'Try selecting all cells to see this.'], 'Edge removal failed', 'error');
+                uiwait;
+                return;
+            end
+            
 
             handles.activeVertex = [];
         end
@@ -2538,7 +2560,7 @@ function button_refine_applyall_Callback(hObject, eventdata, handles)
     
     readyproc(handles, 'ready');
     guidata(hObject, handles);    
-
+    
 
 function vec_activate_cell_Callback(hObject, eventdata, handles)
 %unfinished!!!
@@ -2550,3 +2572,29 @@ function goto_master_image_Callback(hObject, eventdata, handles)
     end
     handles = go_to_image(handles, handles.info.master_time, handles.info.master_layer);
     guidata(hObject, handles);    
+
+
+function cell_text_Callback(hObject, eventdata, handles)
+    ind = str2double(get(handles.cell_text, 'String'));
+    [T Z] = getTZ(handles);
+    if round(ind)~=ind || ind==0
+        handles.activeCell = cell(0);
+        msgbox('Cell number must be a nonzero integer.', '', 'error');
+    elseif ~handles.embryo.getCellGraph(T, Z).containsCell(ind)
+        handles.activeCell = cell(0);
+        msgbox(['Cell number ' num2str(ind) ' does not exist at this (T, Z).'], '', 'error');
+    else
+        handles.activeCell = cell(1);
+        handles.activeCell{1} = handles.embryo.getCell(ind, T, Z);
+        handles = slider_callbacks_draw_image_slice_dots_semiauto(handles);
+        guidata(hObject, handles);
+    end
+    guidata(hObject, handles);
+
+function cell_text_CreateFcn(hObject, eventdata, handles)
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

@@ -923,18 +923,22 @@ function export_button_Callback(hObject, eventdata, handles)
 
 function cell_text_Callback(hObject, eventdata, handles)
     ind = str2double(get(handles.cell_text, 'String'));
-    if ind > 0 && round(ind)==ind
-        [T Z] = getTZ(handles);
+    [T Z] = getTZ(handles);
+    if ind <= 0 || round(ind)~=ind
+        handles.activeCell = [];
+        handles = clear_cell(handles);
+        msgbox('Cell number must be a positive integer.', '', 'error');
+    elseif ~handles.embryo.getCellGraph(T, Z).containsCell(ind)
+        handles.activeCell = [];
+        handles = clear_cell(handles);
+        msgbox(['Cell number ' num2str(ind) ' does not exist at this (T, Z).'], '', 'error');
+    else
         handles.activeCell = ind;
         slider_callbacks_draw_measurement(handles);
         slider_callbacks_draw_3D_cell(handles);
 %         handles = slider_callbacks_draw_image_slice_dots_maingui(handles);
         handles = slider_callbacks_draw_image_slice(handles);
         guidata(hObject, handles);
-    else
-        handles.activeCell = [];
-        handles = clear_cell(handles);
-        msgbox('Cell number must be a positive integer', '', 'error');
     end
     guidata(hObject, handles);
 
