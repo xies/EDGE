@@ -17,13 +17,15 @@ if get(handles.radiobutton_vec_manual, 'Value')
         end
     end
 
-
+    set(handles.vec_activate_cell, 'Enable', 'off');
 else
     handles.activeCell = [];
     handles.activeVertex = [];
     set(handles.vec_add_cell, 'Enable', 'off');
     set(handles.vec_remove_cell, 'Enable', 'off');
-    set(handles.vec_activate_cell, 'Enable', 'off');
     set(handles.vec_move_vertex, 'Enable', 'off');
     set(handles.vec_remove_vertex, 'Enable', 'off');
+    
+    set(handles.vec_activate_cell, 'Enable', 'on');
+    set(handles.vec_activate_cell, 'String', 'S+A+R stack');
 end
