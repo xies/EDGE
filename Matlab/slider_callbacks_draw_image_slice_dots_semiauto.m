@@ -14,10 +14,12 @@ end
 % draw centroids of active Cells
 if ~isempty(handles.activeCell)
     % make a javaarray
-    activecells = javaArray('Cell', length(handles.activeCell));
-    for i = 1:length(handles.activeCell)
-        activecells(i) = handles.activeCell{i};
-    end
+%     activecells = javaArray('Cell', length(handles.activeCell));
+%     for i = 1:length(handles.activeCell)
+%         activecells(i) = handles.activeCell{i};
+%     end
+    [T Z] = getTZ(handles);
+    activecells = handles.embryo.getCells(handles.activeCell, T, Z);
     cents = Cell.centroidStack(activecells);
     handles.cents_handle = plot(cents(:,2), cents(:,1), '.r');
 end

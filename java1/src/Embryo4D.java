@@ -544,7 +544,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
  then you will make these same jumps in the other direction, aka you will always run right upto the edge where it fails 
  and then make the smallest jump. that's really cool.
 */
-	 */
+	
 	
 	private Cell backtrackCell(Cell cTrack, int t, int z) {
 		int master_layer = translateZ(masterLayer);
@@ -746,6 +746,12 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	public Cell getCell(int c, int t, int z) {
 		// automatically translates the T, Z coordinate through getCellGraph fcn
 		return getCellGraph(t, z).getCell(c);
+	}
+	public Cell[] getCells(int[] c, int t, int z) {
+		Cell[] out = new Cell[c.length];
+		for (int i = 0; i < c.length; i++)
+			out[i] = getCell(c[i], t, z);
+		return out;
 	}
 	
 	// the highest tracked cell for a given cell index c at time t

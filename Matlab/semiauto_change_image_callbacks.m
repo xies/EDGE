@@ -37,7 +37,18 @@ else
 %     end
 end   
 
-handles.activeCell = [];
+% handles.activeCell = [];
+% some of the indices that are slected might not be in the new image, so
+% unselect those just for simplicity. also, i can only do this for _active_
+% cells because inactive cells might have the same index between images but
+% have nothing to do with each other
+handles.activeCell = intersect(handles.activeCell, handles.embryo.getCellGraph(T, Z).activeCellIndices);
+if length(handles.activeCell) == 1  % fix the text
+        set(handles.cell_text, 'String', num2str(handles.activeCell(1))); 
+    else
+        set(handles.cell_text, 'String', '-'); 
+end
+
 handles.activeVertex = [];
 
 

@@ -175,6 +175,11 @@ else
 end
 
 
+% smoothing is always off for now!
+set(handles.smoothing_panel, 'Visible', 'off');
+
+
+
 % initialize with empty struct
 handles.loaded_measurements = struct;
 

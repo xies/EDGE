@@ -271,12 +271,7 @@ function mouseFunction(hObject,evnt)
 % %     handles.embryo.getCellGraph(T, Z).verticesNeighboringVertex(v(1));
 % %     
 % %     handles.embryo.getCellGraph(T, Z).fillHoles;
-%     
-%     if ~isempty(handles.activeCell)
-%         handles.activeCell{1}
-%         handles.activeCell{1}.containsPoint(34.14269599548788, 109.5160744500846)
-%     end
-    
+
     % only select a cell if the polygon mode is on
     if ~get(handles.cbox_poly, 'Value');
         return
@@ -293,10 +288,6 @@ function mouseFunction(hObject,evnt)
     if location(1) > Ys || location(1) < 1 || location(2) > Xs || location(2) < 1
         return
     end
-
-%     if ~isempty(handles.activeCell)
-%         handles.activeCell{1}.index
-%     end
     
     if strcmp(handles.activeAdjustment, 'split_edge')
         % we know there are exactly 2 active Vertices if this button is
@@ -356,7 +347,7 @@ function mouseFunction(hObject,evnt)
         % if you click on the same cell it unselects
         if ~isempty(handles.activeCell)
             for i = 1:length(handles.activeCell)
-              if handles.activeCell{i} == newCell
+              if handles.activeCell(i) == newCell.index
                   handles.activeCell(i) = [];
                   addCell = 0;
                   break;
@@ -364,7 +355,7 @@ function mouseFunction(hObject,evnt)
             end
         end
         if addCell
-            handles.activeCell{length(handles.activeCell)+1} = newCell;
+            handles.activeCell(length(handles.activeCell)+1) = newCell.index;
         end
         
         handles = slider_callbacks_draw_image_slice_dots_semiauto(handles);
@@ -395,28 +386,10 @@ function mouseFunction(hObject,evnt)
     
     % do the cell text thing
     if length(handles.activeCell) == 1
-        set(handles.cell_text, 'String', num2str(handles.activeCell{1}.index)); 
+        set(handles.cell_text, 'String', num2str(handles.activeCell(1))); 
     else
         set(handles.cell_text, 'String', '-'); 
     end
-
-
-    % before, only enabled these buttons if cells were selected.
-    % now i won't bother with this, just catch them with the msgbox
-%     if ~isempty(handles.activeCell)
-%         set(handles.vec_remove_cell, 'Enable', 'on');
-%     else
-%         set(handles.vec_remove_cell, 'Enable', 'off');
-%     end
-%     
-%     if length(handles.activeCell) == 2 && ...
-%             handles.tempcg.edgeConnected(...
-%             handles.activeCell{1}, handles.activeCell{2})
-%         set(handles.vec_remove_edge, 'Enable', 'on');
-%     else
-%         set(handles.vec_remove_edge, 'Enable', 'off');
-%     end
-
     
     guidata(hObject, handles);
  
@@ -672,10 +645,10 @@ function cbox_poly_Callback(hObject, eventdata, handles)
             [T Z] = getTZ(handles);
             activecells = javaArray('Cell', length(handles.activeCell));
             for i = 1:length(handles.activeCell)
-%                 activecells(i) = cg.getCell(handles.activeCell(i));
-                activecells(i) = handles.activeCell{i};
+                activecells(i) = cg.getCell(handles.activeCell(i));
+%                 activecells(i) = handles.activeCell{i};
             end
-            handles.activeCell = cell(handles.embryo.getCellGraph(T, Z).inactiveCells(activecells));
+            handles.activeCell = Cell.index(handles.embryo.getCellGraph(T, Z).inactiveCells(activecells));
             
         end
         handles = slider_callbacks_draw_image_slice(handles);
@@ -718,10 +691,10 @@ function cbox_inactive_Callback(hObject, eventdata, handles)
             [T Z] = getTZ(handles);
             activecells = javaArray('Cell', length(handles.activeCell));
             for i = 1:length(handles.activeCell)
-%                 activecells(i) = cg.getCell(handles.activeCell(i));
-                activecells(i) = handles.activeCell{i};
+                activecells(i) = cg.getCell(handles.activeCell(i));
+%                 activecells(i) = handles.activeCell{i};
             end
-            handles.activeCell = cell(handles.embryo.getCellGraph(T, Z).activeCells(activecells)); 
+            handles.activeCell = Cell.index(handles.embryo.getCellGraph(T, Z).activeCells(activecells)); 
         end 
         handles = slider_callbacks_draw_image_slice(handles);
     end
@@ -2044,12 +2017,13 @@ function vec_remove_cell_Callback(hObject, eventdata, handles)
         return;
     end    
 
-
+    [T Z] = getTZ(handles);
     % make a java array
-    cellArray = javaArray('Cell', length(handles.activeCell));
-    for i = 1:length(handles.activeCell)
-        cellArray(i) = handles.activeCell{i};
-    end
+%     cellArray = javaArray('Cell', length(handles.activeCell));
+%     for i = 1:length(handles.activeCell)
+%         cellArray(i) = handles.embryo.getCell(handles.activeCell(i), T, Z);
+%     end
+    cellArray = handles.embryo.getCells(handles.activeCell, T, Z);
     
     % delete the cells
     [T Z] = getTZ(handles);
@@ -2083,8 +2057,8 @@ function vec_remove_edge_Callback(hObject, eventdata, handles)
         end
 
         if get(handles.radiobutton_adjust_cells, 'Value')  %cells
-            cell1 = handles.activeCell{1};
-            cell2 = handles.activeCell{2};
+            cell1 = handles.embryo.getCell(handles.activeCell(1), T, Z);
+            cell2 = handles.embryo.getCell(handles.activeCell(2), T, Z);
 
             if ~handles.embryo.getCellGraph(T, Z).edgeConnected(cell1, cell2)
                 msgbox('Edge removal only works for cells that share an edge.', ...
@@ -2300,11 +2274,11 @@ function vec_select_all_Callback(hObject, eventdata, handles)
     [T Z] = getTZ(handles);
     if get(handles.radiobutton_adjust_cells, 'Value')  % cells
         if get(handles.cbox_poly, 'Value') && ~get(handles.cbox_inactive, 'Value')
-            handles.activeCell = cell(handles.embryo.getCellGraph(T, Z).activeCells);
+            handles.activeCell = Cell.index(handles.embryo.getCellGraph(T, Z).activeCells);
         elseif ~get(handles.cbox_poly, 'Value') && get(handles.cbox_inactive, 'Value')
-            handles.activeCell = cell(handles.embryo.getCellGraph(T, Z).inactiveCells);
+            handles.activeCell = Cell.index(handles.embryo.getCellGraph(T, Z).inactiveCells);
         else
-            handles.activeCell = cell(handles.embryo.getCellGraph(T, Z).cells);
+            handles.activeCell = Cell.index(handles.embryo.getCellGraph(T, Z).cells);
         end
     elseif get(handles.radiobutton_adjust_vertices, 'Value')  % vertices
         if get(handles.cbox_poly, 'Value') && ~get(handles.cbox_inactive, 'Value')
@@ -2668,14 +2642,13 @@ function cell_text_Callback(hObject, eventdata, handles)
     ind = str2double(get(handles.cell_text, 'String'));
     [T Z] = getTZ(handles);
     if round(ind)~=ind || ind==0
-        handles.activeCell = cell(0);
+        handles.activeCell = [];
         msgbox('Cell number must be a nonzero integer.', '', 'error');
     elseif ~handles.embryo.getCellGraph(T, Z).containsCell(ind)
-        handles.activeCell = cell(0);
+        handles.activeCell = [];
         msgbox(['Cell number ' num2str(ind) ' does not exist at this (T, Z).'], '', 'error');
     else
-        handles.activeCell = cell(1);
-        handles.activeCell{1} = handles.embryo.getCell(ind, T, Z);
+        handles.activeCell = ind;
         handles = slider_callbacks_draw_image_slice_dots_semiauto(handles);
         guidata(hObject, handles);
     end
