@@ -36,8 +36,8 @@ function handles = slider_callbacks_draw_image_slice(handles)
             if exist(tempfilename, 'file')
                 out = imread(tempfilename);
             else
-                % draw a stripe
-                out = imagestripe(handles.info.Ys, handles.info.Xs);
+%                 % draw a stripe
+%                 out = imagestripe(handles.info.Ys, handles.info.Xs);
             end
         else  % for EDGE
             permfilename = handles.info.image_file(T, Z, handles.src.bord);

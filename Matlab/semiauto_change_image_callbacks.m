@@ -41,15 +41,25 @@ handles.activeCell = [];
 handles.activeVertex = [];
 
 
-% enable/disable as needed
+% enable/disable buttons and checkboxes as needed
 if handles.embryo.isTracked
     set(handles.button_export, 'Enable', 'on');
-%     set(handles.button_refine_applyall, 'Enable', 'on');
     set(handles.cbox_inactive, 'Enable', 'on');
 else
     set(handles.button_export, 'Enable', 'off');
-%     set(handles.button_refine_applyall, 'Enable', 'off');
     set(handles.cbox_inactive, 'Enable', 'off');
+end
+if exist(handles.info.image_file(T, Z, handles.tempsrc.bord), 'file')
+    % if they have already processed that image, the file will exist
+    set(handles.cbox_bord, 'Enable', 'on');
+else
+    set(handles.cbox_bord, 'Enable', 'off');
+end
+if ~isempty(handles.embryo.getCellGraph(T, Z))
+    % if there is a polygon, should be same as above but i check separately 
+    set(handles.cbox_poly, 'Enable', 'on');
+else
+    set(handles.cbox_poly, 'Enable', 'off');
 end
 
 
