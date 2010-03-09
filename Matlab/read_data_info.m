@@ -6,23 +6,24 @@ FILENAME = fullfile('..', 'DATA_INFO.csv');
 % assumes the first column is the name and the rest are
 % numerical values
 
-fid = fopen(FILENAME);
 % count the number of columns by counting the number of commas in the first
 % row and adding 1 (because # columns = # commas + 1)
+fid = fopen(FILENAME);
 count_commas = textscan(fid, '%s', 1);
 count_commas = count_commas{1};
 count_commas = count_commas{1};
 num_cols = sum(count_commas == ',') + 1;
 fclose(fid);
 
+% get the labels and all the data
 labels_format_string =              repmat('%s', 1, num_cols);
 data_format_string   = strcat('%s', repmat('%n', 1, num_cols-1));
 
 fid = fopen(FILENAME);
-
 labels = textscan(fid, labels_format_string, 1, 'delimiter', ',');  % the 1 means just read this 1 time
 data = textscan(fid, data_format_string, 'delimiter', ','); 
 fclose(fid);
+
 
 for i = 1:length(labels)
     labels{i} = char(labels{i});

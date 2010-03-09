@@ -1651,6 +1651,10 @@ function button_import_Callback(hObject, eventdata, handles)
     handles.data_set = data_set;
 %     src = strcat(src, '/');
 
+
+% set all the default parameters as specified in DATA_INFO.csv
+    handles.info = read_data_info('__DEFAULT__');
+
 % is the data set live of fixed?
     res = questdlg('Is this a live or fixed data set?', ...
                   'Select data set type', 'Live', 'Fixed', 'Cancel', 'Live');
@@ -1900,21 +1904,6 @@ function button_import_Callback(hObject, eventdata, handles)
     handles.info.Xs = dims(2);
     handles.info.master_time = handles.info.start_time;
     handles.info.master_layer = handles.info.bottom_layer;
-    handles.info.minimum_cell_size = 2;
-    handles.info.bandpass_low = 1.2;
-    handles.info.bandpass_high = 12;
-    handles.info.number_of_erosions = 0;
-    handles.info.preprocessing_threshold = 0;
-    handles.info.refine_max_angle = 170;
-    handles.info.refine_min_edge_length = 0.5;
-    handles.info.refine_min_angle = 90;
-    handles.info.tracking_area_change_Z = 0.3;
-    handles.info.tracking_layers_back_Z = 3;
-    handles.info.tracking_centroid_distance_Z = 3;
-    handles.info.tracking_area_change_T = 0.3;
-    handles.info.tracking_layers_back_T = 3;
-    handles.info.tracking_centroid_distance_T = 3;
-
     
     channelnames = cell(length(channels));
     for i = 1:length(channels)

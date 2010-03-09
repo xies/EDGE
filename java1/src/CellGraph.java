@@ -953,8 +953,9 @@ public class CellGraph implements java.io.Serializable {
 	// refine the edges by splitting them
 	public void refineEdges(boolean[][] bords, double maxAngle, double minAngle, double minEdgeLength) {
 		Vertex[] vertices = vertices();
-		for (Vertex v : vertices) {
-			for (Vertex w : vertices) {
+		for (int i = 0; i < vertices.length; i++) {
+			for (int j = i+1; j < vertices.length; j++) {
+				Vertex v = vertices[i]; Vertex w = vertices[j];
 				if (connected(v, w)) {
 					// if the edge length is *already* less than minEdgeLength, then by splitting it
 					// things will only get worse. therefore we skip these cases
