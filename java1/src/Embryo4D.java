@@ -520,6 +520,32 @@ public class Embryo4D implements java.io.Serializable {
 		else return c.index();
 	}
 	
+	
+	/*
+	 * the power of 1:1 tracking is that you can "run backwards down the ladder". for example, if you split a fat cell 
+	 * into two (add edge), then you want to take both new cells, run down the Z-ladder to the master layer, then run 
+	 * along the T-ladder to the master time, and now you have those indices because the indices are always guaranteed
+	 *  to be there at the master image. then you just run back up (re-track) except you don't need to re-track 
+	 *  everything, you just follow the rules in the re-track function as appropriate. the important part is that you 
+	 *  got the cell indices necessary for doing that. I SEE. so,
+if a cell is already active, you just use its index and go with it
+if it's inactive, you run back to the master image and get its index. if you never reach the master image, you are 
+hopeless and the re-track function returns (because you couldn't affect anything). if you are not hopeless then you
+ just re-track as a said above.
+
+now there's only one problem, and that's the layer_to_look_back thing. you can't exactly run backwards because you don't 
+know where it jumped. if this value was exactly 2 it would be ok, but if its 3 or 2 or 1 then you get some ambiguities.
+ perhaps just force it to be 2 (or 1?)????? 
+wait, are there actually ambiguities? is there a case where you can get there in one direction but not along the other?
+ well, actually, if tracking is 1:1, maybe not..É.
+
+no, actually, it will be FINE with any layers to look back. that is an amazing result, rather surprising. see idea is
+ that you don't always jump by layers_to_look_back, but rather you make the smallest jump possible <= that value. so 
+ then you will make these same jumps in the other direction, aka you will always run right upto the edge where it fails 
+ and then make the smallest jump. that's really cool.
+*/
+	 */
+	
 	private Cell backtrackCell(Cell cTrack, int t, int z) {
 		int master_layer = translateZ(masterLayer);
 		int master_time  = translateT(masterTime);
@@ -764,8 +790,13 @@ public class Embryo4D implements java.io.Serializable {
 		
 		// STEP 2: Fractional area change cannot be bigger than AREA_CHANGE_MAX
 		double areaAverage = (cMatchCandidate.area() + cTrack.area()) / 2.0;
-		double areaRatio = Math.abs(cMatchCandidate.area() - cTrack.area()) / areaAverage;
-		if (areaRatio > area_change_max) return false;
+//		double areaRatio = Math.abs(cMatchCandidate.area() - cTrack.area()) / areaAverage;
+//		if (areaRatio > area_change_max) return false;
+		
+		// STEP 2A: Overlap must be bigger than OVERLAP_MIN
+		double min_overlap = area_change_max;
+		double overlap = cTrack.overlapArea(cMatchCandidate);
+		if (overlap / areaAverage < min_overlap) return false;
 		
 		// STEP 3: the two cells must contain each other's centroids
 		if (!cMatchCandidate.containsPoint(cTrack.centroid())) return false;

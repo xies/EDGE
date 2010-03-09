@@ -980,6 +980,16 @@ function button_export_Callback(hObject, eventdata, handles)
         if ~strcmp(handles.data_set, datanames{selection(i)})
             handles = clear_data_set_semiauto(handles, datanames{selection(i)});
         end
+             
+        % make sure this data set is tracked!!
+        % it would be better to only list those data sets in the list at
+        % the top, but that is too much work, so i do this
+        if ~handles.embryo.isTracked
+            msgbox('This data set is not tracked and thus cannot be exported. Skipping export.', ...
+                'Skipping data set', 'error');
+            uiwait;
+            continue
+        end
         
         % create the measurements folder
         [a, b, c] = mkdir(handles.src.measurements);
