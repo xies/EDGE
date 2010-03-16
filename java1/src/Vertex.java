@@ -32,6 +32,14 @@ public class Vertex implements java.io.Serializable, Comparable<Vertex> {
 		return out;
 	}
 	
+	// create a bunch of Vertex objects from the coordinates
+	public static Vertex[] createVertices(double[][] coords) {
+		Vertex[] out = new Vertex[coords.length];
+		for (int i = 0; i < coords.length; i++)
+			out[i] = new Vertex(coords[i][0], coords[i][1]);
+		return out;
+	}
+	
 	public void move(double[] newcoords) {
 		coords[0] = newcoords[0];
 		coords[1] = newcoords[1];

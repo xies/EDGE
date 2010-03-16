@@ -563,7 +563,10 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 				// that's OK, but it doesn't help us...
 				Cell cMatchCandidate = cellGraphs[t][i].activeCellAtPoint(cTrack.centroid());
 				if (cMatchCandidate != null) 				
-					if (isCellMatch(cTrack, cMatchCandidate, areaChangeMaxZ, centroidDistMaxZ))
+					if (isCellMatch(cMatchCandidate, cTrack, areaChangeMaxZ, centroidDistMaxZ))
+						// NOTE: cMatchCandidate and cTrack are switched!!!!!!!!!!!!!!!!!! this is crucial, so that
+						// tracking actually doesn't need to be reversible! we just always compare them in a consistent
+						// order, i.e., the one closest to the reference image is first, the farther one is second.
 //						if (cMatchCandidate.isActive())
 							return cMatchCandidate;
 				
@@ -579,7 +582,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 				// (back)tracking
 				Cell cMatchCandidate = cellGraphs[i][master_layer].activeCellAtPoint(cTrack.centroid());
 				if (cMatchCandidate != null) 				
-					if (isCellMatch(cTrack, cMatchCandidate, areaChangeMaxT, centroidDistMaxT))
+					if (isCellMatch(cMatchCandidate, cTrack, areaChangeMaxT, centroidDistMaxT))
 //						if (cMatchCandidate.isActive())   // implied by activeCellAtPoint
 							return cMatchCandidate;
 				
@@ -787,7 +790,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	// IMPORTANT. This function decides whether Cell c1 can be tracked to c2
 	
 	// ***************** the whole idea is that it is symmetric in the two cells !!!! ***
-	// this is the 1:1 stuff that makes it all WORK
+	// this is the 1:1 stuff that makes it all WORK (actually... don't need this property.. ha. 16/03/10)
 	private boolean isCellMatch (Cell cTrack, Cell cMatchCandidate, 
 			double area_change_max, double centroid_dist_max) {
 		// STEP 1: Centroid distance cannot be bigger than CENTROID_DIST_MAX
@@ -795,14 +798,19 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 				> centroid_dist_max) return false;
 		
 		// STEP 2: Fractional area change cannot be bigger than AREA_CHANGE_MAX
-		double areaAverage = (cMatchCandidate.area() + cTrack.area()) / 2.0;
+//		double areaAverage = (cMatchCandidate.area() + cTrack.area()) / 2.0;
 //		double areaRatio = Math.abs(cMatchCandidate.area() - cTrack.area()) / areaAverage;
 //		if (areaRatio > area_change_max) return false;
 		
 		// STEP 2A: Overlap must be bigger than OVERLAP_MIN
 		double min_overlap = area_change_max;
-		double overlap = cTrack.overlapArea(cMatchCandidate);
-		if (overlap / areaAverage < min_overlap) return false;
+		if (overlapScore(cTrack, cMatchCandidate) < min_overlap) return false;
+		// we use the area from cTrack because that is the trusted (i.e., already tracked) cell
+		// and the area of cMatchCandidate could be something weird.
+		// no, we use the max area. the problem with the above is that the new one can have a big portion
+		// extra that doesnt exist in cTrack, and then nothing bad happens. to avoid this we use the max area,
+		// since the max possible overlap area is that of the max area (i.e. when the two areas are equal and 
+		// completely overlapping)
 		
 		// STEP 3: the two cells must contain each other's centroids
 		if (!cMatchCandidate.containsPoint(cTrack.centroid())) return false;
@@ -811,8 +819,12 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		// (but it's good to have them both here, since it ensures tracking is a 1:1 operation)
 		// actually, there IS a reason to check both. if we are CHECKING the tracking (as 
 		// opposed to doing it, then we want to check both of these conditions!!)
+		// yeah.. so I dropped the 1:1 thing... but anyway... (16/03/10)
 		
 		return true;
+	}
+	private double overlapScore(Cell a, Cell b) {
+		return a.overlapArea(b) / Math.max(a.area(), b.area());
 	}
 	
 	
@@ -839,10 +851,10 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		// do it this messy way because iterator has strange behavior when you mess around with things
 		int[] inactiveCellIndices = cg.inactiveCellIndices();
 		for (int loop = 0; loop < inactiveCellIndices.length; loop++) {
-			int i = inactiveCellIndices[loop];
+			int iThis = inactiveCellIndices[loop];
 			// try merging with all of the neighbors (active and inactive, for now!)
 			// for now only neighbors that share exactly 2 vertices (i.e., not more)
-			Cell c = cg.getCell(i);
+			Cell cThis = cg.getCell(iThis);
 			
 			
 			// keep track of the potential merges and their "score"
@@ -851,9 +863,9 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			Vector<Double> candidatesOverlap = new Vector<Double>();
 			
 			
-			for (int neigh : Cell.index(cg.cellNeighbors(i))) {
+			for (int iNeigh : Cell.index(cg.cellNeighbors(iThis))) {
 				
-				Cell neighCell = cg.getCell(neigh);
+				Cell cNeigh = cg.getCell(iNeigh);
 				
 //				System.out.println(i);
 //				System.out.println(cg.getCell(i));
@@ -871,7 +883,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 //				// this can be dealt with in theory, but for now it fails
 //				// later should modify removeEdge to deal with this
 				
-				int newInd = cg.removeEdge(i, neigh);
+				int newInd = cg.removeEdge(iThis, iNeigh);
 //				System.out.println("newInd = " + newInd);
 //				System.out.println(cg.getCell(newInd));
 				
@@ -879,16 +891,27 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 				// edges with >2 vertices 
 				if (newInd == 0) continue;
 				
+				/* (16/03/10)
+				 * this is not the right way to go about it, where i just pick the best neighbor to merge with  
+				 * even in this case,it is not always an improvement!! after i find the best neighbor to merge with,
+				 * i need to make sure that this merger actually _improves_ something. i.e., that the overlap with the 
+				 * backtracked cell is actually MORE than it was before. NOTE:::: this only applies if i am an inactive
+				 * cell merging with an _active_ cell. if i can merge with another inactive cell to make it tracked,
+				 * then of course i should just go for it.
+				 */ 
+				 
+				
+				
 				if (CellGraph.isActive(newInd)) {
 //					System.out.println("Success! Created Cell " + newInd);
 					
 					Cell[] pair = new Cell[2];
-					pair[0] = c;
-					pair[1] = neighCell;
+					pair[0] = cThis;
+					pair[1] = cNeigh;
 					candidates.add(pair);
-					double overlap = cg.getCell(newInd).overlapArea(backtrackCell(cg.getCell(newInd), translateT(t), translateZ(z)));
-					overlap /= cg.getCell(newInd).area();
-					candidatesOverlap.add(overlap);
+//					double overlap = cg.getCell(newInd).overlapArea(backtrackCell(cg.getCell(newInd), translateT(t), translateZ(z)));
+//					overlap /= cg.getCell(newInd).area();
+					candidatesOverlap.add(overlapScore(cg.getCell(newInd), backtrackCell(cg.getCell(newInd), translateT(t), translateZ(z))));
 					
 					// success
 //					break; 
@@ -904,8 +927,8 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 					// index, i think either way would be fine
 					
 				removeCell(cg.getCell(newInd), t, z);
-				cg.addCell(c, i);
-				addCell(neighCell, t, z);
+				cg.addCell(cThis, iThis);
+				addCell(cNeigh, t, z);
 
 				
 			}  // for each neighbor
@@ -920,10 +943,21 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 					maxInd = k;
 				}
 			}
-			// if you found anything, keep that Cell
-			if (maxInd >= 0)
-				cg.removeEdge(candidates.elementAt(maxInd)[0], candidates.elementAt(maxInd)[1]);
 			
+			if (maxInd >= 0) {
+				// (16/03/10) make sure that if the pair is active, then we actually want to merge~~~
+				// by this i mean, either it is inactive, and that's fine, or it is active, and then we demand
+				// that the overlap "score" ie. fractional overlap is bigger now than it used to be.
+				if (!candidates.elementAt(maxInd)[1].isActive() || 
+						candidatesOverlap.elementAt(maxInd) > 
+						overlapScore(candidates.elementAt(maxInd)[1], backtrackCell(candidates.elementAt(maxInd)[1], translateT(t), translateZ(z))))
+				{
+			
+					// if you found anything, keep that Cell
+			
+					cg.removeEdge(candidates.elementAt(maxInd)[0], candidates.elementAt(maxInd)[1]);
+				}
+			}
 			
 		}   // for each Cell
 		

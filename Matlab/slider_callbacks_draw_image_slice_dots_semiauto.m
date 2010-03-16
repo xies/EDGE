@@ -21,7 +21,7 @@ if ~isempty(handles.activeCell)
     [T Z] = getTZ(handles);
     activecells = handles.embryo.getCells(handles.activeCell, T, Z);
     cents = Cell.centroidStack(activecells);
-    handles.cents_handle = plot(cents(:,2), cents(:,1), '.r');
+    handles.cents_handle = plot(cents(:,2), cents(:,1), '.g');
 end
 
 
@@ -37,6 +37,6 @@ if isfield(handles, 'activeVertex')
             activeverts(i) = handles.activeVertex{i};
         end
         verts = Vertex.coords(activeverts);
-        handles.verts_handle = plot(verts(:,2), verts(:, 1), 'og');
+        handles.verts_handle = plot(verts(:,2), verts(:, 1), '.r');
     end
 end

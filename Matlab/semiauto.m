@@ -472,7 +472,7 @@ function button_applyall_Callback(hObject, eventdata, handles)
         for time_i = handles.info.start_time:handles.info.end_time
             for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
                 
-                if time_i == handles.info.master_time && layer_i == handles.info.master_layer
+                if time_i == handles.info.master_time && layer_i == handles.info.master_layer && ~isempty(handles.embryo.getCellGraph(time_i, layer_i))
                     continue;
                 end
                 
@@ -642,14 +642,14 @@ function cbox_poly_Callback(hObject, eventdata, handles)
     else
         % if turning off, get rid of active Cells in handles.activeCells
         if ~val3 && ~isempty(handles.activeCell)
-            [T Z] = getTZ(handles);
-            activecells = javaArray('Cell', length(handles.activeCell));
-            for i = 1:length(handles.activeCell)
-                activecells(i) = cg.getCell(handles.activeCell(i));
-%                 activecells(i) = handles.activeCell{i};
-            end
-            handles.activeCell = Cell.index(handles.embryo.getCellGraph(T, Z).inactiveCells(activecells));
-            
+%             [T Z] = getTZ(handles);
+%             activecells = javaArray('Cell', length(handles.activeCell));
+%             for i = 1:length(handles.activeCell)
+%                 activecells(i) = cg.getCell(handles.activeCell(i));
+% %                 activecells(i) = handles.activeCell{i};
+%             end
+%             handles.activeCell = Cell.index(handles.embryo.getCellGraph(T, Z).inactiveCells(activecells));
+            handles.activeCell = [];
         end
         handles = slider_callbacks_draw_image_slice(handles);
     end
@@ -2004,7 +2004,7 @@ function button_set_master_image_Callback(hObject, eventdata, handles)
 
     handles = update_embryo(handles);
     
-    handles = slider_callbacks_draw_image_slice(handles);    
+    handles = slider_callbacks_draw_image_slice(handles);
     
     guidata(hObject, handles);
     
@@ -2290,6 +2290,7 @@ function vec_select_all_Callback(hObject, eventdata, handles)
         end
                 
     end
+    set(handles.cell_text, 'String', '-'); 
     handles = slider_callbacks_draw_image_slice_dots_semiauto(handles); 
     guidata(hObject, handles);
 
@@ -2298,6 +2299,7 @@ function vec_unselect_all_Callback(hObject, eventdata, handles)
     handles.activeCell = [];
     handles.activeVertex = [];
     handles = slider_callbacks_draw_image_slice_dots_semiauto(handles);
+    set(handles.cell_text, 'String', '-'); 
     guidata(hObject, handles);
     
  function vec_select_cv_change(hObject, eventdata)
@@ -2306,6 +2308,7 @@ function vec_unselect_all_Callback(hObject, eventdata, handles)
     handles.activeCell = [];
     handles.activeVertex = [];
     handles = slider_callbacks_draw_image_slice_dots_semiauto(handles);
+    set(handles.cell_text, 'String', '-'); 
     guidata(hObject, handles);
 
 function vec_select_auto_change(hObject, eventdata)
@@ -2357,8 +2360,8 @@ function vec_split_edge_Callback(hObject, eventdata, handles)
 
             % get the parameters
             [T Z]   = getTZ(handles);
-            max_angle   = deg2rad(str2double(get(handles.info_text_refine_max_angle, 'String')));
-            min_angle   = deg2rad(str2double(get(handles.info_text_refine_min_angle, 'String')));
+            max_angle   = degtorad(str2double(get(handles.info_text_refine_max_angle, 'String')));
+            min_angle   = degtorad(str2double(get(handles.info_text_refine_min_angle, 'String')));
             min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String')) ...
                             /handles.info.microns_per_pixel;
             bords       = imread(handles.info.image_file(T, Z, handles.tempsrc.bord));
@@ -2407,8 +2410,8 @@ function vec_split_edge_Callback(hObject, eventdata, handles)
                         return;
                     end
 
-                    max_angle   = deg2rad(str2double(get(handles.info_text_refine_max_angle, 'String')));
-                    min_angle   = deg2rad(str2double(get(handles.info_text_refine_min_angle, 'String')));
+                    max_angle   = degtorad(str2double(get(handles.info_text_refine_max_angle, 'String')));
+                    min_angle   = degtorad(str2double(get(handles.info_text_refine_min_angle, 'String')));
                     min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String'));
                     bords       = imread(handles.info.image_file(time_i, layer_i, handles.tempsrc.bord));
 
@@ -2457,8 +2460,8 @@ function button_switch_to_explorer_Callback(hObject, eventdata, handles)
 %     
 %     % get the parameters
 %     [T Z]   = getTZ(handles);
-%     max_angle   = deg2rad(str2double(get(handles.info_text_refine_max_angle, 'String')));
-%     min_angle   = deg2rad(str2double(get(handles.info_text_refine_min_angle, 'String')));
+%     max_angle   = degtorad(str2double(get(handles.info_text_refine_max_angle, 'String')));
+%     min_angle   = degtorad(str2double(get(handles.info_text_refine_min_angle, 'String')));
 %     min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String')) ...
 %                     /handles.info.microns_per_pixel;
 %     bords       = imread(handles.info.image_file(T, Z, handles.tempsrc.bord));
@@ -2513,8 +2516,8 @@ function button_switch_to_explorer_Callback(hObject, eventdata, handles)
 %                     return;
 %                 end
 % 
-%                 max_angle   = deg2rad(str2double(get(handles.info_text_refine_max_angle, 'String')));
-%                 min_angle   = deg2rad(str2double(get(handles.info_text_refine_min_angle, 'String')));
+%                 max_angle   = degtorad(str2double(get(handles.info_text_refine_max_angle, 'String')));
+%                 min_angle   = degtorad(str2double(get(handles.info_text_refine_min_angle, 'String')));
 %                 min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String'));
 %                 bords       = imread(handles.info.image_file(time_i, layer_i, handles.tempsrc.bord));
 % 
@@ -2549,8 +2552,8 @@ function vec_activate_cell_Callback(hObject, eventdata, handles)
 
             % get the parameters
             [T Z]   = getTZ(handles);
-            max_angle   = deg2rad(str2double(get(handles.info_text_refine_max_angle, 'String')));
-            min_angle   = deg2rad(str2double(get(handles.info_text_refine_min_angle, 'String')));
+            max_angle   = degtorad(str2double(get(handles.info_text_refine_max_angle, 'String')));
+            min_angle   = degtorad(str2double(get(handles.info_text_refine_min_angle, 'String')));
             min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String')) ...
                             /handles.info.microns_per_pixel;
             bords       = imread(handles.info.image_file(T, Z, handles.tempsrc.bord));
@@ -2604,8 +2607,8 @@ function vec_activate_cell_Callback(hObject, eventdata, handles)
                         return;
                     end
 
-                    max_angle   = deg2rad(str2double(get(handles.info_text_refine_max_angle, 'String')));
-                    min_angle   = deg2rad(str2double(get(handles.info_text_refine_min_angle, 'String')));
+                    max_angle   = degtorad(str2double(get(handles.info_text_refine_max_angle, 'String')));
+                    min_angle   = degtorad(str2double(get(handles.info_text_refine_min_angle, 'String')));
                     min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String'));
                     bords       = imread(handles.info.image_file(time_i, layer_i, handles.tempsrc.bord));
 

@@ -1,9 +1,14 @@
 function [clean cg] = semiauto_preprocess(handles, T, Z)
 
+% if T == 51 && Z == 3
+%     [clean cg] = semiauto_preprocess_active_contours(handles, T, Z);
+%     return;
+% end
+
 % preprocess the given image in the semiautomatic image processing
 
 cells = imread(handles.info.image_file(T, Z, handles.src.raw));
-cells = cells(:,:,1); % in case it's a 3 channel image
+% cells = cells(:,:,1); % in case it's a 3 channel image
 
 cells = double(cells);
 % process into thin borders
@@ -34,7 +39,7 @@ VERTEX_MERGE_DIST_THRESH = handles.info.refine_min_edge_length / handles.info.mi
 % the same as a minimum edge length, but it's close enough
 
 % the minimum angle formed by vertices
-VERTEX_MIN_ANGLE_THRESH = deg2rad(handles.info.refine_min_angle);
+VERTEX_MIN_ANGLE_THRESH = degtorad(handles.info.refine_min_angle);
 % convert it to radians
 % note this is also used for refining edges, but we enforce it here
 % by removing vertices that cause a violation

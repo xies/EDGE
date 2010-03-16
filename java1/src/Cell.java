@@ -26,6 +26,15 @@ public class Cell implements java.io.Serializable {
 		System.out.println("draw() - returns an image of the Cell");
 	}
 	
+	// create a copy
+	public Cell(Cell toCopy) {
+		index = toCopy.index;
+		parent = toCopy.parent;
+		vertices = new Vertex[toCopy.numV()];
+		for (int i = 0; i < numV(); i++)
+			vertices[i] = new Vertex(toCopy.vertices()[i]);
+	}
+	
 	// create a new Cell with coordinates (y, x) and vertices inputVerts
 	// the constructor automatically sorts the vertices into clockwise order
 	// (starting with an arbitrary vertex, inputVertices[0])

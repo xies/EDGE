@@ -41,3 +41,5 @@ if Z > max(handles.info.top_layer, handles.info.bottom_layer) || ...
    T < min(handles.info.start_time, handles.info.end_time)    
     handles = go_to_image(handles, handles.info.master_time, handles.info.master_layer);
 end
+
+handles = slider_callbacks_draw_image_slice(handles);

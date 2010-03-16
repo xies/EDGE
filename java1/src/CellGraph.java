@@ -57,7 +57,18 @@ public class CellGraph implements java.io.Serializable {
 		System.out.println("drawVertices() - returns a drawing of all the vertices");
 	}
 	
-		
+	// make an UNTRACKED copy of an existing CellGraph
+	public CellGraph(CellGraph toCopy) {
+		Ys = toCopy.Ys;
+		Xs = toCopy.Xs;
+		t = toCopy.t;
+		z = toCopy.z;
+//		for (int i : toCopy.cells.keySet())  // do it the "low level" way (get/put/keySet), could have used my functions too
+//			cells.put(i, new Cell(toCopy.cells.get(i)));
+		for (int i = 0; i < toCopy.numCells(); i++)
+			addCell(new Cell(toCopy.cells()[i]), -i-1);  // strictly NEGATIVE INDICES --> INACTIVE
+	}
+	
 	// ellipseProperties = YES; myosin = YES, distthresh = NO;
 	public CellGraph(int[][] regions, int[][] centlist, int[][] vertlist, 
 			int t, int z) {		
@@ -184,13 +195,7 @@ public class CellGraph implements java.io.Serializable {
 				Vertex[] vertsOfCellArray = new Vertex[vertsOfCell.size()];
 				vertsOfCell.toArray(vertsOfCellArray);
 				
-//				double myo;  // in case there's no myosin in the data set, just use myosinIntensity = 0
-//				if (myosinIntensity == null)
-//					myo = 0;
-//				else
-//					myo = myosinIntensity[i];
-				Cell newCell = new Cell(centlist[i], vertsOfCellArray, this);
-				initialCells.add(newCell);
+				initialCells.add(new Cell(centlist[i], vertsOfCellArray, this));
 			}
 		}
 		
@@ -1387,6 +1392,15 @@ public class CellGraph implements java.io.Serializable {
 	}
 	
 	
+	// set the coordinates of all the Vertices
+	public boolean setVertexCoords(double[][] coords) {
+		if (coords.length != numVertices()) return false;
+		if (coords[0].length != 2) return false;
+		for (int i = 0; i < coords.length; i++)
+			vertices()[i].move(coords[i]);
+		return true;
+	}
+	
 	// draws the cells
 	private double[][] draw(Cell[] cells) {
 		double[][] image = new double[Ys][Xs];
@@ -1403,7 +1417,15 @@ public class CellGraph implements java.io.Serializable {
 	public double[][] drawInactive() {
 		return draw(inactiveCells());
 	}
-	
+	public static double[][] draw(double[][] coords, boolean[][] connect, int Ys, int Xs) {
+		Vertex[] vertices = Vertex.createVertices(coords);
+		double[][] image = new double[Ys][Xs];
+		for (int i = 0; i < connect.length; i++)
+			for (int j = i+1; j < connect[0].length; j++)
+				if (connect[i][j])
+					Vertex.drawConnection(image, vertices[i], vertices[j]);
+		return image;
+	}
 	
 	// takes time Xs * Ys * nCells * C  where C is the point-in-polygon size and is a constant
 	public double[][] drawRegions() {

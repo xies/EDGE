@@ -63,7 +63,7 @@ if ~isempty(handles.activeCell)
         yplot = [cents(:, 1) NaN(size(cents, 1), 1)].';
         handles.cents_handle = plot(xplot, yplot, '.');
     else
-        handles.cents_handle = plot(cents(:,2), cents(:,1), '.r');
+        handles.cents_handle = plot(cents(:,2), cents(:,1), '.g');
         
         % neighbors
         if ~isempty(handles.activeCellNeighbors)
