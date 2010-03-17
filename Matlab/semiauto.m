@@ -383,6 +383,13 @@ function mouseFunction(hObject,evnt)
         handles = slider_callbacks_draw_image_slice_dots_semiauto(handles);
     end
     
+    % if you selected any vertices or cells, you probably want manual
+    % adjustments
+    if ~isempty(handles.activeCell) || ~isempty(handles.activeVertex)
+        set(handles.radiobutton_vec_manual, 'Value', 1)
+    end
+        
+    
     
     % do the cell text thing
     if length(handles.activeCell) == 1
@@ -2048,7 +2055,7 @@ function vec_remove_cell_Callback(hObject, eventdata, handles)
 
 function vec_remove_edge_Callback(hObject, eventdata, handles)
     [T Z] = getTZ(handles);
-    if get(handles.radiobutton_vec_manual, 'Value')     
+    if get(handles.radiobutton_vec_manual, 'Value')
 
         if length(handles.activeCell) ~= 2 && length(handles.activeVertex) ~= 2
             msgbox('You must select exactly two cells or exactly two vertices for edge removal.', ...

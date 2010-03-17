@@ -826,6 +826,9 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	private double overlapScore(Cell a, Cell b) {
 		return a.overlapArea(b) / Math.max(a.area(), b.area());
 	}
+	private double overlapScore2(Cell a, Cell b) {
+		return a.overlapArea(b) / Math.pow(Math.max(a.area(), b.area()), 2);
+	}
 	
 	
 	
@@ -947,7 +950,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			if (maxInd >= 0) {
 				// (16/03/10) make sure that if the pair is active, then we actually want to merge~~~
 				// by this i mean, either it is inactive, and that's fine, or it is active, and then we demand
-				// that the overlap "score" ie. fractional overlap is bigger now than it used to be.
+				// that the "overlap score" is bigger now than it used to be.
 				if (!candidates.elementAt(maxInd)[1].isActive() || 
 						candidatesOverlap.elementAt(maxInd) > 
 						overlapScore(candidates.elementAt(maxInd)[1], backtrackCell(candidates.elementAt(maxInd)[1], translateT(t), translateZ(z))))
@@ -1038,8 +1041,11 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 						candidates.add(newPair);
 						// get the overlap between the two new cells and the nearest backtracked cells
 						// add them together for a total overlap score
-						double overlap = cg.getCell(newIndex1).overlapArea(backtrackCell(cg.getCell(newIndex1), translateT(t), translateZ(z))) + 
-										 cg.getCell(newIndex2).overlapArea(backtrackCell(cg.getCell(newIndex2), translateT(t), translateZ(z)));
+						double overlap = overlapScore(cg.getCell(newIndex1), backtrackCell(cg.getCell(newIndex1), translateT(t), translateZ(z))) + 
+										 overlapScore(cg.getCell(newIndex2), backtrackCell(cg.getCell(newIndex2), translateT(t), translateZ(z)));
+							//cg.getCell(newIndex1).overlapArea(backtrackCell(cg.getCell(newIndex1), translateT(t), translateZ(z))) + 
+								//		 cg.getCell(newIndex2).overlapArea(backtrackCell(cg.getCell(newIndex2), translateT(t), translateZ(z)));
+						
 						candidatesOverlap.add(overlap);
 						
 //						System.out.println("Success! Created cells.");
