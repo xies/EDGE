@@ -564,6 +564,22 @@ public class Cell implements java.io.Serializable {
 		return true;
 	}
 	
+	// return a sorted array of all the angles that this cell contains
+	public double[] vertexAngles() {
+		double[] angles = new double[numV()];
+		Vertex[] wrapVerts = new Vertex[numV() + 2];
+		for (int i = 0; i < numV(); i++)
+			wrapVerts[i] = vertices[i];
+		wrapVerts[numV()] = vertices[0];
+		wrapVerts[numV()+1] = vertices[1];
+		
+		for (int i = 0; i < numV(); i++)
+			angles[i] = Misc.angle(wrapVerts[i+1].coords(), wrapVerts[i].coords(), wrapVerts[i+2].coords());  // angle of vertex i+1
+		Arrays.sort(angles);
+		return angles;
+	}
+	
+	// return an array with all the angles made to the cells from the centroid of this cell
 	public double[] angle(Cell[] cells) {
 		double[] angles = new double[cells.length];
 		for (int i = 0; i < cells.length; i++)
@@ -571,6 +587,7 @@ public class Cell implements java.io.Serializable {
 		return angles;
 	}
 	
+	// the angle from the centroid of this cell to the centroid of cell Point
 	public double angle(Cell point) {
 		return Misc.angle(centroid(), point.centroid());
 	}
