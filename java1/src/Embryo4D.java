@@ -1050,7 +1050,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 						// get weird behavior that creates small angles
 						double ANGLE_WEIGHTING = 1.0;  // note: angles are in radians
 						overlap = overlap + ANGLE_WEIGHTING * (cg.getCell(newIndex1).vertexAngles()[0] + cg.getCell(newIndex2).vertexAngles()[0]); 
-						System.out.println(cg.getCell(newIndex1).vertexAngles()[0] + " and " + cg.getCell(newIndex1).vertexAngles()[1]);
+//						System.out.println(cg.getCell(newIndex1).vertexAngles()[0] + " and " + cg.getCell(newIndex1).vertexAngles()[1]);
 						
 						candidatesOverlap.add(overlap);
 						
