@@ -244,6 +244,11 @@ function keyFunction(hObject, eventdata)
                     length(handles.activeVertex) == 1
                 vec_move_vertex_Callback(hObject, eventdata, handles);
             end
+        case 'f'
+            if get(handles.radiobutton_adjust_vertices, 'Value') && ...
+                    length(handles.activeVertex) == 2
+                vec_split_edge_Callback(hObject, eventdata, handles);
+            end
         case 's'
             vec_select_all_Callback(hObject, eventdata, handles);
         case 'u'
@@ -695,13 +700,13 @@ function cbox_inactive_Callback(hObject, eventdata, handles)
         set(handles.cbox_inactive, 'Value', 1);
     else
         if ~val4 && ~isempty(handles.activeCell)
-            [T Z] = getTZ(handles);
-            activecells = javaArray('Cell', length(handles.activeCell));
-            for i = 1:length(handles.activeCell)
-                activecells(i) = cg.getCell(handles.activeCell(i));
-%                 activecells(i) = handles.activeCell{i};
-            end
-            handles.activeCell = Cell.index(handles.embryo.getCellGraph(T, Z).activeCells(activecells)); 
+%             [T Z] = getTZ(handles);
+%             activecells = javaArray('Cell', length(handles.activeCell));
+%             for i = 1:length(handles.activeCell)
+%                 activecells(i) = handles.embryo.getCell(handles.activeCell(i), T, Z);
+%             end
+%             handles.activeCell = Cell.index(handles.embryo.getCellGraph(T, Z).activeCells(activecells)); 
+            handles.activeCell = [];  % simpler...
         end 
         handles = slider_callbacks_draw_image_slice(handles);
     end
@@ -733,7 +738,9 @@ function cbox_other_Callback(hObject, eventdata, handles)
             if ~ok
                 return
             end
-            handles.activeChannels = selection;
+            handles.activeChannels = selection{1};
+            msgbox('Can only draw one for now. Keeping only the first');
+            uiwait;
         end
     else % if you're turning it off
         handles.activeChannels = [];

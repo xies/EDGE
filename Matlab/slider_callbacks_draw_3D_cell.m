@@ -46,7 +46,7 @@ end
 
 
 
-draw_cell_stack_highlight_z(cell_stack, slice_highlight, handles, dx, dz);
+draw_cell_stack_highlight_z(cell_stack, T, slice_highlight, handles, dx, dz);
 
 
 % draw all the neighbors as well
@@ -54,7 +54,7 @@ if ~isempty(handles.activeCellNeighbors) %&& get(handles.neighbors_3d, 'Value')
     for i = 1:length(handles.activeCellNeighbors)
         for j = 1:length(handles.activeCellNeighbors{i})
             cell_stack = handles.embryo.getCellStack(handles.activeCellNeighbors{i}(j), T);
-            draw_cell_stack_highlight_z(cell_stack, Z, handles, dx, dz);
+            draw_cell_stack_highlight_z(cell_stack, T, Z,handles, dx, dz);
         end
     end
 end

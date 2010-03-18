@@ -131,7 +131,7 @@ elseif length(handles.channelnames) > 1
 else
     set(handles.cbox_show_other_channels, 'Enable', 'off'); 
 end
-
+set(handles.cbox_show_other_channels, 'Value', 0); 
 
 % initialize sliders
 handles = initialize_tz_sliders(handles);

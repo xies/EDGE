@@ -1,8 +1,7 @@
-function draw_cell_stack_highlight_z(CS, slice_highlight, handles, dx, dz)
+function draw_cell_stack_highlight_z(CS, T, slice_highlight, handles, dx, dz)
 
 z_points = (0:length(CS)-1) * dz;
 z_points = z_points(:);
-
 
 % XY = zeros(size(vert, 1), size(vert, 2));
 
@@ -82,6 +81,48 @@ if get(handles.cbox_show_centroids, 'Value')
 end
 
 
+% OTHER CHANNELS (starting with nuclei for test)
+if get(handles.cbox_show_other_channels, 'Value')
+    X = [];
+    for i = 1:length(z_points)
+   
+        if isempty(CS(i))
+            continue;
+        end
+     
+     
+        c = handles.activeCell(1);
+
+        image_file = handles.info.channel_image_file{handles.activeChannels3d};
+        out = double(imread(image_file(T, handles.embryo.unTranslateZ(i-1), handles.src.channelsrc{handles.activeChannels3d})));
+        wholenuc = drawCell(handles.embryo, T, handles.embryo.unTranslateZ(i-1), c);
+
+        nuc = out;
+        nuc(~wholenuc) = 0;
+        x = nuc(nuc ~= 0);
+        
+        nuc(nuc < 60) = 0;  % pixels must have brightness of at least 60
+        if sum(~~nuc(:)) < 15  % must be at least 15 px passing threshold
+            continue;
+        end
+        [a b] = find(nuc);
+        n = length(a);
+        X = [X; zeros(n, 3)];
+        X(end-n+1:end, 1) = b(:)*dx;
+        X(end-n+1:end, 2) = a(:)*dx; 
+        X(end-n+1:end, 3) = z_points(i)*ones(n,1); 
+%         for j = 1:length(a)
+%             plot3(b(j)*dx, a(j)*dx, z_points(i), '.g');
+%         end
+    end
+
+   
+    try  % this is buggy so I just try... (sloppy!)
+        K = convhulln(X);
+        trisurf(K,X(:,1),X(:,2),X(:,3), 'CData', ones(size(X(:,3))), 'EdgeAlpha', 0);
+    end
+
+end
 
 
 % % CENTROID FIT

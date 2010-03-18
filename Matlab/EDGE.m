@@ -1124,11 +1124,28 @@ function cbox_show_centroid_fit_Callback(hObject, eventdata, handles)
 %     guidata(hObject, handles);
     slider_callbacks_draw_3D_cell(handles);
 
-function cbox_show_other_channels_Callback(hObject, eventdata, handles)
-%     handles = slider_callbacks(handles, [0 1 0]);
-%     guidata(hObject, handles);
-    slider_callbacks_draw_3D_cell(handles);
+function cbox_show_other_channels_Callback(hObject, eventdata, handles)    
+    % if there's only one to choose from, automatically select that
+    if get(handles.cbox_show_other_channels, 'Value')
+        if length(handles.channelnames) == 1
+            handles.activeChannels3d = 1;
+        else
+            % choose the set of channels
+            [selection ok] = listdlg('ListString', handles.channelnames, 'Name', 'Select channel(s)');
+            if ~ok
+                return
+            end
+            handles.activeChannels3d = selection;
+        end
+    else % if you're turning it off
+        handles.activeChannels3d = [];
+    end
 
+    slider_callbacks_draw_3D_cell(handles);
+    guidata(hObject, handles);
+    
+    
+    
 function button_switch_to_semiauto_Callback(hObject, eventdata, handles)
     handles = guidata(hObject);
     
