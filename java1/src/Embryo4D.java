@@ -14,7 +14,7 @@ public class Embryo4D implements java.io.Serializable {
 	// the maximum distance the centroids can differ between Cells to still make a match
 	private final double centroidDistMaxZ, centroidDistMaxT;
 
-	public int startTime, endTime, masterTime, bottomLayer, topLayer, masterLayer;
+	public int startTime, endTime, masterTime, bottomLayer, topLayer, masterLayer; // filename coords
 
 	// all the data
 	private CellGraph[][] cellGraphs;
@@ -543,6 +543,9 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
  that you don't always jump by layers_to_look_back, but rather you make the smallest jump possible <= that value. so 
  then you will make these same jumps in the other direction, aka you will always run right upto the edge where it fails 
  and then make the smallest jump. that's really cool.
+ 
+ (23/3/10): some of the above is obsolete-- turns out you don't need 1:1 tracking to be able to run down the ladder, you 
+ can just switch the order of the cells in the matching function. 
 */
 	
 	
@@ -732,19 +735,35 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	}
 	
 	public Cell[] getCellStack(int c, int t) {
-		t = translateT(t);
-		Cell[] stack = new Cell[z()];
-		for (int i = 0; i < z(); i++)
+//		t = translateT(t);
+//		Cell[] stack = new Cell[z()];
+//		for (int i = 0; i < z(); i++)
+//			stack[i] = cellGraphs[t][i].getCell(c);
+//		return stack;
+		return getCellStack(c, t, 0, z());
+	}
+	private Cell[] getCellStack(int c, int t, int zFrom, int zTo) {  // NOT including zTo
+		t = translateT(t); zFrom = translateZ(zFrom); zTo = translateZ(zTo);
+		Cell[] stack = new Cell[Math.abs(zFrom-zTo)];
+		for (int i = zFrom; i != zTo; i+=Math.signum(zTo-zFrom))
 			stack[i] = cellGraphs[t][i].getCell(c);
 		return stack;
 	}
 	public Cell[] getCellStackTemporal(int c, int z) {
-		z = translateZ(z);
-		Cell[] stack = new Cell[t()];
-		for (int i = 0; i < t(); i++)
+//		z = translateZ(z);
+//		Cell[] stack = new Cell[t()];
+//		for (int i = 0; i < t(); i++)
+//			stack[i] = cellGraphs[i][z].getCell(c);
+//		return stack;
+		return getCellStackTemporal(c, z, 0, t());
+	}
+	private Cell[] getCellStackTemporal(int c, int z, int tFrom, int tTo) {  // NOT includint tTo
+		z = translateZ(z); tFrom = translateT(tFrom); tTo = translateT(tTo);
+		Cell[] stack = new Cell[Math.abs(tFrom-tTo)];
+		for (int i = tFrom; i != tTo; i+=Math.signum(tTo-tFrom))
 			stack[i] = cellGraphs[i][z].getCell(c);
 		return stack;
-	}
+	}	
 	
 	public Cell getCell(int c, int t, int z) {
 		// automatically translates the T, Z coordinate through getCellGraph fcn
@@ -793,6 +812,12 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	// this is the 1:1 stuff that makes it all WORK (actually... don't need this property.. ha. 16/03/10)
 	private boolean isCellMatch (Cell cTrack, Cell cMatchCandidate, 
 			double area_change_max, double centroid_dist_max) {
+		
+		// STEP 0: Translate the Cell by the predicted amount, and then use the new translated cell
+		// for all the below tests. 
+		cMatchCandidate = predictLocation(cTrack, cMatchCandidate);
+		
+		
 		// STEP 1: Centroid distance cannot be bigger than CENTROID_DIST_MAX
 		if (Misc.distance(cTrack.centroid(), cMatchCandidate.centroid()) 
 				> centroid_dist_max) return false;
@@ -828,6 +853,61 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	}
 	private double overlapScore2(Cell a, Cell b) {
 		return a.overlapArea(b) / Math.pow(Math.max(a.area(), b.area()), 2);
+	}
+	// given a particular Cell cMatchCandidate, we want to translate it based on first order tilt (velocity) information
+	// in order to let it line up with cTrack
+	// this is accomplished by fitting a straight line through the centroids and using the slope to translate the
+	// cell
+	private Cell predictLocation(Cell cTrack, Cell cMatchCandidate) {
+		// make a copy of the cell
+		Cell c = new Cell(cMatchCandidate);
+		
+//		System.out.println(c.index() + "  t=" + c.t() + "  z=" + c.z());
+		
+		// get the centroids of all the cells from the master to this one
+		double[][] centroids; double[] ztVals; double ztDelta;
+		if (c.z() != masterLayer) {   // in this case we want a spatial stack
+			centroids = Cell.centroidStack(getCellStack(cTrack.index(), cMatchCandidate.t(), masterLayer, c.z()));
+			ztVals = new double[centroids.length];
+			for (int i = 0; i < translateZ(c.z()); i++) ztVals[i] = i;
+			ztDelta = cMatchCandidate.z() - cTrack.z();
+		}
+		else {  // at masterLayer
+			centroids = Cell.centroidStack(getCellStackTemporal(cTrack.index(), cMatchCandidate.z(), masterTime, c.t()));
+			ztVals = new double[centroids.length];
+			for (int i = 0; i < translateT(c.t()); i++) ztVals[i] = i;
+			ztDelta = cMatchCandidate.t() - cTrack.t();
+		}
+//		for (int i = 0; i < centroids.length; i++)
+//			System.out.println("(" + centroids[i][0] + ", " + centroids[i][1] + ")   zt=" + ztVals[i] + "  i=" + i);
+		
+		
+		// find the number of non-NaN points
+		int ok = 0; 
+		for (int i = 0; i < centroids.length; i++)
+			if (centroids[i][0] != Double.NaN)
+				ok++;
+		
+		final int MIN_PTS = 4;
+		// if the number of centroids is below MIN_PTS then don't do any translation
+		if (ok >= MIN_PTS) {
+			StraightLineFit fit = new StraightLineFit(centroids, ztVals);
+			// in these units, each slice is separated by 1 unit. thus we multiply the slopes in 
+			// x and y by 1 to get the translations in x and y.
+			double[] translate = new double[2];
+			translate[0] = -ztDelta / fit.mY;
+			translate[1] = -ztDelta / fit.mX;
+//			System.out.println(fit);
+			// this is one approach. another approach is to use the whole fit to get a new location.
+			// i am not sure which one i prefer. the translation method seems less precise but more robust (?)
+			c.translate(translate);
+			
+//			System.out.println(cTrack);
+//			System.out.println(cMatchCandidate);
+//			System.out.println(c);
+		}
+		
+		return c;
 	}
 	
 	

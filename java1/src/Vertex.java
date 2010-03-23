@@ -40,9 +40,17 @@ public class Vertex implements java.io.Serializable, Comparable<Vertex> {
 		return out;
 	}
 	
+	// move the vertex to a new location
 	public void move(double[] newcoords) {
+		if (newcoords.length != 2) return;
 		coords[0] = newcoords[0];
 		coords[1] = newcoords[1];
+	} 
+	// translate the vertex by delta
+	public void translate(double[] delta) {
+		if (delta.length != 2) return;
+		coords[0] += delta[0];
+		coords[1] += delta[1];
 	}
 	
 	// draw a line connecting the two vertices v and w

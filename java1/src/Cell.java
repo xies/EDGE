@@ -149,6 +149,9 @@ public class Cell implements java.io.Serializable {
 		index = i;
 	}
 	
+	public int t() { return parent.t; }
+	public int z() { return parent.z; }
+	
 	/*	
 	// cyclically shift the order of the Vertices to match other cells
 	public void shiftUp() {
@@ -352,6 +355,14 @@ public class Cell implements java.io.Serializable {
 			if (vertices[i] == v)
 				return i;
 		return -1;
+	}
+	
+	// translate the cell by delta (i.e., translate the location of all vertices by delta)
+	// NOTE: other cells may own this vertex!! should only be done for a cell that has all its own
+	// vertices!!!!!
+	public void translate(double[] delta) {
+		for (Vertex v : vertices)
+			v.translate(delta);
 	}
 
 //	// Is the point input inside the Cell? This algorithm approximates the Cell 

@@ -1,7 +1,5 @@
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Vector;
 import java.util.Set;
 import java.util.HashSet;
@@ -28,7 +26,7 @@ public class CellGraph implements java.io.Serializable {
 	public final int Ys;
 	public final int Xs;
 	
-	// space and time coordinates of the CellGraph
+	// space and time coordinates of the CellGraph (filename coordinates. not necc. starting at 0)
 	public final int t;
 	public final int z;
 	
