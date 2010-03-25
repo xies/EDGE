@@ -745,8 +745,9 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	private Cell[] getCellStack(int c, int t, int zFrom, int zTo) {  // NOT including zTo
 		t = translateT(t); zFrom = translateZ(zFrom); zTo = translateZ(zTo);
 		Cell[] stack = new Cell[Math.abs(zFrom-zTo)];
+		int stackInd = 0;
 		for (int i = zFrom; i != zTo; i+=Math.signum(zTo-zFrom))
-			stack[i] = cellGraphs[t][i].getCell(c);
+			stack[stackInd++] = cellGraphs[t][i].getCell(c);
 		return stack;
 	}
 	public Cell[] getCellStackTemporal(int c, int z) {
@@ -758,10 +759,18 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		return getCellStackTemporal(c, z, 0, t());
 	}
 	private Cell[] getCellStackTemporal(int c, int z, int tFrom, int tTo) {  // NOT includint tTo
-		z = translateZ(z); tFrom = translateT(tFrom); tTo = translateT(tTo);
+		z = translateZ(z); 
+//		System.out.println(tFrom + " " + tTo);
+		tFrom = translateT(tFrom); 
+		tTo = translateT(tTo);
 		Cell[] stack = new Cell[Math.abs(tFrom-tTo)];
-		for (int i = tFrom; i != tTo; i+=Math.signum(tTo-tFrom))
-			stack[i] = cellGraphs[i][z].getCell(c);
+//		System.out.println(stack.length + " " + cellGraphs.length + " " + cellGraphs[0].length);
+//		System.out.println(tFrom + " " + tTo);
+		int stackInd = 0;
+		for (int i = tFrom; i != tTo; i+=Math.signum(tTo-tFrom)) {
+//			System.out.println("i=" + i + " z=" + z + " c=" + c);
+			stack[stackInd++] = cellGraphs[i][z].getCell(c);
+		}
 		return stack;
 	}	
 	
@@ -869,13 +878,15 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		if (c.z() != masterLayer) {   // in this case we want a spatial stack
 			centroids = Cell.centroidStack(getCellStack(cTrack.index(), cMatchCandidate.t(), masterLayer, c.z()));
 			ztVals = new double[centroids.length];
-			for (int i = 0; i < translateZ(c.z()); i++) ztVals[i] = i;
+//			for (int i = 0; i < translateZ(c.z()); i++) ztVals[i] = i;
+			for (int i = 0; i < ztVals.length; i++) ztVals[i] = i;
 			ztDelta = cMatchCandidate.z() - cTrack.z();
 		}
 		else {  // at masterLayer
 			centroids = Cell.centroidStack(getCellStackTemporal(cTrack.index(), cMatchCandidate.z(), masterTime, c.t()));
 			ztVals = new double[centroids.length];
-			for (int i = 0; i < translateT(c.t()); i++) ztVals[i] = i;
+//			System.out.println(ztVals.length + " " + c.t() + " " + translateT(c.t()));
+			for (int i = 0; i < ztVals.length; i++) ztVals[i] = i;
 			ztDelta = cMatchCandidate.t() - cTrack.t();
 		}
 //		for (int i = 0; i < centroids.length; i++)
