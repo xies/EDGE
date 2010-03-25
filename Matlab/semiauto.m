@@ -391,7 +391,8 @@ function mouseFunction(hObject,evnt)
     % if you selected any vertices or cells, you probably want manual
     % adjustments
     if ~isempty(handles.activeCell) || ~isempty(handles.activeVertex)
-        set(handles.radiobutton_vec_manual, 'Value', 1)
+        set(handles.radiobutton_vec_manual, 'Value', 1);
+        semiauto_set_vec_enabling(handles);
     end
         
     
@@ -738,9 +739,7 @@ function cbox_other_Callback(hObject, eventdata, handles)
             if ~ok
                 return
             end
-            handles.activeChannels = selection{1};
-            msgbox('Can only draw one for now. Keeping only the first');
-            uiwait;
+            handles.activeChannels = selection;
         end
     else % if you're turning it off
         handles.activeChannels = [];
