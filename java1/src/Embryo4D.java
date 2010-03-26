@@ -740,14 +740,19 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 //		for (int i = 0; i < z(); i++)
 //			stack[i] = cellGraphs[t][i].getCell(c);
 //		return stack;
-		return getCellStack(c, t, 0, z());
+		return getCellStack(c, t, unTranslateZ(0), unTranslateZ(z()));
 	}
 	private Cell[] getCellStack(int c, int t, int zFrom, int zTo) {  // NOT including zTo
-		t = translateT(t); zFrom = translateZ(zFrom); zTo = translateZ(zTo);
+		t = translateT(t); 
+//		System.out.println(zFrom + " " + zTo);
+		zFrom = translateZ(zFrom); zTo = translateZ(zTo);
 		Cell[] stack = new Cell[Math.abs(zFrom-zTo)];
 		int stackInd = 0;
-		for (int i = zFrom; i != zTo; i+=Math.signum(zTo-zFrom))
+//		System.out.println(zFrom + " " + zTo);
+		for (int i = zFrom; i != zTo; i+=Math.signum(zTo-zFrom)) {
+//			System.out.println(stackInd + " " + i + " " + zFrom + " " + zTo);
 			stack[stackInd++] = cellGraphs[t][i].getCell(c);
+		}
 		return stack;
 	}
 	public Cell[] getCellStackTemporal(int c, int z) {
@@ -756,13 +761,12 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 //		for (int i = 0; i < t(); i++)
 //			stack[i] = cellGraphs[i][z].getCell(c);
 //		return stack;
-		return getCellStackTemporal(c, z, 0, t());
+		return getCellStackTemporal(c, z, unTranslateT(0), unTranslateT(t()));
 	}
-	private Cell[] getCellStackTemporal(int c, int z, int tFrom, int tTo) {  // NOT includint tTo
+	private Cell[] getCellStackTemporal(int c, int z, int tFrom, int tTo) {  // NOT including tTo
 		z = translateZ(z); 
 //		System.out.println(tFrom + " " + tTo);
-		tFrom = translateT(tFrom); 
-		tTo = translateT(tTo);
+		tFrom = translateT(tFrom); tTo = translateT(tTo);
 		Cell[] stack = new Cell[Math.abs(tFrom-tTo)];
 //		System.out.println(stack.length + " " + cellGraphs.length + " " + cellGraphs[0].length);
 //		System.out.println(tFrom + " " + tTo);
