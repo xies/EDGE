@@ -744,15 +744,11 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	}
 	private Cell[] getCellStack(int c, int t, int zFrom, int zTo) {  // NOT including zTo
 		t = translateT(t); 
-//		System.out.println(zFrom + " " + zTo);
 		zFrom = translateZ(zFrom); zTo = translateZ(zTo);
 		Cell[] stack = new Cell[Math.abs(zFrom-zTo)];
 		int stackInd = 0;
-//		System.out.println(zFrom + " " + zTo);
-		for (int i = zFrom; i != zTo; i+=Math.signum(zTo-zFrom)) {
-//			System.out.println(stackInd + " " + i + " " + zFrom + " " + zTo);
+		for (int i = zFrom; i != zTo; i+=Math.signum(zTo-zFrom))
 			stack[stackInd++] = cellGraphs[t][i].getCell(c);
-		}
 		return stack;
 	}
 	public Cell[] getCellStackTemporal(int c, int z) {
@@ -765,16 +761,11 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	}
 	private Cell[] getCellStackTemporal(int c, int z, int tFrom, int tTo) {  // NOT including tTo
 		z = translateZ(z); 
-//		System.out.println(tFrom + " " + tTo);
 		tFrom = translateT(tFrom); tTo = translateT(tTo);
 		Cell[] stack = new Cell[Math.abs(tFrom-tTo)];
-//		System.out.println(stack.length + " " + cellGraphs.length + " " + cellGraphs[0].length);
-//		System.out.println(tFrom + " " + tTo);
 		int stackInd = 0;
-		for (int i = tFrom; i != tTo; i+=Math.signum(tTo-tFrom)) {
-//			System.out.println("i=" + i + " z=" + z + " c=" + c);
+		for (int i = tFrom; i != tTo; i+=Math.signum(tTo-tFrom))
 			stack[stackInd++] = cellGraphs[i][z].getCell(c);
-		}
 		return stack;
 	}	
 	
@@ -864,14 +855,17 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	private double overlapScore(Cell a, Cell b) {
 		return a.overlapArea(b) / Math.max(a.area(), b.area());
 	}
-	private double overlapScore2(Cell a, Cell b) {
-		return a.overlapArea(b) / Math.pow(Math.max(a.area(), b.area()), 2);
-	}
+//	private double overlapScore2(Cell a, Cell b) {
+//		return a.overlapArea(b) / Math.pow(Math.max(a.area(), b.area()), 2);
+//	}
 	// given a particular Cell cMatchCandidate, we want to translate it based on first order tilt (velocity) information
 	// in order to let it line up with cTrack
 	// this is accomplished by fitting a straight line through the centroids and using the slope to translate the
 	// cell
 	private Cell predictLocation(Cell cTrack, Cell cMatchCandidate) {
+		final int MIN_PTS = 4;
+		final int MAX_PTS = 10;
+		
 		// make a copy of the cell
 		Cell c = new Cell(cMatchCandidate);
 		
@@ -893,17 +887,37 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			for (int i = 0; i < ztVals.length; i++) ztVals[i] = i;
 			ztDelta = cMatchCandidate.t() - cTrack.t();
 		}
+		
+		// find the number of non-NaN points, use only MAX_PTS of them starting from the end
+		Vector<double[]> goodCentroids = new Vector<double[]>();
+		Vector<Double  > goodZTvals    = new Vector<Double  >();
+//		int ok = 0; 
 //		for (int i = 0; i < centroids.length; i++)
-//			System.out.println("(" + centroids[i][0] + ", " + centroids[i][1] + ")   zt=" + ztVals[i] + "  i=" + i);
-		
-		
-		// find the number of non-NaN points
-		int ok = 0; 
-		for (int i = 0; i < centroids.length; i++)
+//			if (centroids[i][0] != Double.NaN)
+//				ok++;
+		int ok = 0;
+		for (int i = centroids.length-1; i >= 0; i--) {
+			goodCentroids.add(centroids[i]);
+			goodZTvals.add(ztVals[i]);
 			if (centroids[i][0] != Double.NaN)
 				ok++;
+			if (ok >= MAX_PTS) 
+				break;
+		}
+		// rewrite the centroids array so that in only includes at most MAX_PTS points
+		double[][] centroidsTemp = new double[goodCentroids.size()][2];
+		double[]   ztValsTemp    = new double[goodCentroids.size()];
+		for (int i = 0; i < goodCentroids.size(); i++) {
+			centroidsTemp[i] = goodCentroids.elementAt(i);
+			ztValsTemp[i]    = goodZTvals.elementAt(i);
+		}
+		centroids = centroidsTemp;
+		ztVals = ztValsTemp;
 		
-		final int MIN_PTS = 4;
+//		for (int i = 0; i < centroids.length; i++)
+//		System.out.println("(" + centroids[i][0] + ", " + centroids[i][1] + ")   zt=" + ztVals[i] + "  i=" + i);
+	
+		
 		// if the number of centroids is below MIN_PTS then don't do any translation
 		if (ok >= MIN_PTS) {
 			StraightLineFit fit = new StraightLineFit(centroids, ztVals);

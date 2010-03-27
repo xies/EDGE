@@ -22,7 +22,7 @@ public class StraightLineFit {
 	
 	public StraightLineFit(double[][] yx, double[] z) {
 		if (yx.length != z.length) {
-			System.err.println("xy and z arrays must be the same length.");
+			System.err.println("Error in StraightLineFit constructor: xy and z arrays must be the same length.");
 			mX = Double.NaN;
 			bX = Double.NaN;
 			mY = Double.NaN;
