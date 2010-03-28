@@ -11,6 +11,10 @@ hold on
 try  % delete previous centroids
     delete(handles.cents_handle);
 end
+try  % delete previous vertices
+    delete(handles.verts_handle);
+end
+
 % draw centroids of active Cells
 if ~isempty(handles.activeCell)
     % make a javaarray
@@ -22,12 +26,15 @@ if ~isempty(handles.activeCell)
     activecells = handles.embryo.getCells(handles.activeCell, T, Z);
     cents = Cell.centroidStack(activecells);
     handles.cents_handle = plot(cents(:,2), cents(:,1), '.g');
+    % plot the vertices of these cells
+%     for i = 1:length(activecells)
+%         verts = Vertex.coords(activecells(i).vertices);
+%         handles.verts_handle = plot(verts(:,2), verts(:, 1), '.r');
+%     end
 end
 
 
-try  % delete previous vertices
-    delete(handles.verts_handle);
-end
+
 % for semiauto, draw vertices
 if isfield(handles, 'activeVertex')
     if ~isempty(handles.activeVertex)

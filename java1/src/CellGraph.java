@@ -1,5 +1,8 @@
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Vector;
 import java.util.Set;
 import java.util.HashSet;
@@ -690,6 +693,43 @@ public class CellGraph implements java.io.Serializable {
 //		return out;
 //	}
 	
+	// Shortest path from one vertex to another (w to v)
+	private Vertex[] shortestPath(Vertex v, Vertex w) {
+		Set<Vertex> visited = new HashSet<Vertex>();
+		visited.add(v);
+		Map<Vertex, Vertex> previous = new TreeMap<Vertex, Vertex>();
+		previous.put(v, null);
+		
+		Queue<Vertex> q = new LinkedList<Vertex>();
+		q.add(v);
+		while (!visited.contains(w)) {
+			// for all the neighbors
+			Vertex justRemoved = q.remove();
+			for (Vertex i : verticesNeighboringVertex(justRemoved)) {
+				// if it is not already visited
+				if (!visited.contains(i)) {
+					previous.put(i, justRemoved);
+					q.add(i);
+					visited.add(i);
+				}
+			}
+		}
+
+		// the path from w to v
+		Vector<Vertex> path = new Vector<Vertex>();
+		Vertex last = w;
+		path.add(w);
+		while (previous.get(last) != null) {
+			last = previous.get(last);
+			path.add(last);
+		}
+		
+		// make the Vector into an array	
+		Vertex[] out = new Vertex[path.size()];
+		path.toArray(out);
+		return out;
+	}
+	
 	
 	private int removeEdge(Vertex v, Vertex w, Cell c, Cell d) {
 		// the vertices of the new Cell
@@ -750,8 +790,16 @@ public class CellGraph implements java.io.Serializable {
 		// edge-to-be and check what cell it's inside. i guess this makes some assumptions (?)
 		// about the shape of the cells but they are very reasonable ones
 		Cell old = cellAtPoint(Misc.midpoint(v.coords(), w.coords()));
-		if (old == null)
-			return null;
+		if (old == null) {
+			// if there is no cell we need to do somethis special. this corresponds to the case where you are 
+			// at the edge of the image and are just making a new cell. we still  want to follow the vertices in the
+			// same way, but we are not deleting any cells; it's a bit simplier
+			int[] out = new int[1];
+			out[0] = addCell(shortestPath(v, w));
+			return out;
+		}
+		
+			
 		
 		// the vertices of the new Cells
 		Vector<Vertex> verts1 = new Vector<Vertex>();
@@ -808,11 +856,11 @@ public class CellGraph implements java.io.Serializable {
 //	}
 	
 	
-	// make a cell out of the vertices V and add it
-	public boolean addCell(Vertex[] verts) {
+	// make a cell out of the vertices V and add it. then return its index. return 0 if fail.
+	public int addCell(Vertex[] verts) {
 		// make sure there are >= 3 vertices
 		if (verts.length < 3)
-			return false;
+			return 0;
 		
 		// make sure a cell with this set of vertices doesn't already exist
 		// if all elements of A in B && and same length then we assume they are the same
@@ -828,8 +876,8 @@ public class CellGraph implements java.io.Serializable {
 					if (!vertsSet.contains(c.vertices()[i]))
 						break;  // break if that Vertex is not in the set
 				}
-				if (i == c.numV()) {// if they are all in the Set then this Cell already exists
-					return false;
+				if (i == c.numV()) { // if they are all in the Set then this Cell already exists
+					return 0;
 				}
 			}
 		}
@@ -848,11 +896,11 @@ public class CellGraph implements java.io.Serializable {
 
 		// make sure it has positive area
 		if (newCell.area() == 0)
-			return false;
+			return 0;
 		
 		parent.addCell(newCell, t, z);
 //		addCellInactive(newCell);
-		return true;
+		return newCell.index();
 	}
 	
 	
@@ -1319,22 +1367,22 @@ public class CellGraph implements java.io.Serializable {
 
 	
 	// are these two vertices connected?
-	// THEY MUST BE CONNECTED FOR ALL CELLS -- there are some weird cases (not sure how they arise)
-	// where they are connected for one cell but not another
-	// simple version would be:
-	// for (Cell c : inputCells)
-	// 	   if (c.connected(a, b)) return true;
-	// return false
 	public boolean connected(Vertex a, Vertex b, Cell[] inputCells) {
-		int cellsContaining = 0;
-		for (Cell c : inputCells) {
-			if (c.containsVertex(a) && c.containsVertex(b)) {
-				cellsContaining++;
-				if (!c.connected(a, b)) return false;
-			}
-		}
-		if (cellsContaining > 0) return true;
-		else return false;
+//		 THEY MUST BE CONNECTED FOR ALL CELLS -- there are some weird cases (not sure how they arise)
+//		 where they are connected for one cell but not another
+//		int cellsContaining = 0;
+//		for (Cell c : inputCells) {
+//			if (c.containsVertex(a) && c.containsVertex(b)) {
+//				cellsContaining++;
+//				if (!c.connected(a, b)) return false;
+//			}
+//		}
+//		if (cellsContaining > 0) return true;
+//		else return false;
+		
+		 for (Cell c : inputCells)
+		 	   if (c.connected(a, b)) return true;
+		 return false;
 	}
 	public boolean connected(Vertex a, Vertex b) {
 		return connected(a, b, cells());

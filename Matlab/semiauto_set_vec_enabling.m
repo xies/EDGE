@@ -29,3 +29,11 @@ else
     set(handles.vec_activate_cell, 'Enable', 'on');
     set(handles.vec_activate_cell, 'String', 'S+A+R stack');
 end
+
+% this is screwy-- should only add cells by adding edges
+% it doesn't work because if i cut into a cell to add a new one, the
+% vertices of that existing cell don't get updated. basically, this
+% function does not take into account the effects it has on existing cells,
+% but just throws a new one in the mix. AddEdge does this properly with no
+% problems
+set(handles.vec_add_cell, 'Enable', 'off');

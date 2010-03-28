@@ -272,6 +272,8 @@ function mouseFunction(hObject,evnt)
     
     [T Z] = getTZ(handles);
  
+%     handles.embryo.getCellGraph(T, Z).getCell(handles.activeCell)1
+    
 % %         v = handles.embryo.getCellGraph(T, Z).vertices;
 % %     handles.embryo.getCellGraph(T, Z).verticesNeighboringVertex(v(1));
 % %     
@@ -2206,8 +2208,7 @@ function vec_add_edge_Callback(hObject, eventdata, handles)
                 'Edge removal failed', 'error');
             return;
         end
-
-        handles.embryo.getCellGraph(T, Z).addEdge(vert1, vert2);
+        handles.embryo.getCellGraph(T, Z).addEdge(vert1, vert2)
 
         handles.activeVertex = [];
 
