@@ -2208,7 +2208,7 @@ function vec_add_edge_Callback(hObject, eventdata, handles)
                 'Edge removal failed', 'error');
             return;
         end
-        handles.embryo.getCellGraph(T, Z).addEdge(vert1, vert2)
+        handles.embryo.getCellGraph(T, Z).addEdge(vert1, vert2);
 
         handles.activeVertex = [];
 
