@@ -740,7 +740,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 //		for (int i = 0; i < z(); i++)
 //			stack[i] = cellGraphs[t][i].getCell(c);
 //		return stack;
-		return getCellStack(c, t, bottomLayer, topLayer);
+		return getCellStack(c, t, bottomLayer, topLayer + Misc.sign(topLayer-bottomLayer));
 	}
 	private Cell[] getCellStack(int c, int t, int zFrom, int zTo) {  // NOT including zTo
 		t = translateT(t); 
@@ -757,7 +757,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 //		for (int i = 0; i < t(); i++)
 //			stack[i] = cellGraphs[i][z].getCell(c);
 //		return stack;
-		return getCellStackTemporal(c, z, startTime, endTime);
+		return getCellStackTemporal(c, z, startTime, endTime + Misc.sign(endTime-startTime));
 	}
 	private Cell[] getCellStackTemporal(int c, int z, int tFrom, int tTo) {  // NOT including tTo
 		z = translateZ(z); 
