@@ -36,4 +36,4 @@ end
 % function does not take into account the effects it has on existing cells,
 % but just throws a new one in the mix. AddEdge does this properly with no
 % problems
-set(handles.vec_add_cell, 'Enable', 'off');
+% set(handles.vec_add_cell, 'Enable', 'off');
