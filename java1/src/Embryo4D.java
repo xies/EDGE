@@ -863,8 +863,8 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	// this is accomplished by fitting a straight line through the centroids and using the slope to translate the
 	// cell
 	private Cell predictLocation(Cell cTrack, Cell cMatchCandidate) {
-		final int MIN_PTS = 4;
-		final int MAX_PTS = 10;
+		final int MIN_PTS = 3;
+		final int MAX_PTS = 7;
 		
 		// make a copy of the cell
 		Cell c = new Cell(cMatchCandidate);
