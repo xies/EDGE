@@ -1,9 +1,9 @@
 function [clean cg] = semiauto_preprocess(handles, T, Z)
 
-% if T == 51 && Z == 3
-%     [clean cg] = semiauto_preprocess_active_contours(handles, T, Z);
-%     return;
-% end
+if T == 51 && Z == 3
+    [clean cg] = semiauto_preprocess_active_contours(handles, T, Z);
+    return;
+end
 
 % preprocess the given image in the semiautomatic image processing
 

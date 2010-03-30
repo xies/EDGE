@@ -26,7 +26,7 @@ public class Cell implements java.io.Serializable {
 		System.out.println("draw() - returns an image of the Cell");
 	}
 	
-	// create a copy
+	// create a copy (not especially useful, because we probably don't want to remake all the vertices)
 	public Cell(Cell toCopy) {
 		index = toCopy.index;
 		parent = toCopy.parent;
@@ -48,10 +48,9 @@ public class Cell implements java.io.Serializable {
 		Arrays.sort(vertices, 0, vertices.length, byAngle);
 	}
 	// if you don't provide then centroid then you ASSUME the vertices are already sorted (!)
-	public Cell(Vertex[] inputVertices, CellGraph parent) {
-		vertices = inputVertices;
+	public Cell(Vertex[] vertices, CellGraph parent) {
+		this.vertices = vertices;
 		this.parent = parent;
-
 	}
 	
 	public Cell[] neighbors() {

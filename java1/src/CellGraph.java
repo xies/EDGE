@@ -64,10 +64,49 @@ public class CellGraph implements java.io.Serializable {
 		Xs = toCopy.Xs;
 		t = toCopy.t;
 		z = toCopy.z;
-//		for (int i : toCopy.cells.keySet())  // do it the "low level" way (get/put/keySet), could have used my functions too
-//			cells.put(i, new Cell(toCopy.cells.get(i)));
-		for (int i = 0; i < toCopy.numCells(); i++)
-			addCell(new Cell(toCopy.cells()[i]), -i-1);  // strictly NEGATIVE INDICES --> INACTIVE
+
+		// we have to be careful here-- we don't want to make multiple copies of all the vertices by
+		// just using the copy constructor for all the cells
+		
+		// first, copy all the vertices
+		Map<Vertex, Vertex> oldNewMap = new HashMap<Vertex, Vertex>();
+		for (Vertex v : toCopy.vertices())
+			oldNewMap.put(v, new Vertex(v));
+		
+		for (int i = 0; i < toCopy.numCells(); i++) {
+			Cell c = toCopy.cells()[i];
+			// get its vertices
+			Vertex[] newVerts = new Vertex[c.numV()];
+			for (int j = 0; j < c.numV(); j++)
+				newVerts[j] = oldNewMap.get(c.vertices()[j]);
+			addCell(new Cell(newVerts, this), -i-1);
+		}
+	}
+	// make an UNTRACKED copy of an existing CellGraph and move the vertices to the new locations
+	public CellGraph(CellGraph toCopy, double[][] newVcoords) {
+		Ys = toCopy.Ys;
+		Xs = toCopy.Xs;
+		t = toCopy.t;
+		z = toCopy.z;
+
+		// we have to be careful here-- we don't want to make multiple copies of all the vertices by
+		// just using the copy constructor for all the cells
+		
+		// first, copy all the vertices
+		Map<Vertex, Vertex> oldNewMap = new HashMap<Vertex, Vertex>();
+		for (int i = 0; i < toCopy.vertices().length; i++) {
+			Vertex v = toCopy.vertices()[i];
+			oldNewMap.put(v, new Vertex(newVcoords[i][0], newVcoords[i][1]));
+		}
+		
+		for (int i = 0; i < toCopy.numCells(); i++) {
+			Cell c = toCopy.cells()[i];
+			// get its vertices
+			Vertex[] newVerts = new Vertex[c.numV()];
+			for (int j = 0; j < c.numV(); j++)
+				newVerts[j] = oldNewMap.get(c.vertices()[j]);
+			addCell(new Cell(newVerts, this), -i-1);
+		}
 	}
 	
 	// ellipseProperties = YES; myosin = YES, distthresh = NO;
@@ -1440,8 +1479,14 @@ public class CellGraph implements java.io.Serializable {
 	
 	// set the coordinates of all the Vertices
 	public boolean setVertexCoords(double[][] coords) {
-		if (coords.length != numVertices()) return false;
-		if (coords[0].length != 2) return false;
+		if (coords.length != numVertices()) {
+			System.err.println("Error in CellGraph:setVertexCoords: number of vertices does not match");
+			return false;
+		}
+		if (coords[0].length != 2) {
+			System.err.println("Error in CellGraph:setVertexCoords: second dimension of input must be size 2");
+			return false;
+		}
 		for (int i = 0; i < coords.length; i++)
 			vertices()[i].move(coords[i]);
 		return true;
