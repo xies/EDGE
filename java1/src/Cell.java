@@ -3,30 +3,29 @@ import java.util.Comparator;
 import java.awt.Polygon;
 import java.util.Vector;
 
-// comparable for using in Sets
+/**
+ * A graph representation of one slice of a single cell. This objects contains references to its
+ * {@link Vertex} objects.
+ * 
+ * @author Michael Gelbart
+ *
+ */
 public class Cell implements java.io.Serializable {
 	
 	final static long serialVersionUID = (long) "Cell".hashCode();
 
+	/** the CellGraph that contains this Cell */
+	public final CellGraph parent;
+	
 	// Vertices of the Cell (stores all the connectivity information)
 	private Vertex[] vertices;
 	
-	// the CellGraph that contains this Cell
-	public final CellGraph parent;
-	
 	// the index of the cell for tracking
 	private int index = -1;
-
-	public static void help() {
-		System.out.println("neighbors() - the neighbors of the cell");
-		System.out.println("centroid() - the centroid of the polygon");
-		System.out.println("centroidInt() - the centroid of the polygon, rounded to the nearest integer");
-		System.out.println("area() - the area of the polygon");
-		System.out.println("vertices() - the vertices of the polygon");
-		System.out.println("draw() - returns an image of the Cell");
-	}
 	
-	// create a copy (not especially useful, because we probably don't want to remake all the vertices)
+	/** Create a copy of the Cell and thus all of its Vertices. 
+	 * This is not especially useful, because we probably don't want to 
+	 * copy all the Vertices given that they are shared by other cells. */
 	public Cell(Cell toCopy) {
 		index = toCopy.index;
 		parent = toCopy.parent;
@@ -35,9 +34,10 @@ public class Cell implements java.io.Serializable {
 			vertices[i] = new Vertex(toCopy.vertices()[i]);
 	}
 	
-	// create a new Cell with coordinates (y, x) and vertices inputVerts
-	// the constructor automatically sorts the vertices into clockwise order
-	// (starting with an arbitrary vertex, inputVertices[0])
+	/**
+	* Create a new Cell with coordinates (y,x) and vertices inputVerts.
+	* The constructor automatically sorts the Vertices into clockwise order.
+	*/
 	public Cell(int[] centroid, Vertex[] inputVertices, CellGraph parent) {	
 		vertices = inputVertices;
 		this.parent = parent;
@@ -47,19 +47,20 @@ public class Cell implements java.io.Serializable {
         //  sort starting from index 1 so that vertices[0] is first
 		Arrays.sort(vertices, 0, vertices.length, byAngle);
 	}
-	// if you don't provide then centroid then you ASSUME the vertices are already sorted (!)
+	/** Alternate constructor that assumes the vertices are already sorted. */
 	public Cell(Vertex[] vertices, CellGraph parent) {
 		this.vertices = vertices;
 		this.parent = parent;
 	}
 	
+	/** Get the first order neighbors of this Cell. */
 	public Cell[] neighbors() {
 		return neighbors(1);
 	}
+	/** Get the Nth order neighbors of this Cell. */
 	public Cell[] neighbors(int n) {
 		return parent.cellNeighbors(this, n);
 	}
-	
 	
 	// add the vertex newVert into the list of vertices in between v and w
 	// assumes v and w are connected

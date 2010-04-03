@@ -45,8 +45,12 @@ public class TempVertex {
 		for (int i : input) cellNeighbors.add(i);
 	}
 	
-	// does cellNeighbors contain exactly those elements in input and no more?
-	// assumes input has no duplicates!
+	/** 
+	 * does cellNeighbors contain exactly those elements in input and no more?
+	 * assumes input has no duplicates!
+	 * @param input	array of input integers 
+	 * @return success or failure
+	 */
 	public boolean sameNeighbors(int[] input) {
 		if (input.length != cellNeighbors.size()) return false;
 		for (int i : input) 

@@ -9,6 +9,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
 
+/**
+ * The underlying undirected graph class for EDGE. Each CellGraph owns its {@link Cell}. 
+ * <p>
+ * The CellGraph functions can edit the graph in many ways, such as merging Cells.
+ * 
+ * @author Michael Gelbart
+ *
+ */
 public class CellGraph implements java.io.Serializable {
 	
 	final static long serialVersionUID = (long) "CellGraph".hashCode();
@@ -22,43 +30,22 @@ public class CellGraph implements java.io.Serializable {
 	// the minimum number of neighbors a Cell and have
 	private static final int MIN_CELL_NEIGHBORS = 2;  // do not allow cells or pairs of cells floating on their own
 	
-//	private Cell[] cells;  // no longer final because of mergeCells() aka removeEdge()
-	private Map<Integer, Cell> cells = new TreeMap<Integer, Cell>();
+	// the map where all the cells are stored. they are keyed by their indices
+	final private Map<Integer, Cell> cells = new TreeMap<Integer, Cell>();
 	
-	// size of the images
+	/** The y-dimension of the images */
 	public final int Ys;
+	/** The x-dimension of the images */
 	public final int Xs;
 	
-	// space and time coordinates of the CellGraph (filename coordinates. not necc. starting at 0)
+	/** The time coordinate of this CellGraph as specified by the raw images filenames */
 	public final int t;
+	/** The depth coordinate of this CellGraph as specified by the raw images filenames */
 	public final int z;
 	
 	private Embryo4D parent;
 	
-	public static void help() {
-		System.out.println("cells() - the cells");
-		System.out.println("allVertices() - all the vertices in an (numVertices x 2) array");
-		System.out.println("centroidCoords() - an (numCells x 2) array with the centroid coordinates");
-		System.out.println("vertexCoords() - an (numVertices x 2) array with the vertex coordinates");
-		System.out.println("numCells() - number of cells");
-		System.out.println("numVertices() - number of vertices");
-		System.out.println("cellsNeighboringVertex(Vertex) - all the cells neighboring the specified vertex");
-		System.out.println("cellNeighbors(Cell) - returns the neighbors of that Cell in an array");
-		System.out.println("connected(Cell, Cell) - are these two cells connected?");
-		System.out.println("connected(Vertex, Vertex) - are these two vertices connected?");
-		System.out.println("connectivityMatrixCell() - (numCells x numCells) cell connectivity matrix");
-		System.out.println("connectivityMatrixVertex() - (numVertices x numVertices) vertex connectivity matrix");
-		System.out.println("connectivityMatrixCellVertex() - an (numCells x numVertices) connectivity matrix");
-		System.out.println("connectivityMatrixCellVertexOrdered() - a cell array of length numCells with the indices of the vertices of each cell");
-		System.out.println("connectivityMatrixVertexInSameCell() - a connectivity matrix showing if vertices are in the same cell");
-		System.out.println("draw() - returns a drawing of the CellGraph");
-		System.out.println("drawCentroidConnectivity() - returns a drawing of the cell connectivity matrix");
-		System.out.println("drawCell(int) - draws the individual cell the specified index");
-		System.out.println("drawCentroids() - returns a drawing of all the centroids");
-		System.out.println("drawVertices() - returns a drawing of all the vertices");
-	}
-	
-	// make an UNTRACKED copy of an existing CellGraph
+	/** Make an <i>untracked</i> copy of an existing CellGraph */
 	public CellGraph(CellGraph toCopy) {
 		Ys = toCopy.Ys;
 		Xs = toCopy.Xs;
@@ -942,7 +929,7 @@ public class CellGraph implements java.io.Serializable {
 		return newCell.index();
 	}
 	
-	
+	/*
 	// supposed to be for the min angle check in the CG constuctor, but will
 	// probably get rid of this...
 	private void removeVerticesUntracked(Vertex[] verts) {
@@ -968,7 +955,9 @@ public class CellGraph implements java.io.Serializable {
 	
 			}
 		}
-	}
+	} 
+	*/
+	
 	// remove the vertices verts
 	// if it belongs to some Cells, need to fix that. 
 	public void removeVertices(Vertex[] verts) {

@@ -1,7 +1,3 @@
-/* PolygonIntersect.java
- *  from http://www.cap-lore.com/MathPhys/IP/PolygonIntersect.java
- */
-
 import java.awt.geom.Point2D;
 
 /**
@@ -10,11 +6,19 @@ import java.awt.geom.Point2D;
  * Algorithm based on http://cap-lore.com/MathPhys/IP/
  *
  * Adapted 9-May-2006 by Lagado
+ * 
+ * Borrowed by Michael Gelbart from
+ * from http://www.cap-lore.com/MathPhys/IP/PolygonIntersect.java
+ * January 2010
  */
 public class PolygonIntersect extends Object
 {
 	
-	// added by Michael Gelbart
+	/** 
+	 * return the area of intersection of two polygons
+	 * where the polygons are defined by arrays of doubles
+	 * (added by Michael Gelbart January 2010)  
+	 */
 	public static double intersectionArea(double[][]a, double[][] b) {
 		return intersectionArea(toPoints2DArray(a), toPoints2DArray(b));
 	}

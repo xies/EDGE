@@ -229,7 +229,6 @@ public class Misc {
 				y += slope * xIncrement;
 			}
 		}
-	}
-	
-	
+	}	
+		
 }

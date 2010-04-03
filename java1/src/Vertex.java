@@ -1,3 +1,9 @@
+/**
+ * A vertex in 2D space. Used to make up the {@link Cell} polygons.
+ * 
+ * @author Michael Gelbart
+ *
+ */
 public class Vertex implements java.io.Serializable, Comparable<Vertex> {
 	
 	final static long serialVersionUID = (long) "Vertex".hashCode();
@@ -5,25 +11,23 @@ public class Vertex implements java.io.Serializable, Comparable<Vertex> {
 	// coordinates of the vertex in Matlab's order (y, x)
 	private final double[] coords = new double[2];
 	
-	public static void help() {
-		System.out.println("coords() - the coordinates of the Vertex");
-		System.out.println("move(int[] newcoords) - moves the Vertex to newcoords");
-	}
-	
+	/** The standard constructor for class Vertex. */
 	public Vertex(double y, double x) {
 		coords[0] = y; 
 		coords[1] = x;
 	}
 	
+	/** Create a copy of input Vertex v.*/
 	public Vertex(Vertex v) {
 		coords[0] = v.coords[0];
 		coords[1] = v.coords[1];
 	}
 	
-	// return the coordinates in an array
+	/** Get the coordinates of this Vertex. */
 	public double[] coords() {
 		return coords;
 	}
+	/** Get the coordinates of an array of Vertex objects. */
 	public static double[][] coords(Vertex[] v) {
 		if (v == null) return null;
 		double[][] out = new double[v.length][2];
@@ -32,7 +36,7 @@ public class Vertex implements java.io.Serializable, Comparable<Vertex> {
 		return out;
 	}
 	
-	// create a bunch of Vertex objects from the coordinates
+	/** Create an array of new Vertex objects from a coordinate array. */
 	public static Vertex[] createVertices(double[][] coords) {
 		Vertex[] out = new Vertex[coords.length];
 		for (int i = 0; i < coords.length; i++)
@@ -40,20 +44,20 @@ public class Vertex implements java.io.Serializable, Comparable<Vertex> {
 		return out;
 	}
 	
-	// move the vertex to a new location
+	/** Move the Vertex to a new location. */
 	public void move(double[] newcoords) {
 		if (newcoords.length != 2) return;
 		coords[0] = newcoords[0];
 		coords[1] = newcoords[1];
 	} 
-	// translate the vertex by delta
+	/** Translate the position of the Vertex by delta. */
 	public void translate(double[] delta) {
 		if (delta.length != 2) return;
 		coords[0] += delta[0];
 		coords[1] += delta[1];
 	}
 	
-	// draw a line connecting the two vertices v and w
+	/** Draw a line connecting the two Vertices v and w. */
 	public static void drawConnection(double[][] image, Vertex v, Vertex w) {
 		Misc.drawLine(image, v.coords, w.coords);
 	}

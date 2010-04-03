@@ -7,8 +7,10 @@ if mn < 10
 else
     mn = num2str(mn);
 end
-if h > 12
-    h = h-12;
+if h >= 12
+    if h > 12
+        h = h-12;
+    end
     ampm = 'PM';
 else
     ampm = 'AM';

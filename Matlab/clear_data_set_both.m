@@ -15,7 +15,7 @@ elseif length(handles.channelnames) > 1
     set(handles.cbox_other, 'String', 'Other channels');
     set(handles.cbox_other, 'Enable', 'on'); 
 else
-    set(handles.cbox_other, 'Enable', 'off'); 
+    set(handles.cbox_other, 'Enable', 'off');
 end
 
 

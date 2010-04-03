@@ -1,4 +1,3 @@
-import java.util.Arrays;
 import java.util.Vector;
 
 public class Embryo4D implements java.io.Serializable {
@@ -482,16 +481,16 @@ public class Embryo4D implements java.io.Serializable {
 			}
 			else { // z = master layer,  t != master time
 				deactivateSingleCellZ(c, t);
-				deactivateSingleCellTZ(c, master_time, (int) Math.signum(t - master_time)); // for other times in that direction
+				deactivateSingleCellTZ(c, master_time, Misc.sign(t - master_time)); // for other times in that direction
 				trackSingleCellZ(c, t);
-				trackSingleCellTZ(c, master_time, (int) Math.signum(t - master_time));
+				trackSingleCellTZ(c, master_time, Misc.sign(t - master_time));
 			}
 		}
 		else {  // z != master layer
 			// first, need to deactivate all cells in the direction you're tracking
 			// in case they won't get tracked this time. note that this function does not deactivate
 			// at the current depth z itself, it just prepares the others for tracking
-			deactivateSingleCellZ(c, t, master_layer, (int) Math.signum(z - master_layer));
+			deactivateSingleCellZ(c, t, master_layer, Misc.sign(z - master_layer));
 			// note this does not deactiviate the master_layer itself, which is good!
 			
 		
@@ -500,7 +499,7 @@ public class Embryo4D implements java.io.Serializable {
 			// of master_layer (why re-track everything lower?). actually you'd need to start from 
 			// something like z-layersToLookBackZ (or master_layer if you go past it when subtracked layers_to_look_backZ)
 			// and I don't want to worry about that right now
-			trackSingleCellZ(c, t, master_layer, (int) Math.signum(z - master_layer));
+			trackSingleCellZ(c, t, master_layer, Misc.sign(z - master_layer));
 		}
 		
 		if (DEBUG_MODE && !isValid()) System.err.println("Error in Embryo4D:retrackCell!");
@@ -556,7 +555,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		// first backtrack in z to the master layer
 		if (z != master_layer) {
 			// this is the OPPOSITE direction to that used in tracking. this is the "back" in backtrack..!!!
-			int dir = (int) Math.signum(master_layer - z);
+			int dir = Misc.sign(master_layer - z);
 			
 			for (int i = z + dir; i < z() && i < z + layersToLookBackZ && i >= 0 && i > z - layersToLookBackZ; i += dir) {
 				// (back)tracking
@@ -579,7 +578,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		}
 		else if (t != master_time) {  // at the master layer
 			// moving towards master_time.....
-			int dir = (int) Math.signum(master_time - t);
+			int dir = Misc.sign(master_time - t);
 			for (int i = t + dir; i < t() && i < t + layersToLookBackT && i >= 0 && i > t - layersToLookBackT; i += dir) {
 				
 				// (back)tracking
@@ -721,10 +720,10 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		return Math.abs(z - bottomLayer);
 	}
 	public int unTranslateT(int t) {
-		return startTime + t * (int) Math.signum(endTime - startTime);
+		return startTime + t * Misc.sign(endTime - startTime);
 	}
 	public int unTranslateZ(int z) {
-		return bottomLayer + z * (int) Math.signum(topLayer - bottomLayer);
+		return bottomLayer + z * Misc.sign(topLayer - bottomLayer);
 	}
 	
 	public CellGraph getCellGraph(int t, int z) {
@@ -747,7 +746,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		zFrom = translateZ(zFrom); zTo = translateZ(zTo);
 		Cell[] stack = new Cell[Math.abs(zFrom-zTo)];
 		int stackInd = 0;
-		for (int i = zFrom; i != zTo; i+=Math.signum(zTo-zFrom))
+		for (int i = zFrom; i != zTo; i+=Misc.sign(zTo-zFrom))
 			stack[stackInd++] = cellGraphs[t][i].getCell(c);
 		return stack;
 	}
@@ -764,7 +763,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		tFrom = translateT(tFrom); tTo = translateT(tTo);
 		Cell[] stack = new Cell[Math.abs(tFrom-tTo)];
 		int stackInd = 0;
-		for (int i = tFrom; i != tTo; i+=Math.signum(tTo-tFrom))
+		for (int i = tFrom; i != tTo; i+=Misc.sign(tTo-tFrom))
 			stack[stackInd++] = cellGraphs[i][z].getCell(c);
 		return stack;
 	}	
@@ -924,8 +923,8 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			// in these units, each slice is separated by 1 unit. thus we multiply the slopes in 
 			// x and y by 1 to get the translations in x and y.
 			double[] translate = new double[2];
-			translate[0] = -ztDelta / fit.mY;
-			translate[1] = -ztDelta / fit.mX;
+			translate[0] = -Math.abs(ztDelta) / fit.mY;
+			translate[1] = -Math.abs(ztDelta) / fit.mX;
 //			System.out.println(fit);
 			// this is one approach. another approach is to use the whole fit to get a new location.
 			// i am not sure which one i prefer. the translation method seems less precise but more robust (?)

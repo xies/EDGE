@@ -1,24 +1,15 @@
-//fit a straight line to the data, of the form z = mX(x - bX), z = mY(y - bY)
-// where m is the slope and b is the x-intercept
-// *this routine ignores NaN rows*
+/**
+ * Fit a straight line to the data, of the form z = mX(x - bX), z = mY(y - bY).
+ * These form the equation to a line, z = mX(x - bX), z = mY(y - bY),
+ * where m is the slope and b is the x-intercept
+ * This is a helper class that holds four public final fields: mX, bX, mY, and bY.
+ * Note: this routine ignores NaN rows.
+ */
 public class StraightLineFit {
 	public final double mX;
 	public final double bX;
 	public final double mY;
 	public final double bY;
-
-	public static void help() {
-		System.out.println("This is a helper class that holds four public final fields: mX, bX, mY, and bY. " +
-				"These form the equation to a line, z = mX(x - bX), z = mY(y - bY). " +
-				"This class has no methods aside from its constructor because the fields can be accessed publicly.");
-	}
-	
-//	public StraightLineFit(double mX, double bX, double mY, double bY) {
-//		this.mX = mX;
-//		this.bX = bX;
-//		this.mY = mY;
-//		this.bY = bY;
-//	}	
 	
 	public StraightLineFit(double[][] yx, double[] z) {
 		if (yx.length != z.length) {
@@ -120,3 +111,4 @@ public class StraightLineFit {
 	}
 	
 }
+

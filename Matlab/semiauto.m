@@ -532,7 +532,7 @@ function button_applyall_Callback(hObject, eventdata, handles)
         msgbox(strcat('The following images have no cells: ', badimages, ...
             'Please fix these images and try again.'), ...
             'Tracking aborted', 'error');
-        return;
+%         return;
     end
         
     handles = semiauto_change_image_callbacks(handles);
@@ -724,6 +724,9 @@ function cbox_other_Callback(hObject, eventdata, handles)
     val3 = get(handles.cbox_poly, 'Value');
     val4 = get(handles.cbox_inactive,  'Value');
     val5 = get(handles.cbox_other,'Value');
+    
+    % you should not be able to click this if isempty(handles.channelnames)
+    % but this seems to be happening  sometimes
     
     if ~(val1 || val2 || val3 || val4 || val5)
         set(handles.cbox_other, 'Value', 1);
