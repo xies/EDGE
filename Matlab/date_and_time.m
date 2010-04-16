@@ -15,4 +15,7 @@ if h >= 12
 else
     ampm = 'AM';
 end
+if h == 0
+    h = 12;
+end
 out = sprintf('%d/%d/%d, %d:%s %s', m, d, y, h, mn, ampm);
