@@ -71,8 +71,9 @@ cellsX = cellsb;
                          % different in size by 1 pixel
 
 mask=ones(Ys,Xs);
-ddx=5;ddy=5; 
-mask(1:ddy,:) = 0; mask(Ys-ddy:Ys,:) = 0; mask(:,1:ddx) = 0; mask(:,Xs-ddx:Xs) = 0;
+ddx=2;ddy=2; 
+mask(1:ddy,:) = 0; mask(Ys-ddy+1:Ys,:) = 0; mask(:,1:ddx) = 0; mask(:,Xs-ddx+1:Xs) = 0;
+%keyboard
 
 cellsX(mask==0)=1;
 
@@ -88,3 +89,5 @@ cellsi = bwmorph(cellsi,'clean');   %gets rid of single dots
 cellsi(mask==0)=0;
 % label cells by integers; every cell gets addressed
 cellsi = logical(cellsi);
+
+%keyboard
