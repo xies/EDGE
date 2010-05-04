@@ -2,20 +2,20 @@ import java.util.Stack;
 
 public class Misc {	
 	// returns the angle (in radians) of a point given an origin on the interval [0 2pi] i think
-	public static double angle(double[] origin, double[] point) {
-        double dx = point[1] - origin[1];
+	public static float angle(float[] origin, float[] point) {
+        float dx = point[1] - origin[1];
         double dy = origin[0] - point[0];
         double angle = Math.atan2(dy, dx);
         if (angle < 0) angle = 2*Math.PI + angle;
-        return angle;
+        return (float) angle;
 	}
 	// returns the (non-negative) angle between a and b using the given origin (in radians)
-	public static double angle(double[] origin, double[] a, double[] b) {
+	public static float angle(float[] origin, float[] a, float[] b) {
 		double angle = Math.abs(angle(origin, a) - angle(origin, b));
 		// don't want to get the big angle between them
 		if (angle > Math.PI)
 			angle = 2*Math.PI - angle;
-		return angle;
+		return (float) angle;
 	}
 	
 	
@@ -26,33 +26,33 @@ public class Misc {
 	}
 	
 	// returns the distance between the points a and b
-	public static double distance(int[] a, int[] b) {
+	public static float distance(int[] a, int[] b) {
 		int y0 = a[0]; 
 		int x0 = a[1];
 		int y1 = b[0];
 		int x1 = b[1]; 
-		return Math.hypot(x1 - x0, y1 - y0);
+		return (float) Math.hypot(x1 - x0, y1 - y0);
 	}
-	public static double distance(double[] a, double[] b) {
-		double y0 = a[0]; 
-		double x0 = a[1];
-		double y1 = b[0];
-		double x1 = b[1]; 
-		return Math.hypot(x1 - x0, y1 - y0);
+	public static float distance(float[] a, float[] b) {
+		float y0 = a[0]; 
+		float x0 = a[1];
+		float y1 = b[0];
+		float x1 = b[1]; 
+		return (float) Math.hypot(x1 - x0, y1 - y0);
 	}
-	public static double[] midpoint(double[] a, double[] b) {
-		double[] out = new double[2];
+	public static float[] midpoint(float[] a, float[] b) {
+		float[] out = new float[2];
 		out[0] = (a[0] + b[0])/2;
 		out[1] = (a[1] + b[1])/2;
 		return out;
 	}
-	public static int[] midpointInt(double[] a, double[] b) {
+	public static int[] midpointInt(float[] a, float[] b) {
 		int[] out = new int[2];
 		out[0] = (int)Math.round((a[0] + b[0])/2);
 		out[1] = (int)Math.round((a[1] + b[1])/2);
 		return out;		
 	}
-	public static double slope(double[] a, double[] b) {
+	public static float slope(float[] a, float[] b) {
 		return (a[0] - b[0]) / (a[1] - b[1]);
 	}
 
@@ -61,7 +61,7 @@ public class Misc {
 //	// returns a boolean array
 //	// works fast for small DIST_THRESH (which is usually the case)
 //	// takes time proportional to n*thresh^2 instead of n^2
-//	public static boolean[][] distMatrixFast(int[][] coords, int[][] plot_indeces, double DIST_THRESH, int Ys, int Xs) {
+//	public static boolean[][] distMatrixFast(int[][] coords, int[][] plot_indeces, float DIST_THRESH, int Ys, int Xs) {
 //		int n = coords.length;
 //		boolean[][] matrix = new boolean[n][n];
 //		
@@ -87,9 +87,9 @@ public class Misc {
 //		return matrix;
 //	}
 	
-//	public static double[][] distMatrix(double[][] coords) {
+//	public static float[][] distMatrix(float[][] coords) {
 //		int n = coords.length;
-//		double[][] matrix = new double[n][n];
+//		float[][] matrix = new float[n][n];
 //		
 //		for (int i = 0; i < n; i++)
 //			for (int j = 0; j < n; j++)
@@ -98,7 +98,7 @@ public class Misc {
 //	}
 	
 	
-	public static void drawLine(double[][] img, double[] a, double[] b) {
+	public static void drawLine(float[][] img, float[] a, float[] b) {
 		int[] A = new int[2];
 		int[] B = new int[2];
 		A[0] = (int) Math.round(a[0]);
@@ -108,7 +108,7 @@ public class Misc {
 		drawLine(img, A, B);
 	}
 	// draws a line on img between the points a and b
-	public static void drawLine(double[][] img, int[] a, int[] b) {
+	public static void drawLine(float[][] img, int[] a, int[] b) {
 		int y0 = a[0]; 
 		int x0 = a[1];
 		int y1 = b[0];
@@ -128,12 +128,12 @@ public class Misc {
 				img[y - 1][x0 - 1] = 1;
 		}
 		else {  // non-vertical line
-			double slope = (double)(y1-y0)/(x1-x0);
-			double xIncrement = Math.min(Math.abs(1.0/slope), 1.0);
+			float slope = (float)(y1-y0)/(x1-x0);
+			float xIncrement = Math.min(Math.abs(1.0f/slope), 1.0f);
 			xIncrement *= Math.signum(x1 - x0); // set the sign of xIncrement
-			double y = y0;
+			float y = y0;
 					
-			for (double x = x0; Math.abs(x - x1) > 0.001; x += xIncrement) {
+			for (float x = x0; Math.abs(x - x1) > 0.001; x += xIncrement) {
 				img[(int)Math.round(y) - 1][(int)Math.round(x) - 1] = 1;
 				y += slope * xIncrement;
 			}
@@ -141,12 +141,12 @@ public class Misc {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static double[][][] drawCellStack(Cell[] cells) {
-		Stack<Double>[] yPoints = (Stack<Double>[]) new Stack[cells.length];
-		Stack<Double>[] xPoints = (Stack<Double>[]) new Stack[cells.length];
+	public static float[][][] drawCellStack(Cell[] cells) {
+		Stack<Float>[] yPoints = (Stack<Float>[]) new Stack[cells.length];
+		Stack<Float>[] xPoints = (Stack<Float>[]) new Stack[cells.length];
 		for (int i = 0; i < cells.length; i++) {
-			yPoints[i] = new Stack<Double>();
-			xPoints[i] = new Stack<Double>();
+			yPoints[i] = new Stack<Float>();
+			xPoints[i] = new Stack<Float>();
 		}
 		
 		for (int z = 0; z < cells.length; z++) {
@@ -168,7 +168,7 @@ public class Misc {
 			maxSize = Math.max(maxSize, yPoints[i].size());
 		maxSize++; // to avoid holes in the images
 		
-		double[][][] image = new double[3][cells.length][maxSize];
+		float[][][] image = new float[3][cells.length][maxSize];
 //		CellStackImage image = new CellStackImage(cells.length, maxSize);
 		
 		for (int z = 0; z < cells.length; z++) {
@@ -177,9 +177,9 @@ public class Misc {
 			// if the Cell was null fill them with NaN 
 			if (yPoints[z].isEmpty()) {
 				for (int i = 0; i < maxSize; i++) {
-					image[0][z][i] = Double.NaN;
-					image[1][z][i] = Double.NaN;
-					image[2][z][i] = Double.NaN;
+					image[0][z][i] = Float.NaN;
+					image[1][z][i] = Float.NaN;
+					image[2][z][i] = Float.NaN;
 				}
 				continue;
 			}
@@ -204,31 +204,44 @@ public class Misc {
 	}
 	// draws a line between the points a and b and stores the coordinates of the points
 	// in the Stacks yPoints and xPoints
-	private static void drawLine(Stack<Double> yPoints, Stack<Double> xPoints, double[] a, double[] b) {
-		double y0 = a[0]; 
-		double x0 = a[1];
-		double y1 = b[0];
-		double x1 = b[1]; 
+	private static void drawLine(Stack<Float> yPoints, Stack<Float> xPoints, float[] a, float[] b) {
+		float y0 = a[0]; 
+		float x0 = a[1];
+		float y1 = b[0];
+		float x1 = b[1]; 
 				
 		// vertical line (infinite slope)
 		if (x0 == x1) {
-			for (double y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) {
+			for (float y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) {
 				yPoints.push(y);
 				xPoints.push(x0);
 			}
 		}
 		else {  // non-vertical line
-			double slope = (y1-y0)/(x1-x0);
-			double xIncrement = Math.min(Math.abs(1.0/slope), 1.0);
+			float slope = (y1-y0)/(x1-x0);
+			float xIncrement = Math.min(Math.abs(1.0f/slope), 1.0f);
 			xIncrement *= Math.signum(x1 - x0); // set the sign of xIncrement
-			double y = y0;
+			float y = y0;
 					
-			for (double x = x0; Math.abs(x - x1) > 0.001; x += xIncrement) {
+			for (float x = x0; Math.abs(x - x1) > 0.001; x += xIncrement) {
 				yPoints.push(y);
 				xPoints.push(x);
 				y += slope * xIncrement;
 			}
 		}
 	}	
+	
+	public static double[] floatToDouble(float[] f) {
+		double[] d = new double[f.length];
+		for (int i = 0; i < f.length; i++)
+			d[i] = f[i];
+		return d;
+	}
+	public static double[][] floatToDouble(float[][] f) {
+		double[][] d = new double[f.length][f[0].length];
+		for (int i = 0; i < f.length; i++) 
+			d[i] = floatToDouble(f[i]);
+		return d;
+	}
 		
 }

@@ -7,11 +7,11 @@ public class Embryo4D implements java.io.Serializable {
 	public static final boolean DEBUG_MODE = true;
 	
 	// the maximum fraction by which the area of a Cell can change between slices
-	private final double areaChangeMaxZ, areaChangeMaxT;
+	private final float areaChangeMaxZ, areaChangeMaxT;
 	// the number of layers to look back and still make a match
 	private final int layersToLookBackZ, layersToLookBackT;
 	// the maximum distance the centroids can differ between Cells to still make a match
-	private final double centroidDistMaxZ, centroidDistMaxT;
+	private final float centroidDistMaxZ, centroidDistMaxT;
 
 	public int startTime, endTime, masterTime, bottomLayer, topLayer, masterLayer; // filename coords
 
@@ -26,8 +26,8 @@ public class Embryo4D implements java.io.Serializable {
 	
 	public Embryo4D(int startTime,   int endTime,  int masterTime, 
 					int bottomLayer, int topLayer, int masterLayer,
-					double areaChangeMaxZ, int layersToLookBackZ, double centroidDistMaxZ, 
-					double areaChangeMaxT, int layersToLookBackT, double centroidDistMaxT) {
+					float areaChangeMaxZ, int layersToLookBackZ, float centroidDistMaxZ, 
+					float areaChangeMaxT, int layersToLookBackT, float centroidDistMaxT) {
 		this.startTime = startTime;
 		this.endTime = endTime;
 		this.masterTime = masterTime;
@@ -50,8 +50,8 @@ public class Embryo4D implements java.io.Serializable {
 	}
 	public Embryo4D(Embryo4D oldEmbryo, int startTime,   int endTime,  int masterTime, 
 			int bottomLayer, int topLayer, int masterLayer,
-			double areaChangeMaxZ, int layersToLookBackZ, double centroidDistMaxZ, 
-			double areaChangeMaxT, int layersToLookBackT, double centroidDistMaxT) {
+			float areaChangeMaxZ, int layersToLookBackZ, float centroidDistMaxZ, 
+			float areaChangeMaxT, int layersToLookBackT, float centroidDistMaxT) {
 
 		// call the normal constructor first
 		this(startTime, endTime, masterTime, bottomLayer,  topLayer,  masterLayer,
@@ -780,20 +780,20 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	}
 	
 	// the highest tracked cell for a given cell index c at time t
-	public double highestTracked(int c, int t) {
-		if (!anyTracked(c, t)) return Double.NaN;
+	public float highestTracked(int c, int t) {
+		if (!anyTracked(c, t)) return Float.NaN;
 		for (int i = z()-1; i >= 0; i--)
 			if (getCell(c, t, unTranslateZ(i)) != null)
 				return unTranslateZ(i);
-		return Double.NaN; // should never get here because of initial IF statement...
+		return Float.NaN; // should never get here because of initial IF statement...
 	}
 	// the lowest tracked cell for a given cell index c at time t
-	public double lowestTracked(int c, int t) {
-		if (!anyTracked(c, t)) return Double.NaN;
+	public float lowestTracked(int c, int t) {
+		if (!anyTracked(c, t)) return Float.NaN;
 		for (int i = 0; i < z(); i++)
 			if (getCell(c, t, unTranslateZ(i)) != null)
 				return unTranslateZ(i);
-		return Double.NaN;
+		return Float.NaN;
 	}
 	// was cell c tracked at all in this time point?
 	public boolean anyTracked(int c, int t) {
@@ -814,7 +814,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	// ***************** the whole idea is that it is symmetric in the two cells !!!! ***
 	// this is the 1:1 stuff that makes it all WORK (actually... don't need this property.. ha. 16/03/10)
 	private boolean isCellMatch (Cell cTrack, Cell cMatchCandidate, 
-			double area_change_max, double centroid_dist_max) {
+			float area_change_max, float centroid_dist_max) {
 		
 		// STEP 0: Translate the Cell by the predicted amount, and then use the new translated cell
 		// for all the below tests. 
@@ -826,12 +826,12 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 				> centroid_dist_max) return false;
 		
 		// STEP 2: Fractional area change cannot be bigger than AREA_CHANGE_MAX
-//		double areaAverage = (cMatchCandidate.area() + cTrack.area()) / 2.0;
-//		double areaRatio = Math.abs(cMatchCandidate.area() - cTrack.area()) / areaAverage;
+//		float areaAverage = (cMatchCandidate.area() + cTrack.area()) / 2.0;
+//		float areaRatio = Math.abs(cMatchCandidate.area() - cTrack.area()) / areaAverage;
 //		if (areaRatio > area_change_max) return false;
 		
 		// STEP 2A: Overlap must be bigger than OVERLAP_MIN
-		double min_overlap = area_change_max;
+		float min_overlap = area_change_max;
 		if (overlapScore(cTrack, cMatchCandidate) < min_overlap) return false;
 		// we use the area from cTrack because that is the trusted (i.e., already tracked) cell
 		// and the area of cMatchCandidate could be something weird.
@@ -851,10 +851,10 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		
 		return true;
 	}
-	private double overlapScore(Cell a, Cell b) {
+	private float overlapScore(Cell a, Cell b) {
 		return a.overlapArea(b) / Math.max(a.area(), b.area());
 	}
-//	private double overlapScore2(Cell a, Cell b) {
+//	private float overlapScore2(Cell a, Cell b) {
 //		return a.overlapArea(b) / Math.pow(Math.max(a.area(), b.area()), 2);
 //	}
 	// given a particular Cell cMatchCandidate, we want to translate it based on first order tilt (velocity) information
@@ -871,41 +871,41 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 //		System.out.println(c.index() + "  t=" + c.t() + "  z=" + c.z());
 		
 		// get the centroids of all the cells from the master to this one
-		double[][] centroids; double[] ztVals; double ztDelta;
+		float[][] centroids; float[] ztVals; float ztDelta;
 		if (c.z() != masterLayer) {   // in this case we want a spatial stack
 			centroids = Cell.centroidStack(getCellStack(cTrack.index(), cMatchCandidate.t(), masterLayer, c.z()));
-			ztVals = new double[centroids.length];
+			ztVals = new float[centroids.length];
 //			for (int i = 0; i < translateZ(c.z()); i++) ztVals[i] = i;
 			for (int i = 0; i < ztVals.length; i++) ztVals[i] = i;
 			ztDelta = cMatchCandidate.z() - cTrack.z();
 		}
 		else {  // at masterLayer
 			centroids = Cell.centroidStack(getCellStackTemporal(cTrack.index(), cMatchCandidate.z(), masterTime, c.t()));
-			ztVals = new double[centroids.length];
+			ztVals = new float[centroids.length];
 //			System.out.println(ztVals.length + " " + c.t() + " " + translateT(c.t()));
 			for (int i = 0; i < ztVals.length; i++) ztVals[i] = i;
 			ztDelta = cMatchCandidate.t() - cTrack.t();
 		}
 		
 		// find the number of non-NaN points, use only MAX_PTS of them starting from the end
-		Vector<double[]> goodCentroids = new Vector<double[]>();
-		Vector<Double  > goodZTvals    = new Vector<Double  >();
+		Vector<float[]> goodCentroids = new Vector<float[]>();
+		Vector<Float  > goodZTvals    = new Vector<Float  >();
 //		int ok = 0; 
 //		for (int i = 0; i < centroids.length; i++)
-//			if (centroids[i][0] != Double.NaN)
+//			if (centroids[i][0] != Float.NaN)
 //				ok++;
 		int ok = 0;
 		for (int i = centroids.length-1; i >= 0; i--) {
 			goodCentroids.add(centroids[i]);
 			goodZTvals.add(ztVals[i]);
-			if (centroids[i][0] != Double.NaN)
+			if (centroids[i][0] != Float.NaN)
 				ok++;
 			if (ok >= MAX_PTS) 
 				break;
 		}
 		// rewrite the centroids array so that in only includes at most MAX_PTS points
-		double[][] centroidsTemp = new double[goodCentroids.size()][2];
-		double[]   ztValsTemp    = new double[goodCentroids.size()];
+		float[][] centroidsTemp = new float[goodCentroids.size()][2];
+		float[]   ztValsTemp    = new float[goodCentroids.size()];
 		for (int i = 0; i < goodCentroids.size(); i++) {
 			centroidsTemp[i] = goodCentroids.elementAt(i);
 			ztValsTemp[i]    = goodZTvals.elementAt(i);
@@ -922,7 +922,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			StraightLineFit fit = new StraightLineFit(centroids, ztVals);
 			// in these units, each slice is separated by 1 unit. thus we multiply the slopes in 
 			// x and y by 1 to get the translations in x and y.
-			double[] translate = new double[2];
+			float[] translate = new float[2];
 			translate[0] = -Math.abs(ztDelta) / fit.mY;
 			translate[1] = -Math.abs(ztDelta) / fit.mX;
 //			System.out.println(fit);
@@ -971,7 +971,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			// keep track of the potential merges and their "score"
 			// then, at the end, pick the best one
 			Vector<Cell[]> candidates = new Vector<Cell[]>();
-			Vector<Double> candidatesOverlap = new Vector<Double>();
+			Vector<Float> candidatesOverlap = new Vector<Float>();
 			
 			
 			for (int iNeigh : Cell.index(cg.cellNeighbors(iThis))) {
@@ -1020,7 +1020,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 					pair[0] = cThis;
 					pair[1] = cNeigh;
 					candidates.add(pair);
-//					double overlap = cg.getCell(newInd).overlapArea(backtrackCell(cg.getCell(newInd), translateT(t), translateZ(z)));
+//					float overlap = cg.getCell(newInd).overlapArea(backtrackCell(cg.getCell(newInd), translateT(t), translateZ(z)));
 //					overlap /= cg.getCell(newInd).area();
 					candidatesOverlap.add(overlapScore(cg.getCell(newInd), backtrackCell(cg.getCell(newInd), translateT(t), translateZ(z))));
 					
@@ -1045,10 +1045,10 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			}  // for each neighbor
 			
 			// now pick the best cell (cell with highest overlap score)
-			double max = 0;
+			float max = 0;
 			int maxInd = -1;
 			for (int k = 0; k < candidates.size(); k++) {
-				if (candidatesOverlap.elementAt(k) != Double.NaN && 
+				if (candidatesOverlap.elementAt(k) != Float.NaN && 
 						candidatesOverlap.elementAt(k) > max) {
 					max = candidatesOverlap.elementAt(k);
 					maxInd = k;
@@ -1107,7 +1107,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			// keep track of the potential merges and their "score"
 			// then, at the end, pick the best one
 			Vector<Vertex[]> candidates = new Vector<Vertex[]>();
-			Vector<Double> candidatesOverlap = new Vector<Double>();
+			Vector<Float> candidatesOverlap = new Vector<Float>();
 				
 			if (c == null) {
 				System.err.println("WARNING (Embryo4D:autoAddEdges):null Cell during error correction! index = " + i);
@@ -1149,14 +1149,14 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 						candidates.add(newPair);
 						// get the overlap between the two new cells and the nearest backtracked cells
 						// add them together for a total overlap score
-						double overlap = overlapScore(cg.getCell(newIndex1), backtrackCell(cg.getCell(newIndex1), translateT(t), translateZ(z))) + 
+						float overlap = overlapScore(cg.getCell(newIndex1), backtrackCell(cg.getCell(newIndex1), translateT(t), translateZ(z))) + 
 										 overlapScore(cg.getCell(newIndex2), backtrackCell(cg.getCell(newIndex2), translateT(t), translateZ(z)));
 							//cg.getCell(newIndex1).overlapArea(backtrackCell(cg.getCell(newIndex1), translateT(t), translateZ(z))) + 
 								//		 cg.getCell(newIndex2).overlapArea(backtrackCell(cg.getCell(newIndex2), translateT(t), translateZ(z)));
 						
 						// the score will also be based on the smallest angle created by the new cells, because sometimes we 
 						// get weird behavior that creates small angles
-						double ANGLE_WEIGHTING = 1.0;  // note: angles are in radians
+						float ANGLE_WEIGHTING = 1.0f;  // note: angles are in radians
 						overlap = overlap + ANGLE_WEIGHTING * (cg.getCell(newIndex1).vertexAngles()[0] + cg.getCell(newIndex2).vertexAngles()[0]); 
 //						System.out.println(cg.getCell(newIndex1).vertexAngles()[0] + " and " + cg.getCell(newIndex1).vertexAngles()[1]);
 						
@@ -1177,10 +1177,10 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			}  // each vertex
 
 			// now pick the best cell (cell with highest overlap score)
-			double max = 0;
+			float max = 0;
 			int maxInd = -1;
 			for (int k = 0; k < candidates.size(); k++) {
-				if (candidatesOverlap.elementAt(k) != Double.NaN && 
+				if (candidatesOverlap.elementAt(k) != Float.NaN && 
 						candidatesOverlap.elementAt(k) > max) {
 					max = candidatesOverlap.elementAt(k);
 					maxInd = k;

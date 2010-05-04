@@ -6,32 +6,32 @@
  * Note: this routine ignores NaN rows.
  */
 public class StraightLineFit {
-	public final double mX;
-	public final double bX;
-	public final double mY;
-	public final double bY;
+	public final float mX;
+	public final float bX;
+	public final float mY;
+	public final float bY;
 	
-	public StraightLineFit(double[][] yx, double[] z) {
+	public StraightLineFit(float[][] yx, float[] z) {
 		if (yx.length != z.length) {
 			System.err.println("Error in StraightLineFit constructor: xy and z arrays must be the same length.");
-			mX = Double.NaN;
-			bX = Double.NaN;
-			mY = Double.NaN;
-			bY = Double.NaN;
+			mX = Float.NaN;
+			bX = Float.NaN;
+			mY = Float.NaN;
+			bY = Float.NaN;
 			return;
 		}
 		if (yx[0].length != 2) {
 			System.err.println("Cannot create StraightLineFit - input must have dimensions n x 2");
-			mX = Double.NaN;
-			bX = Double.NaN;
-			mY = Double.NaN;
-			bY = Double.NaN;
+			mX = Float.NaN;
+			bX = Float.NaN;
+			mY = Float.NaN;
+			bY = Float.NaN;
 			return;
 		}
 		int n = z.length;
 
-		double[] x = new double[n];
-		double[] y = new double[n];
+		float[] x = new float[n];
+		float[] y = new float[n];
 		for (int i = 0; i < n; i++) {
 			y[i] = yx[i][0];
 			x[i] = yx[i][1];
@@ -40,15 +40,15 @@ public class StraightLineFit {
 		// remove NaN rows
 		int notNaN = 0;
 		for (int i = 0; i < n; i++) 
-			if (!Double.isNaN(x[i])) notNaN++;
+			if (!Float.isNaN(x[i])) notNaN++;
 			
-		double[] x2 = new double[notNaN];
-		double[] y2 = new double[notNaN];
-		double[] z2 = new double[notNaN];
+		float[] x2 = new float[notNaN];
+		float[] y2 = new float[notNaN];
+		float[] z2 = new float[notNaN];
 		
 		notNaN = 0;
 		for (int i = 0; i < n; i++) { 
-			if (!Double.isNaN(x[i])) {
+			if (!Float.isNaN(x[i])) {
 				x2[notNaN] = x[i];
 				y2[notNaN] = y[i];
 				z2[notNaN] = z[i];
@@ -58,7 +58,7 @@ public class StraightLineFit {
 		
 		// finished removing NaN rows
 
-		double[] results;
+		float[] results;
 		results = lineFit(x2, z2);
 		mX = results[0];
 		bX = results[1];
@@ -69,16 +69,16 @@ public class StraightLineFit {
 
 	// formula from Wikipedia: Linear Regression (subsection 2.1.1: univariate linear case)
 	// performs the fitting with switching x and z, to avoid near infinite slopes
-	private double[] lineFit(double[] x, double[] z) {
+	private float[] lineFit(float[] x, float[] z) {
 		int n = x.length;
-		double[] temp = x;
+		float[] temp = x;
 		x = z;
 		z = temp;
 		
-		double sumX = 0;
-		double sumZ = 0;
-		double sumSqX = 0;
-		double sumXZ = 0;
+		float sumX = 0;
+		float sumZ = 0;
+		float sumSqX = 0;
+		float sumXZ = 0;
 		for (int i = 0; i < n; i++) {
 			sumX += x[i];
 			sumZ += z[i];
@@ -86,21 +86,21 @@ public class StraightLineFit {
 			sumXZ += x[i] * z[i];
 		}
 
-		double mResult; 
-		double bResult;
+		float mResult; 
+		float bResult;
 
 		mResult = (n * sumXZ - sumX * sumZ) / (n * sumSqX - sumX * sumX);
 		bResult = (sumZ - mResult * sumX) / n;
 		
 		if (mResult == 0.0) {
-			mResult = Double.MAX_VALUE;
+			mResult = Float.MAX_VALUE;
 			bResult = z[0];
 		}
 		else {
-			mResult = 1.0 / mResult;
+			mResult = 1.0f / mResult;
 		}
 		
-		double[] results = new double[2];
+		float[] results = new float[2];
 		results[0] = mResult;
 		results[1] = bResult;
 		return results;

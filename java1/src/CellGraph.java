@@ -22,10 +22,10 @@ public class CellGraph implements java.io.Serializable {
 	final static long serialVersionUID = (long) "CellGraph".hashCode();
 
 	// the threshold for merging vertices, measured in pixels
-	private static final double VERTEX_MERGE_DIST_THRESH_DEFAULT_VALUE = 3.0;
+	private static final float VERTEX_MERGE_DIST_THRESH_DEFAULT_VALUE = 3.0f;
 	
 	// by default, don't do the min angle check
-	private static final double VERTEX_MIN_ANGLE_DEFAULT_VALUE = 0.0;
+	private static final float VERTEX_MIN_ANGLE_DEFAULT_VALUE = 0.0f;
 	
 	// the minimum number of neighbors a Cell and have
 	private static final int MIN_CELL_NEIGHBORS = 2;  // do not allow cells or pairs of cells floating on their own
@@ -70,7 +70,7 @@ public class CellGraph implements java.io.Serializable {
 		}
 	}
 	// make an UNTRACKED copy of an existing CellGraph and move the vertices to the new locations
-	public CellGraph(CellGraph toCopy, double[][] newVcoords) {
+	public CellGraph(CellGraph toCopy, float[][] newVcoords) {
 		Ys = toCopy.Ys;
 		Xs = toCopy.Xs;
 		t = toCopy.t;
@@ -104,7 +104,7 @@ public class CellGraph implements java.io.Serializable {
 	}
 	
 	public CellGraph(int[][] regions, int[][] centlist, int[][] vertlist,
-			int t, int z, double vertex_merge_dist_thresh, double vertex_min_angle) {		
+			int t, int z, float vertex_merge_dist_thresh, float vertex_min_angle) {		
 		// assumes for regions: borders are -1, background is 0, cells are 1, 2, 3, ...
 		// assumes for centlist/vertlist: two columns of coordinates, not two rows
 		
@@ -480,38 +480,38 @@ public class CellGraph implements java.io.Serializable {
 	}
 	
 	/// accessor methods ////
-	private double[][] centroidCoords(Cell[] inputCells) {
-		double[][] cents = new double[inputCells.length][2];
+	private float[][] centroidCoords(Cell[] inputCells) {
+		float[][] cents = new float[inputCells.length][2];
 		for (int i = 0; i < inputCells.length; i++)
 			cents[i] = inputCells[i].centroid();
 		return cents;
 	}
 	// returns the coordinates of the centroids in an array
-	public double[][] centroidCoords() {
+	public float[][] centroidCoords() {
 		return centroidCoords(cells());
 	}
 	
 	// returns the coordinates of the vertices in an array
-	public double[][] vertexCoords() {
+	public float[][] vertexCoords() {
 		return Vertex.coords(vertices());
 	}
 	
 //	// returns the coordinates of the edges
-//	public double[][][] activeEdges() {
+//	public float[][][] activeEdges() {
 //		return edges(activeCells());
 //	}
-//	public double[][][] inactiveEdges() {
+//	public float[][][] inactiveEdges() {
 //		return edges(inactiveCells());
 //	}
-//	public double[][][] edges() {
+//	public float[][][] edges() {
 //		return edges(cells());
 //	}
-//	public double[][][] edges(Cell[] cells) {
+//	public float[][][] edges(Cell[] cells) {
 //		// each each will go from a point (x1, y1) to a point (x2, y2)
-//		Vector<Double> y1 = new Vector<Double>();
-//		Vector<Double> x1 = new Vector<Double>();
-//		Vector<Double> y2 = new Vector<Double>();
-//		Vector<Double> x2 = new Vector<Double>();
+//		Vector<float> y1 = new Vector<float>();
+//		Vector<float> x1 = new Vector<float>();
+//		Vector<float> y2 = new Vector<float>();
+//		Vector<float> x2 = new Vector<float>();
 //		
 //		for (Cell c : cells) {
 //			for (int i = 0; i < c.numV() - 1; i++) {
@@ -528,11 +528,11 @@ public class CellGraph implements java.io.Serializable {
 //		// the results will have 2 copies of each edge, but this is probably better (faster)
 //		// than using a set. can change this easily;
 //		
-//		double[][][] out = new double[2][2][y1.size()];
-//		double[] Y1 = new double[y1.size()];
-//		double[] X1 = new double[y1.size()];
-//		double[] Y2 = new double[y1.size()];
-//		double[] X2 = new double[y1.size()];
+//		float[][][] out = new float[2][2][y1.size()];
+//		float[] Y1 = new float[y1.size()];
+//		float[] X1 = new float[y1.size()];
+//		float[] Y2 = new float[y1.size()];
+//		float[] X2 = new float[y1.size()];
 //		for (int i = 0; i < y1.size(); i++) {
 //			Y1[i] = y1.elementAt(i);
 //			X1[i] = x1.elementAt(i);
@@ -992,7 +992,7 @@ public class CellGraph implements java.io.Serializable {
 	}
 	
 	// split the edge between v and w to include another edge at coord
-	public Vertex splitEdge(Vertex v, Vertex w, double[] coord) {
+	public Vertex splitEdge(Vertex v, Vertex w, float[] coord) {
 		if (!connected(v, w)) return null;
 		
 		Vertex newVert = new Vertex(coord[0], coord[1]);
@@ -1021,7 +1021,7 @@ public class CellGraph implements java.io.Serializable {
 		return newVert;
 	}
 	
-	public void moveVertex(Vertex v, double[] newcoords) {
+	public void moveVertex(Vertex v, float[] newcoords) {
 		v.move(newcoords);
 		for (Cell c : cellsNeighboringVertex(v))
 			parent.modifyCell(c, t, z);
@@ -1030,7 +1030,7 @@ public class CellGraph implements java.io.Serializable {
 	///////
 	
 	// refine the edges by splitting them
-	public void refineEdges(boolean[][] bords, double maxAngle, double minAngle, double minEdgeLength) {
+	public void refineEdges(boolean[][] bords, float maxAngle, float minAngle, float minEdgeLength) {
 		Vertex[] vertices = vertices();
 		for (int i = 0; i < vertices.length; i++) {
 			for (int j = i+1; j < vertices.length; j++) {
@@ -1050,29 +1050,29 @@ public class CellGraph implements java.io.Serializable {
 	// relax and edge by finding a pseudo-optimal vertex position for splitting the edge
 	// we must create an angle on the interval [minAngle maxAngle]. the minimum prevents unrealistic
 	// sharp corners, the maximum prevents the addition of vertices that don't capture any new curvature
-	private boolean refineEdge(Vertex v, Vertex w, boolean[][] bords, double maxAngle, double minAngle, double minEdgeLength) {
-		double[] cV = v.coords();
-		double[] cW = w.coords();
-		double[] midpt = Misc.midpoint(cV, cW);
-		double slope = Misc.slope(cV, cW);
-		double normal = -1/slope;
-//		double edgeLength = Misc.distance(cV, cW);
+	private boolean refineEdge(Vertex v, Vertex w, boolean[][] bords, float maxAngle, float minAngle, float minEdgeLength) {
+		float[] cV = v.coords();
+		float[] cW = w.coords();
+		float[] midpt = Misc.midpoint(cV, cW);
+		float slope = Misc.slope(cV, cW);
+		float normal = -1/slope;
+//		float edgeLength = Misc.distance(cV, cW);
 		
-		double[] r1 = new double[2];
-		double[] r2 = new double[2];
+		float[] r1 = new float[2];
+		float[] r2 = new float[2];
 		// doesn't have to be done this way, but I chose to move by 1 pixel each step
-		double dx, dy;
+		float dx, dy;
 		if (normal == 0) {
-			dx = 1;
-			dy = 0;
+			dx = 1.0f;
+			dy = 0.0f;
 		}
 		else if (slope == 0) {
-			dx = 0;
-			dy = 1;
+			dx = 0.0f;
+			dy = 1.0f;
 		}
 		else {
-			dx =      1/Math.sqrt(normal*normal + 1);
-		    dy = normal/Math.sqrt(normal*normal + 1);
+			dx =      1.0f/(float)Math.sqrt(normal*normal + 1.0f);
+		    dy = normal/(float)Math.sqrt(normal*normal + 1.0f);
 		}
 		
 		for (int i = 0; i < Integer.MAX_VALUE; i++) {
@@ -1083,7 +1083,7 @@ public class CellGraph implements java.io.Serializable {
 			r2[0] = midpt[0] - i * dy;
 			r2[1] = midpt[1] - i * dx;
 			
-			double angle = Misc.angle(r1, cV, cW);  // angles should be the same for r1, r2
+			float angle = Misc.angle(r1, cV, cW);  // angles should be the same for r1, r2
 
 			// the termination statement of the loop
 			if (angle < minAngle)
@@ -1119,7 +1119,7 @@ public class CellGraph implements java.io.Serializable {
 		return false;
 	}
 	// is the point r at a TRUE in bords? checks a 1x2 square with r as the lower left corner
-	private boolean withinOne(double[] r, boolean[][] bords) {
+	private boolean withinOne(float[] r, boolean[][] bords) {
 		int y = (int) Math.round(r[0]) -1;  // -1 because java uses 0-indexed arrays
 		int x = (int) Math.round(r[1]) -1;
 		
@@ -1429,16 +1429,16 @@ public class CellGraph implements java.io.Serializable {
 	////////
 	// returns the Cell that the point coord lies in
 	// returns null if it can't find one
-	public Cell cellAtPoint(double[] coord) {
+	public Cell cellAtPoint(float[] coord) {
 		return cellAtPoint(coord, cells());
 	}
-	public Cell activeCellAtPoint(double[] coord) {
+	public Cell activeCellAtPoint(float[] coord) {
 		return cellAtPoint(coord, activeCells());
 	}
-	public Cell inactiveCellAtPoint(double[] coord) {
+	public Cell inactiveCellAtPoint(float[] coord) {
 		return cellAtPoint(coord, inactiveCells());
 	}
-	private Cell cellAtPoint(double[] coord, Cell[] cells) {
+	private Cell cellAtPoint(float[] coord, Cell[] cells) {
 		if (coord[0] <= 0 || coord[0] > Ys || coord[1] <= 0 || coord[1] > Xs)
 			return null;
 		for (Cell c : cells) 
@@ -1449,11 +1449,11 @@ public class CellGraph implements java.io.Serializable {
 	
 	// returns the Vertex nearest to the point coord and at most MIN_DIST_THRESH pixels away
 	// returns null if it can't find one
-	public Vertex vertexAtPoint(double[] coord, double MIN_DIST_THRESH) {
+	public Vertex vertexAtPoint(float[] coord, float MIN_DIST_THRESH) {
 		if (coord[0] <= 0 || coord[0] > Ys || coord[1] <= 0 || coord[1] > Xs)
 			return null;
 		Vertex minDistV = null;
-		double minDist = Double.POSITIVE_INFINITY;
+		float minDist = Float.POSITIVE_INFINITY;
 		for (Vertex v : vertices()) {
 			if (Misc.distance(v.coords(), coord) < minDist) {
 				minDist = Misc.distance(v.coords(), coord);
@@ -1467,7 +1467,7 @@ public class CellGraph implements java.io.Serializable {
 	
 	
 	// set the coordinates of all the Vertices
-	public boolean setVertexCoords(double[][] coords) {
+	public boolean setVertexCoords(float[][] coords) {
 		if (coords.length != numVertices()) {
 			System.err.println("Error in CellGraph:setVertexCoords: number of vertices does not match");
 			return false;
@@ -1482,24 +1482,24 @@ public class CellGraph implements java.io.Serializable {
 	}
 	
 	// draws the cells
-	private double[][] draw(Cell[] cells) {
-		double[][] image = new double[Ys][Xs];
+	private float[][] draw(Cell[] cells) {
+		float[][] image = new float[Ys][Xs];
 		for (Cell c : cells) 
 			c.draw(image);
 		return image;
 	}
-	public double[][] draw() {
+	public float[][] draw() {
 		return draw(cells());
 	}	
-	public double[][] drawActive() {
+	public float[][] drawActive() {
 		return draw(activeCells());
 	}
-	public double[][] drawInactive() {
+	public float[][] drawInactive() {
 		return draw(inactiveCells());
 	}
-	public static double[][] draw(double[][] coords, boolean[][] connect, int Ys, int Xs) {
+	public static float[][] draw(float[][] coords, boolean[][] connect, int Ys, int Xs) {
 		Vertex[] vertices = Vertex.createVertices(coords);
-		double[][] image = new double[Ys][Xs];
+		float[][] image = new float[Ys][Xs];
 		for (int i = 0; i < connect.length; i++)
 			for (int j = i+1; j < connect[0].length; j++)
 				if (connect[i][j])
@@ -1508,10 +1508,10 @@ public class CellGraph implements java.io.Serializable {
 	}
 	
 	// takes time Xs * Ys * nCells * C  where C is the point-in-polygon size and is a constant
-	public double[][] drawRegions() {
+	public float[][] drawRegions() {
 		// first, draw the Cell regions. Then, draw the borders. That way the borders
 		// can't have any holes in them
-		double[][] image = new double[Ys][Xs];
+		float[][] image = new float[Ys][Xs];
 		
 		for (Cell c : cells()) {
 			if (c == null) 
@@ -1525,7 +1525,7 @@ public class CellGraph implements java.io.Serializable {
 		}
 		
 		// draw the borders
-		double borders[][] = draw();
+		float borders[][] = draw();
 		
 		// set background to 0 and borders to -1, so that
 		// cells can start from 1
@@ -1538,8 +1538,8 @@ public class CellGraph implements java.io.Serializable {
 	}
 	
 	// draw all the Cell centroids as points
-	public double[][] drawCentroids() {
-		double[][] image = new double[Ys][Xs];
+	public float[][] drawCentroids() {
+		float[][] image = new float[Ys][Xs];
 		for (Cell c : cells()) {
 			int[] cent = c.centroidInt();
 			image[cent[0] - 1][cent[1] - 1] = 1;
@@ -1548,10 +1548,10 @@ public class CellGraph implements java.io.Serializable {
 	}
 	
 	// draw all the Vertices as points
-	public double[][] drawVertices() {
-		double[][] image = new double[Ys][Xs];
+	public float[][] drawVertices() {
+		float[][] image = new float[Ys][Xs];
 		for (Vertex v : vertices()) {
-			double[] coord = v.coords();
+			float[] coord = v.coords();
 			image[(int) coord[0] - 1][(int) coord[1] - 1] = 1; 
 		}
 		return image;
@@ -1570,8 +1570,8 @@ public class CellGraph implements java.io.Serializable {
 				return false;
 			}
 			for (Vertex v : c.vertices()) {
-				double vY = v.coords()[0];
-				double vX = v.coords()[1];
+				float vY = v.coords()[0];
+				float vX = v.coords()[1];
 				if (vY <= 0 || vY > Ys || vX <= 0 || vX > Xs) {
 					System.err.println("Invalid Vertex: " + v + " Coordinates out of bounds.");
 					return false;
@@ -1610,17 +1610,17 @@ public class CellGraph implements java.io.Serializable {
 	
 	// for sorting by angle for the Vertices connected to a Cell
 	private static class ByAngle implements Comparator<Cell> {
-		private double[] origin;
+		private float[] origin;
         
-        public ByAngle(double[] o) {
+        public ByAngle(float[] o) {
             origin = o;
         }
         
         // backwards so that a more negative angle is "greater"
         // this way the Vertices will be sorted clockwise
         public int compare(Cell a, Cell b) {
-            double angleA = angle(origin, a);
-            double angleB = angle(origin, b);
+            float angleA = angle(origin, a);
+            float angleB = angle(origin, b);
             if (angleA < angleB) return +1;
             if (angleA > angleB) return -1;
             else                 return  0;
@@ -1629,12 +1629,13 @@ public class CellGraph implements java.io.Serializable {
         // computes the angle that v makes with the point origin
         // returns the angle in the range [0, 2pi)
         // if v is at the origin 0.0 is returned
-        private static double angle(double[] origin, Cell c) {
-            double dx = c.centroid()[1] - origin[1];
-            double dy = origin[0] - c.centroid()[0];
-            double angle = Math.atan2(dy, dx);
-            if (angle < 0) angle = 2*Math.PI + angle;
-            return angle;
+        private static float angle(float[] origin, Cell c) {
+        	return Misc.angle(origin, c.centroid());
+//            float dx = c.centroid()[1] - origin[1];
+//            float dy = origin[0] - c.centroid()[0];
+//            double angle = Math.atan2(dy, dx);
+//            if (angle < 0) angle = 2*Math.PI + angle;
+//            return (float) angle;
         }       
     }
 

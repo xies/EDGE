@@ -171,10 +171,10 @@ public class Cell implements java.io.Serializable {
 	// computes and returns the centroid of the Cell in an array
 	// uses the formula from Wikipedia:Polygon
 	/* can be accessed by Matlab */
-	public double[] centroid() {
+	public float[] centroid() {
 		// create an array of the vertex coordinates for easy accessing
-		double[] vY = new double[vertices.length + 1];
-		double[] vX = new double[vertices.length + 1];
+		float[] vY = new float[vertices.length + 1];
+		float[] vX = new float[vertices.length + 1];
 		for (int i = 0; i < vertices.length; i++) {
 			vY[i] = vertices[i].coords()[0];
 			vX[i] = vertices[i].coords()[1];
@@ -183,47 +183,47 @@ public class Cell implements java.io.Serializable {
 		vY[vertices.length] = vY[0];
 		vX[vertices.length] = vX[0];
 		
-		double y = 0, x = 0;
+		float y = 0, x = 0;
 		for (int i = 0; i < vertices.length; i++) {
 			y += (vY[i] + vY[i+1]) * (vX[i]*vY[i+1] - vX[i+1]*vY[i]);
 			x += (vX[i] + vX[i+1]) * (vX[i]*vY[i+1] - vX[i+1]*vY[i]);
 		}
 		
-		double area = area();
+		float area = area();
 		y /= (6.0 * area);
 		x /= (6.0 * area);
 		
-		double[] centroid = new double[2];
+		float[] centroid = new float[2];
 		centroid[0] = Math.abs(y); 
 		centroid[1] = Math.abs(x);  
 		return centroid;
 	}
 	public int[] centroidInt() {
 		int[] centroidInteger = new int[2];
-		double[] centroidDouble = centroid();
-		centroidInteger[0] = (int) Math.round(centroidDouble[0]);
-		centroidInteger[1] = (int) Math.round(centroidDouble[1]);
+		float[] centroidFloat = centroid();
+		centroidInteger[0] = (int) Math.round(centroidFloat[0]);
+		centroidInteger[1] = (int) Math.round(centroidFloat[1]);
 		return centroidInteger;
 	}
-	public static double[][] centroidStack(Cell[] cells) {
+	public static float[][] centroidStack(Cell[] cells) {
 		if (cells == null) return null;
-		double[][] centStack = new double[cells.length][2];
+		float[][] centStack = new float[cells.length][2];
 		for (int i = 0; i < cells.length; i++) {
 			if (cells[i] == null) {
-				centStack[i][0] = Double.NaN;
-				centStack[i][1] = Double.NaN;
+				centStack[i][0] = Float.NaN;
+				centStack[i][1] = Float.NaN;
 			}
 			else
 				centStack[i] = cells[i].centroid();
 		}
 		return centStack;
 	}
-//	public static double[] areaStack(Cell[] cells) {
+//	public static float[] areaStack(Cell[] cells) {
 //		if (cells == null) return null;
-//		double[] areaStack = new double[cells.length];
+//		float[] areaStack = new float[cells.length];
 //		for (int i = 0; i < cells.length; i++) {
 //			if (cells[i] == null)
-//				areaStack[i] = Double.NaN;
+//				areaStack[i] = Float.NaN;
 //			else
 //				areaStack[i] = cells[i].area();
 //		}
@@ -231,7 +231,7 @@ public class Cell implements java.io.Serializable {
 //	}
 	// returns all of the vertices in a cells.length x nverts_max x 2 array
 	// where nverts_max is the maximum number of vertices of all the Cells in cells
-	public static double[][][] allVertexStack(Cell[] cells) {
+	public static float[][][] allVertexStack(Cell[] cells) {
 		if (cells == null) return null;
 		int maxVerts = 0;
 		for (Cell c : cells) {
@@ -239,25 +239,25 @@ public class Cell implements java.io.Serializable {
 			maxVerts = Math.max(maxVerts, c.vertices().length);
 		}
 		
-		double[][][] result = new double[cells.length][maxVerts][2];
+		float[][][] result = new float[cells.length][maxVerts][2];
 		
 		for (int i = 0; i < cells.length; i++) { // for each Cell
 			if (cells[i] == null) {
 				for (int j = 0; j < maxVerts; j++) {
-					result[i][j][0] = Double.NaN;
-					result[i][j][1] = Double.NaN;
+					result[i][j][0] = Float.NaN;
+					result[i][j][1] = Float.NaN;
 				}
 				continue;
 			}
 			Vertex[] verts = cells[i].vertices();
 			for (int j = 0; j < maxVerts; j++) { // for each Vertex
 				if (j < verts.length) {
-					result[i][j][0] = (double) verts[j].coords()[0];
-					result[i][j][1] = (double) verts[j].coords()[1];
+					result[i][j][0] = (float) verts[j].coords()[0];
+					result[i][j][1] = (float) verts[j].coords()[1];
 				}
 				else {
-					result[i][j][0] = Double.NaN;
-					result[i][j][1] = Double.NaN;
+					result[i][j][0] = Float.NaN;
+					result[i][j][1] = Float.NaN;
 				}
 			}
 		}
@@ -270,10 +270,10 @@ public class Cell implements java.io.Serializable {
 	// if they are sorted clockwise we get the right answer but with a negative sign
 	// therefore I try to keep them sorted CCW but just in case I use an absolute value
 	// sign here
-	public double area() {
+	public float area() {
 		// create two arrays of the vertex coordinates for easy accessing
-		double[] vY = new double[vertices.length + 1];
-		double[] vX = new double[vertices.length + 1];
+		float[] vY = new float[vertices.length + 1];
+		float[] vX = new float[vertices.length + 1];
 		for (int i = 0; i < numV(); i++) {
 			vY[i] = vertices[i].coords()[0];
 			vX[i] = vertices[i].coords()[1];
@@ -282,7 +282,7 @@ public class Cell implements java.io.Serializable {
 		vY[numV()] = vY[0];
 		vX[numV()] = vX[0];
 		
-		double area = 0;
+		float area = 0;
 		for (int i = 0; i < numV(); i++)
 			area += (vX[i] * vY[i+1]) - (vX[i+1] * vY[i]);    
 		
@@ -291,8 +291,8 @@ public class Cell implements java.io.Serializable {
 	}
 	
 	// computes the perimeter of the Cell
-	public double perimeter() {
-		double perim = 0;	
+	public float perimeter() {
+		float perim = 0;	
 		for (int i = 0; i < numV() - 1; i++)
 			perim += Misc.distance(vertices[i].coords(), vertices[i+1].coords());
 		perim += Misc.distance(vertices[numV() - 1].coords(), vertices[0].coords());
@@ -306,7 +306,7 @@ public class Cell implements java.io.Serializable {
 		return vertices;
 	}
 	
-	public double[][] vertexCoords() {
+	public float[][] vertexCoords() {
 		return Vertex.coords(vertices);
 	}
 	
@@ -360,7 +360,7 @@ public class Cell implements java.io.Serializable {
 	// translate the cell by delta (i.e., translate the location of all vertices by delta)
 	// NOTE: other cells may own this vertex!! should only be done for a cell that has all its own
 	// vertices!!!!!
-	public void translate(double[] delta) {
+	public void translate(float[] delta) {
 		for (Vertex v : vertices)
 			v.translate(delta);
 	}
@@ -374,8 +374,8 @@ public class Cell implements java.io.Serializable {
 //		int x = input[1];
 //		
 //		// create an array of the vertex coordinates for easy accessing
-//		double[] vY = new double[numV() + 1];
-//		double[] vX = new double[numV() + 1];
+//		float[] vY = new float[numV() + 1];
+//		float[] vX = new float[numV() + 1];
 //		for (int i = 0; i < numV(); i++) {
 //			vY[i] = vertices[i].coords()[0];
 //			vX[i] = vertices[i].coords()[1];
@@ -394,7 +394,7 @@ public class Cell implements java.io.Serializable {
 //	}
 	
 	// computes the overlapping area between this and that Cell
-	public double overlapArea(Cell that) {
+	public float overlapArea(Cell that) {
 //		Polygon p1 = this.getPolygon();
 //		Polygon p2 = that.getPolygon();
 //		Area a1 = new Area(p1);
@@ -402,18 +402,18 @@ public class Cell implements java.io.Serializable {
 //		Area dif = new Area(p1);
 //		dif.subtract(a2);   // dif = a1 - a2
 //		a1.subtract(dif);   // a1 = a1 - dif = a1 - (a1 - a2)
-		if (that == null) return Double.NaN;
+		if (that == null) return Float.NaN;
 		return PolygonIntersect.intersectionArea(this.vertexCoords(), that.vertexCoords());
 	}
 	
-	public boolean containsPoint(double y, double x) {
-		double[] point = new double[2];
+	public boolean containsPoint(float y, float x) {
+		float[] point = new float[2];
 		point[0] = y;
 		point[1] = x;
 		return containsPoint(point);
 	}
 	// uses the java.awt.Polygon to determine if the point is inside
-	public boolean containsPoint(double[] input) {
+	public boolean containsPoint(float[] input) {
 		Polygon p = getPolygon();
 		return p.contains(input[1], input[0]);
 	}
@@ -443,7 +443,7 @@ public class Cell implements java.io.Serializable {
 	
 	// check the angles formed by consecutive groups of 3 vertices. if any is too small
 	// remove that vertex...
-	public Vertex[] checkAngle(double minAngle) {
+	public Vertex[] checkAngle(float minAngle) {
 		// an array that has the first 2 elements at the end so it is cyclic for groups of 3
 		Vector<Vertex> badVertices = new Vector<Vertex>();  // in case there are more than one (totally unlikely)
 		Vertex[] verts = new Vertex[numV() + 2];
@@ -452,7 +452,7 @@ public class Cell implements java.io.Serializable {
 		verts[numV()] = vertices[0];
 		verts[numV()+1] = vertices[1];
 		for (int i = 0; i < numV(); i++) {
-			double angle = Misc.angle(verts[i+1].coords(), verts[i].coords(), verts[i+2].coords());
+			float angle = Misc.angle(verts[i+1].coords(), verts[i].coords(), verts[i+2].coords());
 			if (angle < minAngle) {
 //				System.out.println(angle + " < " + minAngle);
 				badVertices.add(verts[i+1]); 
@@ -465,25 +465,25 @@ public class Cell implements java.io.Serializable {
 	}
 	
 	// draw the Cell (image is also returned for Matlab callers, there is no need for this in Java)
-	public double[][] draw(double[][] image) {	
+	public float[][] draw(float[][] image) {	
 		// draw the cell edges
 		for (int i = 0; i < numV() - 1; i++)
 			Vertex.drawConnection(image, vertices[i], vertices[i+1]);
 		Vertex.drawConnection(image, vertices[numV() - 1], vertices[0]);
 		return image;
 	}
-	public double[][] draw() {
-		double[][] image = new double[parent.Ys][parent.Xs];
+	public float[][] draw() {
+		float[][] image = new float[parent.Ys][parent.Xs];
 		return draw(image);
 	}
 	
 //	// draw the Cell in the smallest possible image that fits it
-//	public double[][] drawBounded() {
-//		double[][] vertCoords = vertexCoords();
-//		double maxY = Double.NEGATIVE_INFINITY;
-//		double minY = Double.POSITIVE_INFINITY;
-//		double maxX = Double.NEGATIVE_INFINITY;
-//		double minX = Double.POSITIVE_INFINITY;
+//	public float[][] drawBounded() {
+//		float[][] vertCoords = vertexCoords();
+//		float maxY = Float.NEGATIVE_INFINITY;
+//		float minY = Float.POSITIVE_INFINITY;
+//		float maxX = Float.NEGATIVE_INFINITY;
+//		float minX = Float.POSITIVE_INFINITY;
 //		for (int i = 0; i < numV(); i++) {
 //			maxY = Math.max(maxY, vertCoords[i][0]);
 //			minY = Math.min(minY, vertCoords[i][0]);
@@ -496,19 +496,19 @@ public class Cell implements java.io.Serializable {
 //		int minXint = (int) Math.floor(minX);
 //		int Ylen = maxYint - minYint + 1;
 //		int Xlen = maxXint - minXint + 1;
-//		double[][] image = new double[Ylen][Xlen];
+//		float[][] image = new float[Ylen][Xlen];
 //		// draw the lines
 //		for (int i = 0; i < numV()-1; i++) {
-//			double[] vCoords1 = vertices()[i].coords();
-//			double[] vCoords2 = vertices()[i+1].coords();
+//			float[] vCoords1 = vertices()[i].coords();
+//			float[] vCoords2 = vertices()[i+1].coords();
 //			vCoords1[0] = vCoords1[0] - minYint;
 //			vCoords1[1] = vCoords1[1] - minXint;
 //			vCoords2[0] = vCoords2[0] - minYint;
 //			vCoords2[1] = vCoords2[1] - minXint;
 //			Misc.drawLine(image, vCoords1, vCoords2);
 //		}
-//		double[] vCoords1 = vertices()[numV()-1].coords();
-//		double[] vCoords2 = vertices()[0].coords();
+//		float[] vCoords1 = vertices()[numV()-1].coords();
+//		float[] vCoords2 = vertices()[0].coords();
 //		vCoords1[0] = vCoords1[0] - minYint;
 //		vCoords1[1] = vCoords1[1] - minXint;
 //		vCoords2[0] = vCoords2[0] - minYint;
@@ -517,7 +517,7 @@ public class Cell implements java.io.Serializable {
 //		return image;
 //	}
 	
-//	public double[][] drawFilled(double[][] image) {
+//	public float[][] drawFilled(float[][] image) {
 //		int[] point = new int[2];
 //		for (int i = 0; i < parent.Ys; i++) {
 //			for (int j = 0; j < parent.Xs; j++) {
@@ -529,8 +529,8 @@ public class Cell implements java.io.Serializable {
 //		}
 //		return image;
 //	}
-//	public double[][] drawFilled() {
-//		double[][] image = draw(); // draws the borders first
+//	public float[][] drawFilled() {
+//		float[][] image = draw(); // draws the borders first
 //		return drawFilled(image);
 //	}
 	
@@ -558,7 +558,7 @@ public class Cell implements java.io.Serializable {
 //		// although not necessarily starting with the smallest angle first (hence the mod 2pi)
 //		// again, as with the original ordering, those testing assumes
 //		// that the cells are reasonably convex. 
-//		double deltaTheta;
+//		float deltaTheta;
 //		for (int i = 0; i < numV() - 1; i++) {
 //			deltaTheta = vertexAngle(vertices[i+1]) - vertexAngle(vertices[i]);
 //			if (deltaTheta % (2*Math.PI) < 0) {
@@ -576,8 +576,8 @@ public class Cell implements java.io.Serializable {
 	}
 	
 	// return a sorted array of all the angles that this cell contains
-	public double[] vertexAngles() {
-		double[] angles = new double[numV()];
+	public float[] vertexAngles() {
+		float[] angles = new float[numV()];
 		Vertex[] wrapVerts = new Vertex[numV() + 2];
 		for (int i = 0; i < numV(); i++)
 			wrapVerts[i] = vertices[i];
@@ -591,15 +591,15 @@ public class Cell implements java.io.Serializable {
 	}
 	
 	// return an array with all the angles made to the cells from the centroid of this cell
-	public double[] angle(Cell[] cells) {
-		double[] angles = new double[cells.length];
+	public float[] angle(Cell[] cells) {
+		float[] angles = new float[cells.length];
 		for (int i = 0; i < cells.length; i++)
 			angles[i] = angle(cells[i]);
 		return angles;
 	}
 	
 	// the angle from the centroid of this cell to the centroid of cell Point
-	public double angle(Cell point) {
+	public float angle(Cell point) {
 		return Misc.angle(centroid(), point.centroid());
 	}
 	
@@ -607,19 +607,19 @@ public class Cell implements java.io.Serializable {
 	
 	// for sorting by angle for the Vertices connected to a Cell
 	private static class ByAngle implements Comparator<Vertex> {
-		private double[] origin;
+		private float[] origin;
         
         public ByAngle(int[] o) {
-            origin = new double[2];
-            origin[0] = (double) o[0];
-            origin[1] = (double) o[1];
+            origin = new float[2];
+            origin[0] = (float) o[0];
+            origin[1] = (float) o[1];
         }
         
         // backwards so that a more negative angle is "greater"
         // this way the Vertices will be sorted clockwise
         public int compare(Vertex a, Vertex b) {
-            double angleA = angle(origin, a);
-            double angleB = angle(origin, b);
+            float angleA = angle(origin, a);
+            float angleB = angle(origin, b);
             if (angleA < angleB) return +1;
             if (angleA > angleB) return -1;
             else                 return  0;
@@ -628,7 +628,7 @@ public class Cell implements java.io.Serializable {
         // computes the angle that v makes with the point origin
         // returns the angle in the range [0, 2pi)
         // if v is at the origin 0.0 is returned
-        private static double angle(double[] origin, Vertex v) {
+        private static float angle(float[] origin, Vertex v) {
         	return Misc.angle(origin, v.coords());
         } 
     }
