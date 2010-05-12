@@ -13,7 +13,7 @@ public class TempVertex {
 		cellNeighbors = new HashSet<Integer>();
 	}
 	
-	public float[] vertexCoords() {
+	public double[] vertexCoords() {
 		return vertex.coords();
 	}
 	
@@ -80,8 +80,8 @@ public class TempVertex {
 			for (int fc : v.cellNeighbors)
 				cellNeighborsSet.add(fc);
 		}
-		y = (int)Math.round((float)y/(float)verts.size());
-		x = (int)Math.round((float)x/(float)verts.size());
+		y = (int)Math.round((double)y/(double)verts.size());
+		x = (int)Math.round((double)x/(double)verts.size());
 		
 		// make array from TreeSet
 		TempVertex merged = new TempVertex(new Vertex(y, x));

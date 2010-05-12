@@ -16,12 +16,11 @@ public class PolygonIntersect extends Object
 	
 	/** 
 	 * return the area of intersection of two polygons
-	 * where the polygons are defined by arrays of /doubles/  --> now FLOATS
+	 * where the polygons are defined by arrays of doubles
 	 * (added by Michael Gelbart January 2010)  
 	 */
-	public static float intersectionArea(float[][]a, float[][] b) {
-		return (float)intersectionArea(toPoints2DArray(Misc.floatToDouble(a)), 
-									   toPoints2DArray(Misc.floatToDouble(b)));
+	public static double intersectionArea(double[][]a, double[][] b) {
+		return intersectionArea(toPoints2DArray(a), toPoints2DArray(b));
 	}
 	
 	
