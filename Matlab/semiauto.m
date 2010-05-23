@@ -23,7 +23,7 @@ function varargout = semiauto(varargin)
 
     % Edit the above text to modify the response to help semiauto
 
-    % Last Modified by GUIDE v2.5 27-Feb-2010 13:52:55
+    % Last Modified by GUIDE v2.5 23-May-2010 17:39:43
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -764,8 +764,10 @@ function info_text_number_of_erosions_Callback(hObject, eventdata, handles)
     % "_Callback" at the end
     name = name(11:end-9);
         
-    handles = semiauto_info_text_callback(handles, name);
+    % take away focus
+    uicontrol(handles.DUMMY);
     
+    handles = semiauto_info_text_callback(handles, name);
     guidata(hObject, handles);
 
 function info_text_number_of_erosions_CreateFcn(hObject, eventdata, handles)
@@ -782,7 +784,10 @@ function info_text_preprocessing_threshold_Callback(hObject, eventdata, handles)
     % get rid of "info_text_" at the beginning and 
     % "_Callback" at the end
     name = name(11:end-9);
-        
+    
+    % take away focus
+    uicontrol(handles.DUMMY);
+    
     handles = semiauto_info_text_callback(handles, name);
     guidata(hObject, handles);
 
@@ -801,6 +806,9 @@ function info_text_minimum_cell_size_Callback(hObject, eventdata, handles)
     % "_Callback" at the end
     name = name(11:end-9);
         
+    % take away focus
+    uicontrol(handles.DUMMY);
+    
     handles = semiauto_info_text_callback(handles, name);
     guidata(hObject, handles); 
 
@@ -820,7 +828,10 @@ function info_text_refine_max_angle_Callback(hObject, eventdata, handles)
     % get rid of "info_text_" at the beginning and 
     % "_Callback" at the end
     name = name(11:end-9);
-        
+    
+    % take away focus
+    uicontrol(handles.DUMMY);
+    
     handles = semiauto_info_text_callback(handles, name);
     guidata(hObject, handles); 
 
@@ -839,6 +850,9 @@ function info_text_refine_min_angle_Callback(hObject, eventdata, handles)
     % "_Callback" at the end
     name = name(11:end-9);
         
+    % take away focus
+    uicontrol(handles.DUMMY);
+    
     handles = semiauto_info_text_callback(handles, name);
     guidata(hObject, handles); 
     
@@ -858,6 +872,9 @@ function info_text_refine_min_edge_length_Callback(hObject, eventdata, handles)
     % "_Callback" at the end
     name = name(11:end-9);
         
+    % take away focus
+    uicontrol(handles.DUMMY);
+    
     handles = semiauto_info_text_callback(handles, name);
     guidata(hObject, handles); 
 
@@ -878,6 +895,9 @@ function info_text_bandpass_high_Callback(hObject, eventdata, handles)
     % "_Callback" at the end
     name = name(11:end-9);
         
+    % take away focus
+    uicontrol(handles.DUMMY);
+    
     handles = semiauto_info_text_callback(handles, name);
     guidata(hObject, handles);
 
@@ -888,7 +908,10 @@ function info_text_bandpass_low_Callback(hObject, eventdata, handles)
     % get rid of "info_text_" at the beginning and 
     % "_Callback" at the end
     name = name(11:end-9);
-        
+       
+    % take away focus
+    uicontrol(handles.DUMMY);
+    
     handles = semiauto_info_text_callback(handles, name);
     guidata(hObject, handles);
 
@@ -1277,6 +1300,9 @@ function info_text_microns_per_pixel_Callback(hObject, eventdata, handles)
     % "_Callback" at the end
     name = name(11:end-9);
         
+    % take away focus
+    uicontrol(handles.DUMMY);
+    
     handles = semiauto_info_text_callback(handles, name);
     guidata(hObject, handles);
 
@@ -1295,7 +1321,10 @@ function info_text_microns_per_z_step_Callback(hObject, eventdata, handles)
     % get rid of "info_text_" at the beginning and 
     % "_Callback" at the end
     name = name(11:end-9);
-        
+    
+    % take away focus
+    uicontrol(handles.DUMMY);
+    
     handles = semiauto_info_text_callback(handles, name);
     guidata(hObject, handles);
 
@@ -1315,6 +1344,9 @@ function info_text_seconds_per_frame_Callback(hObject, eventdata, handles)
     % "_Callback" at the end
     name = name(11:end-9);
         
+    % take away focus
+    uicontrol(handles.DUMMY);
+    
     handles = semiauto_info_text_callback(handles, name);
     guidata(hObject, handles);
 
@@ -1342,6 +1374,8 @@ function info_text_start_time_Callback(hObject, eventdata, handles)
     % this will change the embryo file
     handles = update_embryo(handles);
     
+    % take away focus
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles);
 
 
@@ -1369,6 +1403,8 @@ function info_text_end_time_Callback(hObject, eventdata, handles)
     % this will change the embryo file
     handles = update_embryo(handles);
     
+    % take away focus
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles);
 
 
@@ -1393,6 +1429,8 @@ function info_text_master_time_Callback(hObject, eventdata, handles)
     % this will change the embryo file
     handles = update_embryo(handles);
     
+    % take away focus
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles);
 
 function info_text_master_time_CreateFcn(hObject, eventdata, handles)
@@ -1419,6 +1457,8 @@ function info_text_bottom_layer_Callback(hObject, eventdata, handles)
     % this will change the embryo file
     handles = update_embryo(handles);
     
+    % take away focus
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles);
 
 function info_text_bottom_layer_CreateFcn(hObject, eventdata, handles)
@@ -1445,6 +1485,8 @@ function info_text_top_layer_Callback(hObject, eventdata, handles)
     % this will change the embryo file
     handles = update_embryo(handles);
     
+    % take away focus
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles);
 
 function info_text_top_layer_CreateFcn(hObject, eventdata, handles)
@@ -1468,6 +1510,8 @@ function info_text_master_layer_Callback(hObject, eventdata, handles)
     % this will change the embryo file
     handles = update_embryo(handles);
     
+    % take away focus
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles); 
 
 function info_text_master_layer_CreateFcn(hObject, eventdata, handles)
@@ -1488,6 +1532,8 @@ function info_text_tracking_area_change_Z_Callback(hObject, eventdata, handles)
     % this will change the embryo file
     handles = update_embryo(handles);
     
+    % take away focus
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles);
 
 
@@ -1512,6 +1558,8 @@ function info_text_tracking_layers_back_Z_Callback(hObject, eventdata, handles)
     % this will change the embryo file
     handles = update_embryo(handles);
     
+    % take away focus
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles);
 
 
@@ -1536,6 +1584,8 @@ function info_text_tracking_centroid_distance_Z_Callback(hObject, eventdata, han
     % this will change the embryo file
     handles = update_embryo(handles);
     
+    % take away focus
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles);
 
 
@@ -1559,6 +1609,8 @@ function info_text_tracking_area_change_T_Callback(hObject, eventdata, handles)
     % this will change the embryo file
     handles = update_embryo(handles);
     
+    % take away focus
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles);
 
 function info_text_tracking_area_change_T_CreateFcn(hObject, eventdata, handles)
@@ -1582,6 +1634,8 @@ function info_text_tracking_layers_back_T_Callback(hObject, eventdata, handles)
     % this will change the embryo file
     handles = update_embryo(handles);
     
+    % take away focus
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles);
 
 function info_text_tracking_layers_back_T_CreateFcn(hObject, eventdata, handles)
@@ -1605,6 +1659,8 @@ function info_text_tracking_centroid_distance_T_Callback(hObject, eventdata, han
     % this will change the embryo file
     handles = update_embryo(handles);
     
+    % take away focus
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles);
 
 function info_text_tracking_centroid_distance_T_CreateFcn(hObject, eventdata, handles)
@@ -2672,6 +2728,9 @@ function cell_text_Callback(hObject, eventdata, handles)
         handles = slider_callbacks_draw_image_slice_dots_semiauto(handles);
         guidata(hObject, handles);
     end
+    
+    % take away focus
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles);
 
 function cell_text_CreateFcn(hObject, eventdata, handles)
@@ -2681,3 +2740,6 @@ function cell_text_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+function DUMMY_Callback(hObject, eventdata, handles)
