@@ -3,7 +3,7 @@ function [img r] = drawCellSmall(embryo, t, z, c)
 % "img" and the coordinates of the top-left corner are returned in "r"
 
 vcoords = embryo.getCellGraph(t, z).getCell(c).vertexCoords;
-r = min(vcoords);
+r = round(min(vcoords));
 
 vcoords(end+1, :) = vcoords(1, :);
 vcoords(:, 1) = vcoords(:, 1) - min(vcoords(:, 1)) + 0.5;

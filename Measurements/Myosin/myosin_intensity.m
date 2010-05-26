@@ -1,4 +1,4 @@
-function [data names units] = myosin_intensity(embryo, getMyosin, t, z, c, dx, dz, dt)
+function [data names units] = myosin_intensity(embryo, getMyosin, t, z, c, dx, dz, dt, other)
 
 % the names
 names{1} = 'Myosin intensity';
