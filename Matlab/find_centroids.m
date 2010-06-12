@@ -12,6 +12,8 @@ cents = round(cents);
 cents = fliplr(cents);
 
 %gets rid of the background
-cents = removerows(cents, 1); 
+% cents = removerows(cents, 1); 
+cents(1,:)=[];
+
 %fix region array
 regions = regions - 1;
