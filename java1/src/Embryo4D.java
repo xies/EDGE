@@ -84,7 +84,7 @@ public class Embryo4D implements java.io.Serializable {
 		assert(isValid());
 	}
 	
-	// add a CellGraph a (t, z)
+	// add a CellGraph at (t, z)
 	// overwrite any existing CellGraph at that point
 	public void addCellGraph(CellGraph cg, int t, int z) {
 		int T = translateT(t);
@@ -97,7 +97,28 @@ public class Embryo4D implements java.io.Serializable {
 			trackAllCells();
 //			performTracking();
 	}
-	
+
+	// remove a CellGraph at (t, z)
+	public void removeCellGraph(int t, int z) {
+		int T = translateT(t);
+		int Z = translateZ(z);
+		cellGraphs[T][Z] = null;
+	}
+	public void removeAllCellGraphs() {
+		for (int i = 0; i < t(); i++)
+			for (int j = 0; j < z(); j++)
+				cellGraphs[i][j] = null;	
+	}
+
+	// does this embryo contain any of the necessary CellGraphs?
+	public boolean isEmpty() {
+		for (int i = 0; i < t(); i++)
+			for (int j = 0; j < z(); j++)
+				if (cellGraphs[i][j] != null)
+					return false;
+		return true;
+	}
+
 	// does this embryo contain all the necessary CellGraphs?
 	private boolean isFull() {
 		for (int i = 0; i < t(); i++)

@@ -465,10 +465,45 @@ function button_applyall_Callback(hObject, eventdata, handles)
         if ~ok
             return;
         end
+        
     else
         selection = default_val;
     end
     data_set = handles.data_set;
+    
+    if length(selection) == 1
+    % if some images are already processed, then ask about overwriting
+        if ~handles.embryo.isEmpty
+            res = questdlg('Some images are already processed. Overwrite or keep these?', ...
+                          'Overwrite processed images?', 'Overwrite', 'Keep', 'Cancel', 'Overwrite');
+            switch res
+                case 'Cancel'
+                    return;
+                case 'Overwrite'
+                    overwrite_ok = 1;
+                case 'Keep'
+                    overwrite_ok = 0;
+            end
+        else
+            overwrite_ok = 0;
+        end
+    else
+        % if some images are already processed, then ask about overwriting
+        if ~handles.embryo.isEmpty
+            res = questdlg('Some images in some of these data sets may already be processed. Overwrite or keep these?', ...
+                          'Overwrite processed images?', 'Overwrite', 'Keep', 'Cancel', 'Overwrite');
+            switch res
+                case 'Cancel'
+                    return;
+                case 'Overwrite'
+                    overwrite_ok = 1;
+                case 'Keep'
+                    overwrite_ok = 0;
+            end
+        end
+    end
+    
+   
     
     % do it for all data sets~~~
     for i = 1:length(selection)
@@ -479,6 +514,19 @@ function button_applyall_Callback(hObject, eventdata, handles)
         set(handles.text_readyproc_details, 'Visible', 'on');
             
         
+        
+        % if the user selected to overwrite images that are already processed,
+        % then first delete all the CellGraphs that are already processed. 
+        % the reason is that if you don't delete them, then every time you
+        % overwrite a single CellGraph, the Embryo4D is "full" and so
+        % re-tracks the entire data set at each step. But there is no point
+        % re-tracking until the entire Embryo is processed, namely when it
+        % gets full at the last CellGraph
+        if overwrite_ok
+            handles.embryo.removeAllCellGraphs; 
+        end
+        
+        
         handles.activeCell = [];
 
         readyproc(handles, 'proc_all');  
@@ -487,7 +535,10 @@ function button_applyall_Callback(hObject, eventdata, handles)
         for time_i = handles.info.start_time:handles.info.end_time
             for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
                 
-                if time_i == handles.info.master_time && layer_i == handles.info.master_layer && ~isempty(handles.embryo.getCellGraph(time_i, layer_i))
+                % skip those that are already processed if the user
+                % specified this
+                if ~overwrite_ok && ~isempty(handles.embryo.getCellGraph(time_i, layer_i))
+%                 if time_i == handles.info.master_time && layer_i == handles.info.master_layer && ~isempty(handles.embryo.getCellGraph(time_i, layer_i))
                     continue;
                 end
                 
