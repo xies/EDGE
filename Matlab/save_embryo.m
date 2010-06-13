@@ -26,6 +26,7 @@ embryo4d = handles.embryo;
 filename = fullfile(handles.tempsrc.parent, 'embryo_data');
 try
     save(filename, 'embryo4d');
+%     save(filename, 'embryo4d', '-v7');
 catch ME
    % IN CASE IT RUNS OUT OF MEMORY WHILE SAVING!!!!!!!!!!!!!!!!!!!!! 
    disp('Error in save_embryo.m: out of memory!') 
