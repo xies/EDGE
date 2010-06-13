@@ -272,6 +272,8 @@ function mouseFunction(hObject,evnt)
     
     [T Z] = getTZ(handles);
  
+    handles.embryo.totalCellCount
+    
 %     handles.embryo.getCellGraph(T, Z).getCell(handles.activeCell)1
     
 % %         v = handles.embryo.getCellGraph(T, Z).vertices;
@@ -1077,7 +1079,6 @@ function button_export_Callback(hObject, eventdata, handles)
 % 
 
         % ** output all the measurements into the mat file **
-        readyproc(handles, 'calculating');
         % the format of stored properties is a struct with field names
         % equals to the channel names. each one contains a struct with
         % field names equal to the measurement names. each field contains a
@@ -1093,6 +1094,8 @@ function button_export_Callback(hObject, eventdata, handles)
         
         measure_path = fullfile(handles.program_dir, 'Measurements');
         for j = 1:length(measurementnames)  % for all measurements
+            readyproc(handles, 'calculating');
+            
             set(handles.text_readyproc_details, 'String', measurementnames{j});
             set(handles.text_readyproc_details, 'Visible', 'on');
             cd(fullfile(measure_path, measurementchannels{j}));  % go in that directory
@@ -1244,10 +1247,18 @@ function button_export_Callback(hObject, eventdata, handles)
             end  % for all times
             
             
+            set(handles.text_processing_time, 'Visible', 'off')
+            set(handles.text_processing_time_label, 'Visible', 'off')
+            set(handles.text_processing_layer, 'Visible', 'off')
+            set(handles.text_processing_layer_label, 'Visible', 'off')
+            set(handles.text_readyproc, 'String', 'Saving');
+            drawnow;
+            
             % save everything for that measurement
             names = stored_properties.(good_measurementchannels_j).(measurementnames{j}).names;
             units = stored_properties.(good_measurementchannels_j).(measurementnames{j}).units;
             for indiv_meas = 1:length(names)
+                
                 savename = [good_measurementchannels_j '--' measurementnames{j} '--' names{indiv_meas}];
                 filename = fullfile(handles.src.measurements, savename);
                 data = cell(size(stored_properties.(good_measurementchannels_j).(measurementnames{j}).data));
@@ -1269,7 +1280,8 @@ function button_export_Callback(hObject, eventdata, handles)
         end  % for all measurements
         cd(fullfile(handles.program_dir, 'Matlab'));
     
-  
+        readyproc(handles, 'saving');
+        
         %%%% save stored properties
         % now there is a new version in which we no longer save everything
         % just in one .mat file, but rather split them up into subfiles as
@@ -1284,10 +1296,16 @@ function button_export_Callback(hObject, eventdata, handles)
 
 
     %%%% save embryo4d in embryo_data.mat file
-        embryo4d = handles.embryo;
-        filename = fullfile(handles.src.parent, 'embryo_data');
-        save(filename, 'embryo4d');
+%         embryo4d = handles.embryo;
+        src_filename = fullfile(handles.tempsrc.parent, 'embryo_data.mat');
+        dest_filename = fullfile(handles.src.parent, 'embryo_data.mat');
+%         save(filename, 'embryo4d');
 % (could also do this using copyfile)
+% using copyfile because saving is SLOW since it has to re-serialize and
+% compress everything
+        copyfile(src_filename, dest_filename);
+        
+        
         
         exported_text_controller(handles, 'exported');
 
