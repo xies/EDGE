@@ -40,7 +40,7 @@ end
 %% calculate intensity profile for all layers
 %% extra and interpolate for cells for which there is no tracked cell
 
-c
+%c
 
 % get layers that were tracked; all others are NaN in x_values 
 centroids = Cell.centroidStack(embryo.getCellStack(c, t)) * dx;
