@@ -272,7 +272,7 @@ function mouseFunction(hObject,evnt)
     
     [T Z] = getTZ(handles);
  
-    handles.embryo.totalCellCount
+%     handles.embryo.totalCellCount
     
 %     handles.embryo.getCellGraph(T, Z).getCell(handles.activeCell)1
     
