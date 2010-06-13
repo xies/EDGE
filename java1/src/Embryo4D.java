@@ -141,6 +141,24 @@ public class Embryo4D implements java.io.Serializable {
 		return isFull();
 	}
 	
+	public int totalCellCount() {
+		int count = 0;
+		for (int i = 0; i < t(); i++)
+			for (int j = 0; j < z(); j++)
+				if (cellGraphs[i][j] != null)
+					count += cellGraphs[i][j].numCells();
+		return count;
+	}
+	
+	public int totalVertexCount() {
+		int count = 0;
+		for (int i = 0; i < t(); i++)
+			for (int j = 0; j < z(); j++)
+				if (cellGraphs[i][j] != null)
+					count += cellGraphs[i][j].numVertices();
+		return count;
+	}
+	
 	// deactivate all cells in a given direction. start at cell from but DO NOT INCLUDE
 	// this cell.
 	private void deactivateSingleCellZ(int c, int t, int from, int dir) {
