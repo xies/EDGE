@@ -10,6 +10,14 @@ function [clean cg] = semiauto_preprocess(handles, T, Z)
 cells = imread(handles.info.image_file(T, Z, handles.src.raw));
 % cells = cells(:,:,1); % in case it's a 3 channel image
 
+
+% a special clause for totally blank images (these are "fillers")
+if ~any(cells(:))
+   CellGraph(cells, [], [], T, Z, NaN, NaN);
+end
+
+
+
 cells = double(cells);
 % process into thin borders
 lp = handles.info.bandpass_low / handles.info.microns_per_pixel;  % change to pixels

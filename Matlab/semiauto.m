@@ -2126,9 +2126,9 @@ function button_import_Callback(hObject, eventdata, handles)
     
     readyproc(handles, 'ready');
     
-    msgbox(strcat('Data set ', handles.data_set, ' has been imported succesfully.', ...
+    msgbox(['Data set ', handles.data_set, ' has been imported succesfully.', ...
         'The information entered can be edited anytime using this program. ', ...
-        ' Before processing, select a reference image and press the "Set reference image" button.'));    
+        ' Before processing, select a reference image and press the "Set reference image" button.']);    
 
     guidata(hObject, handles);
    
