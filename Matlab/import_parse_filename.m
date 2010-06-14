@@ -113,16 +113,17 @@ end
 % end
 
 % if this fails just take the best guess
+% ** could make this better by looking for the number that varies!!
 if fixed
     if isnan(z_posn)
-        z_posn = num_starts(1);
+        z_posn = num_starts(end);
     end
 else
     if isnan(t_posn)
-        t_posn = num_starts(1);
+        t_posn = num_starts(end-1);
     end
     if isnan(z_posn)
-        z_posn = num_starts(2);
+        z_posn = num_starts(end);
     end
 end
 
@@ -157,7 +158,7 @@ end
 
 % find the extension of sample_file. then look for images with that
 % extension.
-[sample_file_pathstr, sample_file_name, extension] = ...
+[~, ~, extension] = ...
     fileparts(sample_file);
 % dot_in_string = strfind(sample_file, '.');
 % dot_in_string = dot_in_string(end); % just in case 'Matlab' appears upstream in the path
@@ -182,7 +183,7 @@ for i = 1:length(files)
          ~isempty(regexp(files(i).name, containsstring, 'once'))
 
     % only look for files with the same extension
-        [this_file_pathstr, this_file_name, this_file_ext] = fileparts(files(i).name);
+        [~, ~, this_file_ext] = fileparts(files(i).name);
         if strcmp(extension, this_file_ext)
 %         if length(files(i).name) >= length(extension) && ...
 %                 strcmp(files(i).name(end-length(extension)+1:end), extension)
