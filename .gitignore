@@ -7,6 +7,7 @@ DATA_OUTPUT/
 DATA_SEMIAUTO/
 java1/doc/
 java1/bin/*.class
+*.class
 LAFImport/
 gastrulation - all notes.rtf
 old_gastrulation/
