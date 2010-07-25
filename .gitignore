@@ -6,7 +6,7 @@ DATA_MOVIES/
 DATA_OUTPUT/
 DATA_SEMIAUTO/
 java1/doc/
-java1/bin/
+java1/bin/*.class
 LAFImport/
 gastrulation - all notes.rtf
 old_gastrulation/
