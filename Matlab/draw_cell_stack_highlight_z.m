@@ -33,6 +33,8 @@ end
 
 % SURFACE
 if get(handles.cbox_show_surface, 'Value')
+%     keyboard
+    
     csImage = Misc.drawCellStack(CS);
     Xpts = squeeze(csImage(1, :, :)) * dx;
     Ypts = squeeze(csImage(2, :, :)) * dx;

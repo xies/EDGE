@@ -226,23 +226,7 @@ public class CellGraph implements java.io.Serializable {
 			}
 		}
 		
-		Cell[] initialCellsArray = new Cell[initialCells.size()];
-		initialCells.toArray(initialCellsArray);
 		
-		Vector<Cell> finalCells = new Vector<Cell>();
-	
-		// now make sure each Cell has at least 2 Neighbors
-		// and enforce the number of vertices if necessary
-		for (Cell c : initialCellsArray)
-			if (cellNeighbors(c, initialCellsArray).length >= MIN_CELL_NEIGHBORS)
-				finalCells.add(c);
-		
-//		cells = new Cell[finalCells.size()];
-//		finalCells.toArray(cells);
-		
-		for (int i = 0; i < finalCells.size(); i++)
-			addCell(finalCells.get(i), -i - 1);  // strictly NEGATIVE INDICES --> INACTIVE
-
 		/*
 		// do the angle check  NOT SURE IF THIS IS RIGHT YET
 		for (int i : cellIndices()) {
@@ -261,6 +245,29 @@ public class CellGraph implements java.io.Serializable {
 		}
 		*/
 			
+		
+		
+		Cell[] initialCellsArray = new Cell[initialCells.size()];
+		initialCells.toArray(initialCellsArray);
+		
+		Vector<Cell> finalCells = new Vector<Cell>();
+	
+		// now make sure each Cell has at least 2 Neighbors
+		// and enforce the number of vertices if necessary
+		// new Jan 2011: MAKE SURE EACH CELL CONTAINS ITS CENTROID....
+		for (Cell c : initialCellsArray)
+			if (cellNeighbors(c, initialCellsArray).length >= MIN_CELL_NEIGHBORS)
+				if (c.containsPoint(c.centroid()))
+					if (c.minAngle() > vertex_min_angle)  // angle check
+						finalCells.add(c);
+		
+//		cells = new Cell[finalCells.size()];
+//		finalCells.toArray(cells);
+		
+		for (int i = 0; i < finalCells.size(); i++)
+			addCell(finalCells.get(i), -i - 1);  // strictly NEGATIVE INDICES --> INACTIVE
+
+
 		
 		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in CellGraph:init!");
 		assert(isValid());
@@ -562,6 +569,8 @@ public class CellGraph implements java.io.Serializable {
 	// combine two cells into one by removing the edge between them
 	// does nothing if the cells are not neighbors
 	public int removeEdge(Cell c, Cell d) {
+		if (c == null || d == null) return 0;
+		
 		if (!edgeConnected(c, d)) return 0;
 		
 		// find the two vertices that are shared by these cells
@@ -779,6 +788,10 @@ public class CellGraph implements java.io.Serializable {
 			
 		Vertex[] cVerts = c.vertices(v, w); // from v, ending in w
 		Vertex[] dVerts = d.vertices(w, v); // from w, ending in v
+		
+		// weird case for crazy shaped cells
+		// (should probably just not allow crossing edges.. this would solve the problem...)
+		if (cVerts == null || dVerts == null) return 0;
 		
 		// now that the vertices are sorted nicely, we just get all of them from c (except the last)
 		// and then all of from d (except the last). we omit the last in each case so we don't count

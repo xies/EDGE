@@ -15,9 +15,10 @@ JAVA_MEMORY_STRING = '-Xmx512m';
 %% edit the java.opts file
 root_dir = matlabroot;  % the Matlab root directory
 opts_directory_location = fullfile(root_dir, 'bin', computer('arch'), 'java.opts');
+
 fid = fopen(opts_directory_location, 'a');
 if fid < 0
-    disp(strcat('install.m: Cannot find file ', opts_directory_location));
+    disp(['install.m: Cannot find file ', opts_directory_location]);
     disp('Installation aborted.');
     return;    
 end

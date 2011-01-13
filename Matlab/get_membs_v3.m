@@ -1,9 +1,5 @@
 function cellsi = get_membs_v3(cells, lp, hp, th)
 
-% [Ys Xs] = size(cells);
-
-% cells = scale(cells);
-
 % preprocessing
 cells = cells - mean(mean(cells));     %subtract mean  
 
@@ -11,38 +7,25 @@ cells = cells - mean(mean(cells));     %subtract mean
 sigma = std(cells(:));
 trunc_th = 2;
 
-% figure, imshow(cells);
-
 cells(cells>=trunc_th*sigma)=trunc_th*sigma;  %find wherever cells is greater than this threshold and set it to this threshold
 cells(cells<=-trunc_th*sigma)=-trunc_th*sigma;  %same for below the bottom threshold
 %filtering
 
 
-% figure, imshow(cells);
-
 [cellsf,filt] = get_filtered(cells,lp,hp);  %cellsf is the filtered cells array
-%    figure, imshow(scale(cellsf))
-
 
 % thresholding and binary and start skeletonizing
 bw_thresh = th * std(cellsf(:));
 
 cellsb = im2bw(cellsf - bw_thresh, 0); 
 
-
-%cellsb = bwmorph(cellsb,'close');
-
-    %figure, imshow(scale(cellsb))
-
-  %  keyboard;
 %cellsX = watershed(cellsb);
 cellsX = cellsb;
+
+
+
+
 %cellsX = - cellsX+1;
-
-
-
-    %figure, imshow(scale(cellsb))
-%keyboard;
 
 % first, confine to ROI, i.e.region within boundary, by multpl. mask
 % mask = bwmorph(cellsb,'thin',Inf);     % prepare mask
@@ -81,7 +64,6 @@ cellsi = cellsX == 1;
 
 % skeletonize
 cellsi = bwmorph(cellsi,'shrink',Inf);    %thins to 1 px
-%    figure, imshow(cellsi);
 
 cellsi = bwmorph(cellsi,'clean');   %gets rid of single dots
 
@@ -89,5 +71,3 @@ cellsi = bwmorph(cellsi,'clean');   %gets rid of single dots
 cellsi(mask==0)=0;
 % label cells by integers; every cell gets addressed
 cellsi = logical(cellsi);
-
-%keyboard

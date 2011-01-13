@@ -280,6 +280,8 @@ function mouseFunction(hObject,evnt)
 % %     handles.embryo.getCellGraph(T, Z).verticesNeighboringVertex(v(1));
 % %     
 % %     handles.embryo.getCellGraph(T, Z).fillHoles;
+% keyboard
+
 
     % only select a cell if the polygon mode is on
     if ~get(handles.cbox_poly, 'Value');
@@ -430,13 +432,14 @@ function button_applythis_Callback(hObject, eventdata, handles) %#ok<*DEFNU>
     readyproc(handles, 'proc');
     
     [bord tempcg] = semiauto_preprocess(handles, T, Z);
+    
+    filename_bord = handles.info.image_file(T, Z, handles.tempsrc.bord);
+    imwrite(bord, filename_bord, handles.file_ext);
+    
     if tempcg.numCells == 0
         msgbox('There are no cells in this image. This may cause tracking errors; please try other image processing parameters.', ...
             'No cells in image');
     end
-    
-    filename_bord = handles.info.image_file(T, Z, handles.tempsrc.bord);
-    imwrite(bord, filename_bord, handles.file_ext);
     
     readyproc(handles, 'tracking');
     handles.embryo.addCellGraph(tempcg, T, Z);
@@ -535,6 +538,8 @@ function button_applyall_Callback(hObject, eventdata, handles)
 
         badimages = '';
         for time_i = handles.info.start_time:handles.info.end_time
+            
+            time_i
             for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
                 
                 % skip those that are already processed if the user
@@ -2686,29 +2691,31 @@ function button_switch_to_explorer_Callback(hObject, eventdata, handles)
 % edge, then add edge, then remove edge
 function vec_activate_cell_Callback(hObject, eventdata, handles)
     if get(handles.radiobutton_vec_manual, 'Value')   
-        % UNFINISHED
+        [T Z] = getTZ(handles);
+        handles.activeCell(1) = handles.embryo.activateCell(handles.activeCell(1), T, Z);        
+        handles = slider_callbacks_draw_image_slice(handles);
+        
     elseif get(handles.radiobutton_vec_auto_thisimg, 'Value')
-            readyproc(handles, 'proc');
-            handles.activeVertex = [];
+        readyproc(handles, 'proc');
+        handles.activeVertex = [];
 
+        % get the parameters
+        [T Z]   = getTZ(handles);
+        max_angle   = degtorad(str2double(get(handles.info_text_refine_max_angle, 'String')));
+        min_angle   = degtorad(str2double(get(handles.info_text_refine_min_angle, 'String')));
+        min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String')) ...
+                        /handles.info.microns_per_pixel;
+        bords       = imread(handles.info.image_file(T, Z, handles.tempsrc.bord));
 
-            % get the parameters
-            [T Z]   = getTZ(handles);
-            max_angle   = degtorad(str2double(get(handles.info_text_refine_max_angle, 'String')));
-            min_angle   = degtorad(str2double(get(handles.info_text_refine_min_angle, 'String')));
-            min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String')) ...
-                            /handles.info.microns_per_pixel;
-            bords       = imread(handles.info.image_file(T, Z, handles.tempsrc.bord));
+        % split edges, add edges, remove edges
+        handles.embryo.getCellGraph(T, Z).refineEdges(bords, max_angle, min_angle, min_edge_len); 
+        handles.embryo.autoAddEdges(T, Z);
+        handles.embryo.autoRemoveEdges(T, Z);
 
-            % split edges, add edges, remove edges
-            handles.embryo.getCellGraph(T, Z).refineEdges(bords, max_angle, min_angle, min_edge_len); 
-            handles.embryo.autoAddEdges(T, Z);
-            handles.embryo.autoRemoveEdges(T, Z);
-            
-            handles = slider_callbacks_draw_image_slice(handles);
+        handles = slider_callbacks_draw_image_slice(handles);
 
-            readyproc(handles, 'ready');
-       elseif get(handles.radiobutton_vec_auto_allimg, 'Value')
+        readyproc(handles, 'ready');
+    elseif get(handles.radiobutton_vec_auto_allimg, 'Value')
 %        % allows you to applyall for multiple data sets at once
 %         datanames = get_folder_names(fullfile('..', 'DATA_GUI'));
 %         default_val = find(strcmp(datanames, handles.data_set));

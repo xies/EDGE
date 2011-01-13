@@ -30,19 +30,12 @@ hp=ext/hhp;
 filt=1./(1+exp((sqrt(xx.^2+yy.^2)-lp)./(beta)));
 filt=filt-1./(1+exp((sqrt(xx.^2+yy.^2)-hp)./(beta)));
 
-
-%figure, imshow(fftshift(filt));
-
 % multiplying by filter in Fourier domain
 fourier_temp = fft2(bg);
 
-%figure, imagesc(abs(fourier_temp) - mean(mean(abs(fourier_temp))));
-
 fourier_temp = fourier_temp.*fftshift(filt);
 
-%figure, imshow(abs(fourier_temp));
-
-cellsf=real(ifft2(fourier_temp));   %filt is the circle thing in figure 1
+cellsf=real(ifft2(fourier_temp));  
 
 cellsf=cellsf(floor((ext-a(1))/2)+1:floor((ext-a(1))/2)+a(1), ...
     floor((ext-a(2))/2)+1:floor((ext-a(2))/2)+a(2));

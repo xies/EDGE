@@ -45,12 +45,21 @@ VERTEX_MERGE_DIST_THRESH = handles.info.refine_min_edge_length / handles.info.mi
 % edge -- in both cases, one cannot make edges smaller than this
 % also, note that the VERTEX_MERGE_DIST_THRESH may not end up being exactly
 % the same as a minimum edge length, but it's close enough
+ 
+%yes, using it for both is bad - it should be higher for the error
+%correction than here. same thing as below with the angle thresh
+% i know hardcoding is bad, but ... oh well ;)
+VERTEX_MERGE_DIST_THRESH = 3; % pixels?!?
+
 
 % the minimum angle formed by vertices
 VERTEX_MIN_ANGLE_THRESH = degtorad(handles.info.refine_min_angle);
 % convert it to radians
 % note this is also used for refining edges, but we enforce it here
 % by removing vertices that cause a violation
+% actually, this shouldn't be the same as in refining edges...!
+% so we just use something else, a default value of 20 degrees
+VERTEX_MIN_ANGLE_THRESH = degtorad(20);
 
 % create the CellGraph object
 cg = CellGraph(regions, centroid_list, vertex_list, T, Z, ...

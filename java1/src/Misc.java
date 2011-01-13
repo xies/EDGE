@@ -164,8 +164,10 @@ public class Misc {
 		
 		// make the array big enough for the biggest Cell
 		int maxSize = Integer.MIN_VALUE;
-		for (int i = 0; i < cells.length; i++)
+		for (int i = 0; i < cells.length; i++) {
+//			System.out.println(yPoints[i].size());
 			maxSize = Math.max(maxSize, yPoints[i].size());
+		}
 		maxSize++; // to avoid holes in the images
 		
 		double[][][] image = new double[3][cells.length][maxSize];
@@ -205,6 +207,9 @@ public class Misc {
 	// draws a line between the points a and b and stores the coordinates of the points
 	// in the Stacks yPoints and xPoints
 	private static void drawLine(Stack<Double> yPoints, Stack<Double> xPoints, double[] a, double[] b) {
+		
+		final double stepsize = 1.0;  // number of pixels per data point
+		
 		double y0 = a[0]; 
 		double x0 = a[1];
 		double y1 = b[0];
@@ -212,21 +217,23 @@ public class Misc {
 				
 		// vertical line (infinite slope)
 		if (x0 == x1) {
-			for (double y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) {
+			for (double y = Math.min(y0, y1); y <= Math.max(y0, y1); y+=stepsize) {
 				yPoints.push(y);
 				xPoints.push(x0);
 			}
 		}
 		else {  // non-vertical line
+			double sign = Math.signum(x1 - x0);
+			
 			double slope = (y1-y0)/(x1-x0);
 			double xIncrement = Math.min(Math.abs(1.0/slope), 1.0);
 			xIncrement *= Math.signum(x1 - x0); // set the sign of xIncrement
 			double y = y0;
 					
-			for (double x = x0; Math.abs(x - x1) > 0.001; x += xIncrement) {
+			for (double x = x0; x*sign < x1*sign; x += xIncrement) {
 				yPoints.push(y);
 				xPoints.push(x);
-				y += slope * xIncrement;
+				y += slope * xIncrement * stepsize;
 			}
 		}
 	}	

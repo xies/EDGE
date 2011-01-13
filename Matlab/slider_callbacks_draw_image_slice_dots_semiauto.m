@@ -22,10 +22,15 @@ if ~isempty(handles.activeCell)
 %     for i = 1:length(handles.activeCell)
 %         activecells(i) = handles.activeCell{i};
 %     end
+
     [T Z] = getTZ(handles);
     activecells = handles.embryo.getCells(handles.activeCell, T, Z);
     cents = Cell.centroidStack(activecells);
-    handles.cents_handle = plot(cents(:,2), cents(:,1), '.g');
+    handles.cents_handle = plot(cents(:,2), cents(:,1), '.r');  
+    
+    verts = Cell.vertexCoords(activecells);
+    handles.verts_handle = plot(verts(:,2), verts(:,1), '.b');  %'MarkerSize', 15
+    
     % plot the vertices of these cells
 %     for i = 1:length(activecells)
 %         verts = Vertex.coords(activecells(i).vertices);

@@ -1,5 +1,7 @@
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.awt.Polygon;
 import java.util.Vector;
 
@@ -310,6 +312,16 @@ public class Cell implements java.io.Serializable {
 		return Vertex.coords(vertices);
 	}
 	
+	public static double[][] vertexCoords(Cell[] cells) {
+		Queue<Vertex> allVerts = new LinkedList<Vertex>();
+		for (Cell c : cells)
+			for (Vertex v : c.vertices)
+				allVerts.add(v);
+		Vertex[] allVertsArray = new Vertex[allVerts.size()];
+		allVerts.toArray(allVertsArray);
+		return Vertex.coords(allVertsArray);
+	}
+	
 	// return the list of vertices starting with v and ending with w
 	// assumed v and w are connected and both part of this cell
 	public Vertex[] vertices(Vertex v, Vertex w) {
@@ -464,6 +476,21 @@ public class Cell implements java.io.Serializable {
 		return out;
 	}
 	
+	// the minimum angle of the cell
+	public double minAngle() {
+		double minAngle = Double.MAX_VALUE;
+		Vertex[] verts = new Vertex[numV() + 2];
+		for (int i = 0; i < numV(); i++)
+			verts[i] = vertices[i];
+		verts[numV()] = vertices[0];
+		verts[numV()+1] = vertices[1];
+		for (int i = 0; i < numV(); i++) {
+			double angle = Misc.angle(verts[i+1].coords(), verts[i].coords(), verts[i+2].coords());
+			minAngle = Math.min(minAngle, angle);
+		}
+		return minAngle;
+	}
+	
 	// draw the Cell (image is also returned for Matlab callers, there is no need for this in Java)
 	public double[][] draw(double[][] image) {	
 		// draw the cell edges
@@ -576,6 +603,7 @@ public class Cell implements java.io.Serializable {
 	}
 	
 	// return a sorted array of all the angles that this cell contains
+	// angles are in radians
 	public double[] vertexAngles() {
 		double[] angles = new double[numV()];
 		Vertex[] wrapVerts = new Vertex[numV() + 2];

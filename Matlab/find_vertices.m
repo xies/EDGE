@@ -21,7 +21,7 @@ verplot = bwmorph(bords, 'branchpoints');
 but this is different- it gives "pre-merged" vertices
 actually, this might be much better. i should think about this,
 might save time or whatever. or if i don't merge vertices... then all the recursive
-stuff would ave just been a waste of time..
+stuff would have just been a waste of time..
 
 
 

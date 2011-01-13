@@ -25,7 +25,10 @@ public class Embryo4D implements java.io.Serializable {
 	private final double centroidDistMaxZ, centroidDistMaxT;
 
 	// the T and Z limits of the data set as determined by the image filenames and the user
-	private int startT, endT, refT, bottomZ, topZ, refZ; 
+	private int startTime, endTime, masterTime, bottomLayer, topLayer, masterLayer;
+	// ** I have to stick with these bad variable names because I already have saved data... **
+	// This is the price of using Java's serialization instead of my own... but clearly worth it
+//	private int startT, endT, refT, bottomZ, topZ, refZ;
 
 	// all the data
 	private CellGraph[][] cellGraphs;
@@ -41,12 +44,12 @@ public class Embryo4D implements java.io.Serializable {
 					int bottomZ,  int topZ,  int refZ,
 					double areaChangeMaxZ, int layersToLookBackZ, double centroidDistMaxZ, 
 					double areaChangeMaxT, int layersToLookBackT, double centroidDistMaxT) {
-		this.startT = startT;
-		this.endT = endT;
-		this.refT = refT;
-		this.bottomZ = bottomZ;
-		this.topZ = topZ;
-		this.refZ = refZ;
+		this.startTime = startT;
+		this.endTime = endT;
+		this.masterTime = refT;
+		this.bottomLayer = bottomZ;
+		this.topLayer = topZ;
+		this.masterLayer = refZ;
 		this.areaChangeMaxT = areaChangeMaxT;
 		this.areaChangeMaxZ = areaChangeMaxZ;
 		this.layersToLookBackT = layersToLookBackT;
@@ -100,17 +103,17 @@ public class Embryo4D implements java.io.Serializable {
 	}
 	
 	/** The start time of the stack as specified by the raw images filenames. */
-	public int startTime() { return startT; }
+	public int startTime() { return startTime; }
 	/** The end time of the stack as specified by the raw images filenames. */
-	public int endTime() { return endT; }
+	public int endTime() { return endTime; }
 	/** The reference time of the stack as specified by the user. */
-	public int masterTime() { return refT; }
+	public int masterTime() { return masterTime; }
 	/** The bottom layer of the stack as specified by the raw images filenames. */
-	public int bottomLayer() { return bottomZ; }
+	public int bottomLayer() { return bottomLayer; }
 	/** The top layer of the stack as specified by the raw images filenames. */
-	public int topLayer() { return topZ; }
+	public int topLayer() { return topLayer; }
 	/** The reference layer of the stack as specified by the user. */
-	public int masterLayer() { return refZ; }
+	public int masterLayer() { return masterLayer; }
 	
 	/** Add a CellGraph at (T, Z), 
 	* overwriting any existing CellGraph at that point */
@@ -206,7 +209,7 @@ public class Embryo4D implements java.io.Serializable {
 	private void deactivateSingleCellZ(int c, int t) {
 		// at this rate could just loop through all z.......
 		// in fact, all this from stuff is pointless
-		int refz = translateZ(refZ);
+		int refz = translateZ(masterLayer);
 //		deactivateSingleCellZ(c, t, master_layer,  0);
 		deactivateSingleCellZ(c, t, refz, +1);
 		deactivateSingleCellZ(c, t, refz, -1);
@@ -223,8 +226,8 @@ public class Embryo4D implements java.io.Serializable {
 	}
 	// does not deactivate at the master image-- i think this is the desired behavior(?)
 	private void deactivateSingleCellTZ(int c) {
-		int reft = translateT(refT);
-		int refz = translateZ(refZ);
+		int reft = translateT(masterTime);
+		int refz = translateZ(masterLayer);
 		deactivateSingleCellZ(c, reft, refz, +1);
 		deactivateSingleCellZ(c, reft, refz, -1);
 		deactivateSingleCellTZ(c, reft, +1);
@@ -282,7 +285,7 @@ public class Embryo4D implements java.io.Serializable {
 		
 		// the actual array indices of the master values
 //		int master_time = translateT(masterTime);
-		int refz = translateZ(refZ);
+		int refz = translateZ(masterLayer);
 		trackSingleCellZ(c, t, refz, +1);
 		trackSingleCellZ(c, t, refz, -1);
 //		if (!isValid()) System.err.println("Error in Embryo4D:trackSingleCellZ!");
@@ -369,7 +372,7 @@ public class Embryo4D implements java.io.Serializable {
 	private void trackSingleCellTZ(int c, int tFrom, int dir) {
 		if (dir != 1 && dir != -1) return;
 		
-		int refz = translateZ(refZ);	
+		int refz = translateZ(masterLayer);	
 		
 		Cell cTrack = cellGraphs[tFrom][refz].getCell(c);
 		
@@ -410,7 +413,7 @@ public class Embryo4D implements java.io.Serializable {
 	}
 	
 	private void trackSingleCellTZ(int c) {
-		int reft = translateT(refT);
+		int reft = translateT(masterTime);
 		// track the cell spatially at the master time
 		trackSingleCellZ(c, reft);
 		// track in time in both directions. this automatically tracks spatially at all other times
@@ -485,8 +488,8 @@ public class Embryo4D implements java.io.Serializable {
 
 	/** Track all the cells in the embryo; perform a full tracking from scratch. */
 	public void trackAllCells() {
-		int reft = translateT(refT);
-		int refz = translateZ(refZ);
+		int reft = translateT(masterTime);
+		int refz = translateZ(masterLayer);
 				
 		// first, deactivate all cells
 		for (int t = 0; t < t(); t++)
@@ -539,8 +542,8 @@ public class Embryo4D implements java.io.Serializable {
 	private void retrackCell(int c, int t, int z) {
 		if (!isTracked()) return;
 
-		int reft  = translateT(refT);
-		int refz = translateZ(refZ);
+		int reft  = translateT(masterTime);
+		int refz = translateZ(masterLayer);
 				
 		if (z == refz) {
 			if (t == reft) {  // z = master layer, t = master time
@@ -582,8 +585,8 @@ public class Embryo4D implements java.io.Serializable {
 	// otherwise, if it reaches the master image with no luck it returns 0.
 	// ***actually we only need to go back one tracking step because everything
 	// upstream is already tracked!!!!!!!!!
-	private int backtrack(Cell cTrack, int t, int z) {
-		Cell c = backtrackCell(cTrack, t, z);
+	private int backtrack(Cell cTrack, int t, int z, boolean matchCandidates) {
+		Cell c = backtrackCell(cTrack, t, z, matchCandidates);
 		if (c == null) return 0;
 		else return c.index();
 	}
@@ -616,10 +619,10 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
  can just switch the order of the cells in the matching function. 
 */
 	
-	
-	private Cell backtrackCell(Cell cTrack, int t, int z) {
-		int reft = translateT(refT);
-		int refz = translateZ(refZ);
+	// returns null if nothing is found
+	private Cell backtrackCell(Cell cTrack, int t, int z, boolean matchCandidates) {
+		int reft = translateT(masterTime);
+		int refz = translateZ(masterLayer);
 		
 		// first backtrack in z to the master layer
 		if (z != refz) {
@@ -634,7 +637,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 				// that's OK, but it doesn't help us...
 				Cell cMatchCandidate = cellGraphs[t][searchz].activeCellAtPoint(cTrack.centroid());
 				if (cMatchCandidate != null) 				
-					if (isCellMatch(cMatchCandidate, cTrack, areaChangeMaxZ, centroidDistMaxZ))
+					if (!matchCandidates || isCellMatch(cMatchCandidate, cTrack, areaChangeMaxZ, centroidDistMaxZ))
 						// NOTE: cMatchCandidate and cTrack are switched!!!!!!!!!!!!!!!!!! this is crucial, so that
 						// tracking actually doesn't need to be reversible! we just always compare them in a consistent
 						// order, i.e., the one closest to the reference image is first, the farther one is second.
@@ -653,7 +656,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 				// (back)tracking
 				Cell cMatchCandidate = cellGraphs[searcht][refz].activeCellAtPoint(cTrack.centroid());
 				if (cMatchCandidate != null) 				
-					if (isCellMatch(cMatchCandidate, cTrack, areaChangeMaxT, centroidDistMaxT))
+					if (!matchCandidates || isCellMatch(cMatchCandidate, cTrack, areaChangeMaxT, centroidDistMaxT))
 //						if (cMatchCandidate.isActive())   // implied by activeCellAtPoint
 							return cMatchCandidate;
 				
@@ -674,8 +677,8 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	public void addCell(Cell c, int T, int Z) {
 		int t = translateT(T);
 		int z = translateZ(Z);
-		int reft = translateT(refT);
-		int refz = translateZ(refZ);
+		int reft = translateT(masterTime);
+		int refz = translateZ(masterLayer);
 		
 		if (isTracked()) {
 			if (t == reft && z == refz) {
@@ -685,7 +688,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			}
 			else {
 				cellGraphs[t][z].addCellInactive(c);
-				int newInd = backtrack(c, t, z);
+				int newInd = backtrack(c, t, z, true);
 				if (newInd != 0) { // only want to add it and retrack if we found something to match it onto
 					cellGraphs[t][z].changeIndex(c, newInd);
 					retrackCell(newInd, t, z);
@@ -703,8 +706,8 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	public void removeCell(Cell c, int T, int Z) {
 		int t = translateT(T);
 		int z = translateZ(Z);
-		int reft = translateT(refT);
-		int refz = translateZ(refZ);
+		int reft = translateT(masterTime);
+		int refz = translateZ(masterLayer);
 		
 		if (CellGraph.isActive(c)) {
 			if (t == reft && z == refz) {
@@ -739,7 +742,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			if (CellGraph.isActive(c))
 				retrackCell(c.index(), t, z);
 			else {  // if inactive
-				int newInd = backtrack(c, t, z);
+				int newInd = backtrack(c, t, z, true);
 				if (newInd != 0) {
 					cellGraphs[t][z].changeIndex(c, newInd);
 					retrackCell(newInd, t, z);
@@ -787,19 +790,19 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	// [0 t()-1] and [0 z()-1] respectively, we need to convert these coordinates.
 	/** Convert the image filename index T to the java index t. */
 	public int translateT(int T) {
-		return Math.abs(T - startT);    // converts T to t
+		return Math.abs(T - startTime);    // converts T to t
 	}
 	/** Convert the image filename index Z to the java index z. */
 	public int translateZ(int Z) {
-		return Math.abs(Z - bottomZ);	// converts Z to z
+		return Math.abs(Z - bottomLayer);	// converts Z to z
 	}
 	/** Convert the java index t to the image filename index T. */
 	public int unTranslateT(int t) {
-		return startT + t * Misc.sign(endT - startT);	// converts t to T
+		return startTime + t * Misc.sign(endTime - startTime);	// converts t to T
 	}
 	/** Convert the java index z to the image filename index Z. */
 	public int unTranslateZ(int z) {
-		return bottomZ + z * Misc.sign(topZ - bottomZ); // converts z to T
+		return bottomLayer + z * Misc.sign(topLayer - bottomLayer); // converts z to Z
 	}
 	/** Do nothing. */
 	public int doNothing(int T) {
@@ -819,7 +822,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 //		for (int i = 0; i < z(); i++)
 //			stack[i] = cellGraphs[t][i].getCell(c);
 //		return stack;
-		return getCellStack(c, T, bottomZ, topZ + Misc.sign(topZ-bottomZ));
+		return getCellStack(c, T, bottomLayer, topLayer + Misc.sign(topLayer-bottomLayer));
 	}
 	private Cell[] getCellStack(int c, int T, int ZFrom, int ZTo) {  // NOT including zTo
 		int t 	  = translateT(T); 
@@ -839,7 +842,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 //		for (int i = 0; i < t(); i++)
 //			stack[i] = cellGraphs[i][z].getCell(c);
 //		return stack;
-		return getCellStackTemporal(c, Z, startT, endT + Misc.sign(endT-startT));
+		return getCellStackTemporal(c, Z, startTime, endTime + Misc.sign(endTime-startTime));
 	}
 	private Cell[] getCellStackTemporal(int c, int Z, int TFrom, int TTo) {  // NOT including tTo
 		int z 	  = translateZ(Z); 
@@ -891,8 +894,28 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		if (cellGraphs[t][z].getCell(c) != null) return true;
 		else 									 return false;
 	}
+	// so the name of the above function is a little misleading, no?
 	
-	
+	/** Is the cell c even a candidate for tracking? */
+	public boolean isTrackingCandidate(int c, int T, int Z) {
+		int t = translateT(T);
+		int z = translateZ(Z);
+		if (cellGraphs[t][z].getCell(c) == null) return false;
+		if (cellGraphs[t][z].getCell(c).isActive()) return false;
+//		System.out.println(backtrackCell(cellGraphs[t][z].getCell(c), t, z, false));
+		if (backtrackCell(cellGraphs[t][z].getCell(c), t, z, false) == null) return false;  // the important condition
+		return true;
+	}
+	public int activateCell(int c, int T, int Z) {
+		if (!isTrackingCandidate(c, T, Z)) return -1;
+		int t = translateT(T);
+		int z = translateZ(Z);
+		int newInd = backtrack(cellGraphs[t][z].getCell(c), t, z, false);
+		cellGraphs[t][z].changeIndex(c, newInd);
+//		retrackCell(newInd, t, z);
+		changed = true;
+		return newInd;
+	}
 	
 	// IMPORTANT. This function decides whether Cell c1 can be tracked to c2
 	
@@ -938,6 +961,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	}
 	private double overlapScore(Cell a, Cell b) {
 		return a.overlapArea(b) / Math.max(a.area(), b.area());
+//		return a.overlapArea(b) / ((a.area() + b.area()) / 2.0);
 	}
 //	private double overlapScore2(Cell a, Cell b) {
 //		return a.overlapArea(b) / Math.pow(Math.max(a.area(), b.area()), 2);
@@ -957,15 +981,15 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		
 		// get the centroids of all the cells from the master to this one
 		double[][] centroids; double[] ztVals; double ztDelta;
-		if (c.z() != refZ) {   // in this case we want a spatial stack
-			centroids = Cell.centroidStack(getCellStack(cTrack.index(), cMatchCandidate.t(), refZ, c.z()));
+		if (c.z() != masterLayer) {   // in this case we want a spatial stack
+			centroids = Cell.centroidStack(getCellStack(cTrack.index(), cMatchCandidate.t(), masterLayer, c.z()));
 			ztVals = new double[centroids.length];
 //			for (int i = 0; i < translateZ(c.z()); i++) ztVals[i] = i;
 			for (int i = 0; i < ztVals.length; i++) ztVals[i] = i;
 			ztDelta = cMatchCandidate.z() - cTrack.z();
 		}
 		else {  // at masterLayer
-			centroids = Cell.centroidStack(getCellStackTemporal(cTrack.index(), cMatchCandidate.z(), refT, c.t()));
+			centroids = Cell.centroidStack(getCellStackTemporal(cTrack.index(), cMatchCandidate.z(), masterTime, c.t()));
 			ztVals = new double[centroids.length];
 //			System.out.println(ztVals.length + " " + c.t() + " " + translateT(c.t()));
 			for (int i = 0; i < ztVals.length; i++) ztVals[i] = i;
@@ -1114,7 +1138,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 					candidates.add(pair);
 //					double overlap = cg.getCell(newInd).overlapArea(backtrackCell(cg.getCell(newInd), translateT(t), translateZ(z)));
 //					overlap /= cg.getCell(newInd).area();
-					candidatesOverlap.add(overlapScore(cg.getCell(newInd), backtrackCell(cg.getCell(newInd), translateT(T), translateZ(Z))));
+					candidatesOverlap.add(overlapScore(cg.getCell(newInd), backtrackCell(cg.getCell(newInd), translateT(T), translateZ(Z), true)));
 					
 					// success
 //					break; 
@@ -1153,7 +1177,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 				// that the "overlap score" is bigger now than it used to be.
 				if (!candidates.elementAt(maxInd)[1].isActive() || 
 						candidatesOverlap.elementAt(maxInd) > 
-						overlapScore(candidates.elementAt(maxInd)[1], backtrackCell(candidates.elementAt(maxInd)[1], translateT(T), translateZ(Z))))
+						overlapScore(candidates.elementAt(maxInd)[1], backtrackCell(candidates.elementAt(maxInd)[1], translateT(T), translateZ(Z), true)))
 				{
 			
 					// if you found anything, keep that Cell
@@ -1249,8 +1273,8 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 						candidates.add(newPair);
 						// get the overlap between the two new cells and the nearest backtracked cells
 						// add them together for a total overlap score
-						double overlap = overlapScore(cg.getCell(newIndex1), backtrackCell(cg.getCell(newIndex1), translateT(T), translateZ(Z))) + 
-										 overlapScore(cg.getCell(newIndex2), backtrackCell(cg.getCell(newIndex2), translateT(T), translateZ(Z)));
+						double overlap = overlapScore(cg.getCell(newIndex1), backtrackCell(cg.getCell(newIndex1), translateT(T), translateZ(Z), true)) + 
+										 overlapScore(cg.getCell(newIndex2), backtrackCell(cg.getCell(newIndex2), translateT(T), translateZ(Z), true));
 							//cg.getCell(newIndex1).overlapArea(backtrackCell(cg.getCell(newIndex1), translateT(t), translateZ(z))) + 
 								//		 cg.getCell(newIndex2).overlapArea(backtrackCell(cg.getCell(newIndex2), translateT(t), translateZ(z)));
 						
@@ -1308,8 +1332,8 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 //				if (cellGraphs[t][z] != null)
 //					if (! cellGraphs[t][z].isValid())
 //						return false;
-		if (Math.abs(endT - startT) + 1 != t()) return false;
-		if (Math.abs(bottomZ - topZ) + 1 != z()) return false;
+		if (Math.abs(endTime - startTime) + 1 != t()) return false;
+		if (Math.abs(bottomLayer - topLayer) + 1 != z()) return false;
 		
 		// it should be the case that if the cell is not tracked, then all cells are inactive
 		if (! isTracked())
@@ -1322,8 +1346,8 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 						}
 		
 		// the master image should contain only active cells
-		int reft = translateT(refT);
-		int refz = translateZ(refZ);
+		int reft = translateT(masterTime);
+		int refz = translateZ(masterLayer);
 		if (cellGraphs[reft][refz] != null && isTracked()) { 
 			if (cellGraphs[reft][refz].inactiveCells().length > 0) {
 				System.err.println("Error: reference CellGraph contains inactive Cells");

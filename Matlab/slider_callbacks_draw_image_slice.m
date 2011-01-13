@@ -160,7 +160,7 @@ function handles = slider_callbacks_draw_image_slice(handles)
                         CMS = double(handles.embryo.getCellGraph(T, Z).connectivityMatrixVertexSparseActive);
                         numV = handles.embryo.getCellGraph(T, Z).numActiveVertices;
                         sparseCM = sparse(CMS(1, :), CMS(2, :), 1, numV, numV);
-                        gplot2(sparseCM, fliplr(Vertex.coords(handles.embryo.getCellGraph(T, Z).activeVertices)), 'm');
+                        gplot2(sparseCM, fliplr(Vertex.coords(handles.embryo.getCellGraph(T, Z).activeVertices)), 'm'); % 'LineWidth', 2
                     end
                 end
                 if get(handles.cbox_inactive, 'Value')  % if you want to draw inactive cells
