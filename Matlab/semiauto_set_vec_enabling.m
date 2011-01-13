@@ -18,15 +18,15 @@ if get(handles.radiobutton_vec_manual, 'Value')
     end
 
     set(handles.vec_activate_cell, 'String', 'Activate cell');
+    set(handles.vec_activate_cell, 'Enable', 'off');
+        
     [T Z] = getTZ(handles);
-    if length(handles.activeCell) == 1 && ...
-            handles.embryo.isTrackingCandidate(handles.activeCell(1), T, Z)
-        set(handles.vec_activate_cell, 'Enable', 'on');
-    else
-        set(handles.vec_activate_cell, 'Enable', 'off');
+    for i = 1:length(handles.activeCell)
+        if handles.embryo.isTrackingCandidate(handles.activeCell(i), T, Z)
+            set(handles.vec_activate_cell, 'Enable', 'on');
+        end
     end
     
-%     set(handles.vec_activate_cell, 'Enable', 'off');
 else
     handles.activeCell = [];
     handles.activeVertex = [];

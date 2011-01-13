@@ -2829,7 +2829,20 @@ function button_switch_to_explorer_Callback(hObject, eventdata, handles)
 function vec_activate_cell_Callback(hObject, eventdata, handles)
     if get(handles.radiobutton_vec_manual, 'Value')   
         [T Z] = getTZ(handles);
-        handles.activeCell(1) = handles.embryo.activateCell(handles.activeCell(1), T, Z);        
+        could_not_activate = '';
+        for i = 1:length(handles.activeCell)
+            if ~handles.embryo.isTrackingCandidate(handles.activeCell(i), T, Z);
+                could_not_activate = [could_not_activate num2str(handles.activeCell(i)) ', '];
+            else
+                handles.activeCell(i) = handles.embryo.activateCell(handles.activeCell(i), T, Z);
+            end
+        end
+        
+        msgbox(['The following cells could not be activated either because they ' ...
+            'are already active or because a corresponding cell could not be found: ', ...
+            could_not_activate], ...
+            'Some cells not activated');
+        
         handles = slider_callbacks_draw_image_slice(handles);
         
     elseif get(handles.radiobutton_vec_auto_thisimg, 'Value')
