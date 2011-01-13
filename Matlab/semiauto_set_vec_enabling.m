@@ -17,7 +17,7 @@ if get(handles.radiobutton_vec_manual, 'Value')
         end
     end
 
-    
+    set(handles.vec_activate_cell, 'String', 'Activate cell');
     [T Z] = getTZ(handles);
     if length(handles.activeCell) == 1 && ...
             handles.embryo.isTrackingCandidate(handles.activeCell(1), T, Z)

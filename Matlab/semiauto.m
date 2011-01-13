@@ -23,7 +23,7 @@ function varargout = semiauto(varargin)
 
     % Edit the above text to modify the response to help semiauto
 
-    % Last Modified by GUIDE v2.5 23-May-2010 17:39:43
+    % Last Modified by GUIDE v2.5 12-Jan-2011 23:22:06
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -458,6 +458,144 @@ function button_applythis_Callback(hObject, eventdata, handles) %#ok<*DEFNU>
     readyproc(handles, 'ready');
     guidata(hObject, handles);
 
+    
+    
+
+function button_applysome_Callback(hObject, eventdata, handles)
+    prompt = {'Enter Z-range (e.g., 5-10):', ...
+            'Enter T-range (e.g., 0):'};
+    dlg_title = 'Input which images to process';
+    num_lines = 2;
+    defaultanswer = {'',''};
+%     options.Resize='on';
+    options.WindowStyle='normal';
+%         options.Interpreter='tex';
+    answer = inputdlg(prompt, dlg_title, num_lines, defaultanswer, options);
+
+    if isempty(answer) || isempty(answer{1})
+        return;
+    end;
+
+    z_do   = answer{1}(1,:);        
+    if size(answer{1}, 1) == 2
+        z_skip = answer{1}(2,:);
+    else
+        z_skip = [];
+    end
+
+    t_do   = answer{2}(1,:);
+    if size(answer{2}, 1) == 2
+        t_skip = answer{2}(2,:);
+    else
+        t_skip = [];
+    end
+
+    z_do_range   = parse_range(z_do);
+    z_skip_range = parse_range(z_skip);
+    t_do_range   = parse_range(t_do);
+    t_skip_range = parse_range(t_skip);
+    
+    
+
+    % if some images are already processed, then ask about overwriting
+    if ~handles.embryo.isEmpty
+        res = questdlg('Some images are already processed. Overwrite or keep these?', ...
+            'Overwrite processed images?', 'Overwrite', 'Keep', 'Cancel', 'Overwrite');
+        switch res
+            case 'Cancel'
+                return;
+            case 'Overwrite'
+                overwrite_ok = 1;
+            case 'Keep'
+                overwrite_ok = 0;
+        end
+    else
+        overwrite_ok = 0;
+    end
+    
+
+    handles.activeCell = [];
+    readyproc(handles, 'proc_all');  
+    badimages = '';
+    for time_i = t_do_range(1):t_do_range(2)
+        % in case they specify to skip anything
+        if time_i >= t_skip_range(1) && time_i <= t_skip_range(2)
+            continue;
+        end
+        
+        for layer_i = z_do_range(1):z_do_range(2)
+            % in case they specify to skip anything
+            if layer_i >= z_skip_range(1) && layer_i <= z_skip_range(2)
+                continue;
+           end            
+
+            % skip those that are already processed if the user
+            % specified this
+            if ~overwrite_ok && ~isempty(handles.embryo.getCellGraph(time_i, layer_i))
+%                 if time_i == handles.info.master_time && layer_i == handles.info.master_layer && ~isempty(handles.embryo.getCellGraph(time_i, layer_i))
+                continue;
+            end
+            
+            
+
+            set(handles.text_processing_time,  'String', num2str(time_i));
+            set(handles.text_processing_layer, 'String', num2str(layer_i));
+            drawnow;
+
+            if get(handles.radiobutton_stop, 'Value')
+                set(handles.radiobutton_stop, 'Value', 0);
+                readyproc(handles, 'ready');
+                guidata(hObject, handles);
+                return;
+            end
+
+            [bord tempcg] = semiauto_preprocess(handles, time_i, layer_i);
+            filename_bord = handles.info.image_file(time_i, layer_i, handles.tempsrc.bord);
+            imwrite(bord, filename_bord, handles.file_ext);
+
+            % readproc tracking?
+            handles.embryo.addCellGraph(tempcg, time_i, layer_i);
+%                 filename_poly = handles.info.image_file(time_i, layer_i,
+%                 handles.tempsrc.poly);
+%                 save(chgext(filename_poly, 'none'), 'tempcg'); % remove
+%                 the extension
+
+            if tempcg.numCells == 0
+                badimages = strcat(badimages, '(t = ', num2str(time_i), ', z = ', num2str(layer_i), '); ');
+            end
+        end
+        
+        % must save here, because as soon as you move on to the next
+        % embryo, all the work on the current embryo is lost!!
+        save_embryo(handles);
+               
+    end
+    set(handles.text_readyproc_details, 'Visible', 'off');
+
+    if ~isempty(badimages)
+        msgbox(strcat('The following images have no cells: ', badimages, ...
+            'Please fix these images and try again.'), ...
+            'Tracking aborted', 'error');
+%         return;
+    end
+        
+    handles = semiauto_change_image_callbacks(handles);
+    
+    % redraw the new image
+    handles = slider_callbacks_draw_image_slice(handles);
+    
+    readyproc(handles, 'ready');
+    guidata(hObject, handles);
+    
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
 function button_applyall_Callback(hObject, eventdata, handles)
    
@@ -539,7 +677,6 @@ function button_applyall_Callback(hObject, eventdata, handles)
         badimages = '';
         for time_i = handles.info.start_time:handles.info.end_time
             
-            time_i
             for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
                 
                 % skip those that are already processed if the user

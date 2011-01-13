@@ -42,4 +42,7 @@ if Z > max(handles.info.top_layer, handles.info.bottom_layer) || ...
     handles = go_to_image(handles, handles.info.master_time, handles.info.master_layer);
 end
 
+% bug when calling this from exit_embryo sometimes. dirty fix here...
+try
 handles = slider_callbacks_draw_image_slice(handles);
+end
