@@ -477,7 +477,7 @@ public class Cell implements java.io.Serializable {
 	}
 	
 	// the minimum angle of the cell
-	public double minAngle() {
+	public double minimumAngle() {
 		double minAngle = Double.MAX_VALUE;
 		Vertex[] verts = new Vertex[numV() + 2];
 		for (int i = 0; i < numV(); i++)

@@ -271,7 +271,7 @@ public class CellGraph implements java.io.Serializable {
 		for (Cell c : initialCellsArray)
 			if (cellNeighbors(c, initialCellsArray).length >= MIN_CELL_NEIGHBORS)
 				if (c.containsPoint(c.centroid()))
-					if (c.minAngle() > vertex_min_angle)  // angle check
+					if (c.minimumAngle() > vertex_min_angle)  // angle check
 						finalCells.add(c);
 		
 //		cells = new Cell[finalCells.size()];
