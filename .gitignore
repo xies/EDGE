@@ -110,3 +110,11 @@ EDGE_install_protected/install.m
 EDGE_install_protected/java1/.classpath
 EDGE_install_protected/java1/.project
 EDGE_install_protected/java1/.settings/org.eclipse.jdt.core.prefs
+Matlab/active_contours_cost.m
+Matlab/draw_connectivity_matrix.m
+Matlab/drawline.m
+Matlab/semiauto_preprocess_active_contours.m
+install_workaround.m
+java1/bin.zip
+java1/doc.zip
+#.gitignore#
