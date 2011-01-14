@@ -49,6 +49,6 @@ if isfield(handles, 'activeVertex')
             activeverts(i) = handles.activeVertex{i};
         end
         verts = Vertex.coords(activeverts);
-        handles.verts_handle = plot(verts(:,2), verts(:, 1), '.r');
+        handles.verts_handle = plot(verts(:,2), verts(:, 1), '.b');
     end
 end

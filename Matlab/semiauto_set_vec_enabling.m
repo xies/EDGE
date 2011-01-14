@@ -18,14 +18,15 @@ if get(handles.radiobutton_vec_manual, 'Value')
     end
 
     set(handles.vec_activate_cell, 'String', 'Activate cell');
-    set(handles.vec_activate_cell, 'Enable', 'off');
-        
-    [T Z] = getTZ(handles);
-    for i = 1:length(handles.activeCell)
-        if handles.embryo.isTrackingCandidate(handles.activeCell(i), T, Z)
-            set(handles.vec_activate_cell, 'Enable', 'on');
-        end
-    end
+    set(handles.vec_activate_cell, 'Enable', 'on');
+
+%     set(handles.vec_activate_cell, 'Enable', 'off');    
+%     [T Z] = getTZ(handles);
+%     for i = 1:length(handles.activeCell)
+%         if handles.embryo.isTrackingCandidate(handles.activeCell(i), T, Z)
+%             set(handles.vec_activate_cell, 'Enable', 'on');
+%         end
+%     end
     
 else
     handles.activeCell = [];
@@ -36,7 +37,7 @@ else
     set(handles.vec_remove_vertex, 'Enable', 'off');
     
     set(handles.vec_activate_cell, 'Enable', 'on');
-    set(handles.vec_activate_cell, 'String', 'S+A+R stack');
+    set(handles.vec_activate_cell, 'String', 'R+S+A edge');
 end
 
 % this is screwy-- should only add cells by adding edges

@@ -179,26 +179,40 @@ public class CellGraph implements java.io.Serializable {
 			}
 		}
 	
-		// calculate a distance matrix between the vertices
-		// in preparation for merging the vertices together
-		boolean[][] distMatrix = new boolean[tempVerts.size()][tempVerts.size()];
 		
-		for (int i = 0; i < tempVerts.size(); i++)
-			for (int j = 0; j < tempVerts.size(); j++)
-				distMatrix[i][j] = Misc.distance(tempVerts.elementAt(i).vertexCoords(), tempVerts.elementAt(j).vertexCoords()) <=
-					vertex_merge_dist_thresh;
+		Vector<TempVertex> mergedVerts;
+		if (vertex_merge_dist_thresh >= 0) {
+			// do the recursive merging unless you get a negative threshold
+			// in which case we assume the vertices were found using MATLAB's
+			// bwmorph(img, 'branchpoints') method to find the vertices. in that 
+			// case they are already merged. and then we assume they don't want further merging.
+			
+		
+			// calculate a distance matrix between the vertices
+			// in preparation for merging the vertices together
+			boolean[][] distMatrix = new boolean[tempVerts.size()][tempVerts.size()];
+			
+			for (int i = 0; i < tempVerts.size(); i++)
+				for (int j = 0; j < tempVerts.size(); j++)
+					distMatrix[i][j] = Misc.distance(tempVerts.elementAt(i).vertexCoords(), tempVerts.elementAt(j).vertexCoords()) <=
+						vertex_merge_dist_thresh;
+					
+			// call the recursive merging function on each vertex
+			mergedVerts = new Vector<TempVertex>();
+			for (int i = 0; i < tempVerts.size(); i++) {
+				// make sure the vertex is available
+				if (!distMatrix[i][i]) continue;
 				
-		// call the recursive merging function on each vertex
-		Vector<TempVertex> mergedVerts = new Vector<TempVertex>();
-		for (int i = 0; i < tempVerts.size(); i++) {
-			// make sure the vertex is available
-			if (!distMatrix[i][i]) continue;
-			
-			Vector<TempVertex> interVerts = new Vector<TempVertex>();
-			TempVertex.vertexMergeRecursive(i, distMatrix, interVerts, tempVerts);
-			
-			mergedVerts.add(TempVertex.merge(interVerts));
+				Vector<TempVertex> interVerts = new Vector<TempVertex>();
+				TempVertex.vertexMergeRecursive(i, distMatrix, interVerts, tempVerts);
+				
+				mergedVerts.add(TempVertex.merge(interVerts));
+			}
+		} else {
+			 mergedVerts = tempVerts;
 		}
+			
+				
 		
 		Vector<Cell> initialCells = new Vector<Cell>();
 		
@@ -241,7 +255,6 @@ public class CellGraph implements java.io.Serializable {
 			
 //			if (c.area() == 0 || c.numV() < 3)
 //				removeCell(c);
-			
 		}
 		*/
 			
@@ -272,6 +285,7 @@ public class CellGraph implements java.io.Serializable {
 		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in CellGraph:init!");
 		assert(isValid());
 	}
+	
 	
 	public void setParent(Embryo4D parent) {
 		this.parent = parent;

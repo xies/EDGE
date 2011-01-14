@@ -439,6 +439,7 @@ function button_applythis_Callback(hObject, eventdata, handles) %#ok<*DEFNU>
     if tempcg.numCells == 0
         msgbox('There are no cells in this image. This may cause tracking errors; please try other image processing parameters.', ...
             'No cells in image');
+        uiwait;
     end
     
     readyproc(handles, 'tracking');
@@ -576,6 +577,7 @@ function button_applysome_Callback(hObject, eventdata, handles)
         msgbox(strcat('The following images have no cells: ', badimages, ...
             'Please fix these images and try again.'), ...
             'Tracking aborted', 'error');
+        uiwait;
 %         return;
     end
         
@@ -2841,7 +2843,8 @@ function vec_activate_cell_Callback(hObject, eventdata, handles)
         msgbox(['The following cells could not be activated either because they ' ...
             'are already active or because a corresponding cell could not be found: ', ...
             could_not_activate], ...
-            'Some cells not activated');
+            'Some cells not activated', 'error');
+        uiwait;
         
         handles = slider_callbacks_draw_image_slice(handles);
         
@@ -2857,10 +2860,11 @@ function vec_activate_cell_Callback(hObject, eventdata, handles)
                         /handles.info.microns_per_pixel;
         bords       = imread(handles.info.image_file(T, Z, handles.tempsrc.bord));
 
-        % split edges, add edges, remove edges
+        % remove edges, split edges, add edges
+        handles.embryo.autoRemoveEdges(T, Z);
         handles.embryo.getCellGraph(T, Z).refineEdges(bords, max_angle, min_angle, min_edge_len); 
         handles.embryo.autoAddEdges(T, Z);
-        handles.embryo.autoRemoveEdges(T, Z);
+
 
         handles = slider_callbacks_draw_image_slice(handles);
 
@@ -2911,10 +2915,10 @@ function vec_activate_cell_Callback(hObject, eventdata, handles)
                     min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String'));
                     bords       = imread(handles.info.image_file(time_i, layer_i, handles.tempsrc.bord));
 
-                    % refine edges, add edges, remove edges
+                    % remove edges, refine edges, add edges
+                    handles.embryo.autoRemoveEdges(time_i, layer_i);
                     handles.embryo.getCellGraph(time_i, layer_i).refineEdges(bords, max_angle, min_angle, min_edge_len);
                     handles.embryo.autoAddEdges(time_i, layer_i);
-                    handles.embryo.autoRemoveEdges(time_i, layer_i);
                 end
             end
 %         end
