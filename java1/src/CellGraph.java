@@ -280,7 +280,6 @@ public class CellGraph implements java.io.Serializable {
 		for (int i = 0; i < finalCells.size(); i++)
 			addCell(finalCells.get(i), -i - 1);  // strictly NEGATIVE INDICES --> INACTIVE
 
-
 		
 		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in CellGraph:init!");
 		assert(isValid());
