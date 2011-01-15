@@ -25,7 +25,7 @@ function varargout = EDGE(varargin)
 
     % Edit the above text to modify the response to help EDGE
 
-    % Last Modified by GUIDE v2.5 19-Dec-2009 23:23:33
+    % Last Modified by GUIDE v2.5 15-Jan-2011 17:56:06
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -123,6 +123,7 @@ function EDGE_OpeningFcn(hObject, eventdata, handles, varargin)
     else
         msgbox(strcat('There are currently no data sets which have been exported by semiauto.', ...
             'To continue, first process a data set with semiauto'), 'EDGE: no data sets', 'error');
+        uiwait;
     end
     
     % initialize the image (after the data box is checked!)
@@ -1261,3 +1262,32 @@ function button_neighbors_minus_Callback(hObject, eventdata, handles)
     set(handles.edit_neighbors_order, 'String', num2str(val-1));
     handles = edit_neighbors_order_Callback(hObject, eventdata, handles);
     guidata(hObject, handles);
+
+
+function go_to_master_image_Callback(hObject, eventdata, handles)
+    [T Z] = getTZ(handles);
+    if T == handles.info.master_time && Z == handles.info.master_layer
+        return
+    end
+
+    set(handles.z_text,'String', num2str(handles.info.master_layer));
+    set(handles.t_text,'String', num2str(handles.info.master_time));
+    
+    ZsliderValue = handles.info.bottom_layer - handles.info.master_layer * ...
+        sign(handles.info.bottom_layer - handles.info.top_layer);
+    TsliderValue = handles.info.start_time - handles.info.master_time * ...
+        sign(handles.info.start_time - handles.info.end_time);
+
+    set(handles.z_slider, 'Value', ZsliderValue);
+    set(handles.t_slider, 'Value', TsliderValue);
+
+    neighbor_val = str2double(get(handles.edit_neighbors_order, 'String'));
+    if neighbor_val > 0
+        handles = maingui_initialize_neighbors(handles, neighbor_val);
+    end
+    
+    handles = slider_callbacks_draw_image_slice(handles);
+    slider_callbacks_draw_3D_cell(handles);
+    slider_callbacks_draw_measurement(handles);    
+    guidata(hObject, handles);    
+
