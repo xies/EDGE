@@ -1,3 +1,7 @@
+% Used for changing data sets both in EDGE and semiauto. Does everything 
+% that is common to both interfaces. Generally called
+% by either clear_data_set_maingui or clear_data_set_semiauto.
+
 function handles = clear_data_set_both(handles)
 
 % find all the other channels that are not Membranes

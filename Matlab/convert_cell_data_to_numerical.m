@@ -1,3 +1,6 @@
+% Convert a cell array "data" to a numerical array "out". If "data"
+% contains non-numerical values, NaN is inserted.
+
 function out = convert_cell_data_to_numerical(data)
 % the user-defined measurements return data as a cell array like 
 % data{1} = ... , data{2} = ... ,etc. the function

@@ -1,15 +1,8 @@
-function out = get_folder_names(src)
-% gets the names of the datasets by checking the names of the folders
+% Gets the names of the datasets by checking the names of the folders
 % in the directory src. returns them in a cell array, which is then used
 % to create the dropdown menu
 
-
-% below code only works for UNIX, and doesn't just get directories...
-% files = ls(src);
-% 
-% parsefiles = textscan(files, '%s', 'delimiter', '\n');
-% out = parsefiles{1};
-
+function out = get_folder_names(src)
 
 
 files = dir(src);  % like pwd, but much better for this application
@@ -29,8 +22,6 @@ for i = 1:length(out)
     out{i} = files(goodfiles(i)).name;
 end
 
-
-        
 
 % why not this: ?  much easier.... i guess it's just preallocation
 % channelnames = cell(0);

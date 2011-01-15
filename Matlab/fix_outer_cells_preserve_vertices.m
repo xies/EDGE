@@ -1,15 +1,17 @@
+% Erodes the image by deleting pixels close to the boundary
+% from all 4 sides. Does not delete a pixel if it is vertex
+% The code here is horrible. it could be much
+% faster and probably otherwise better. But that's ok, people don't use
+% this function much anyway ;)
+
+
 function bords = fix_outer_cells_preserve_vertices(x)
 
-% erodes the image by deleting pixels close to the boundary
-% from all 4 sides. does not delete a pixel if it is vertex
-
-% the code here is horrible. it could be much
-% faster and probably otherwise better
 
 Ys = size(x, 1);
 Xs = size(x, 2);
 
-
+% the old definition of vertices, different from bwmorph('branchpoints')
 f = @(x) (x(2,2) && (sum(x(:)) >= 4));
 lut = makelut(f, 3);
 vertplot = applylut(x, lut);
@@ -64,7 +66,3 @@ for i = 1:Xs
         end
     end
 end
-
-
-%bords = bwmorph(bords, 'shrink', Inf);
-%bords = bwmorph(bords, 'clean');

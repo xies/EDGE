@@ -124,9 +124,9 @@ public class Embryo4D implements java.io.Serializable {
 		cg.setParent(this);
 		changed = true;
 		
-		if (isFull())
+		if (isFull())  // this is slow and not always needed. right??
+			// wouldn't it be better to just track all the cells in this image?
 			trackAllCells();
-//			performTracking();
 	}
 
 	/** Remove a CellGraph at (T, Z). */
@@ -955,7 +955,28 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		// (but it's good to have them both here, since it ensures tracking is a 1:1 operation)
 		// actually, there IS a reason to check both. if we are CHECKING the tracking (as 
 		// opposed to doing it, then we want to check both of these conditions!!)
-		// yeah.. so I dropped the 1:1 thing... but anyway... (16/03/10)
+		// yeah.. so I dropped the 1:1 thing... but anyway... (16/03/10)  (really? where is it dropped? 14/01/11)
+		
+		
+		// NEW: Jan 2011
+		// try something drastic. if any of the neighbors of either cell can correspond with the other cell
+		// then consider it an error
+		// there could be many variations on the below, such as changing || to &&,
+		// or making sure they overlap some amount instead of just checking if inside.
+		
+		// note: this modification is SLOW, probably because of finding the neighbors.
+		// should we cache this in a tempvertex style? in general, speed needs to be addressed!
+		for (Cell c : cTrack.neighbors()) {
+			if (c.containsPoint(cMatchCandidate.centroid()) ||
+			    cMatchCandidate.containsPoint(c.centroid())) 
+				return false;
+		}
+		for (Cell c : cMatchCandidate.neighbors()) {
+			if (c.containsPoint(cTrack.centroid()) ||
+			    cTrack.containsPoint(c.centroid())) 
+				return false;
+		}
+		//////
 		
 		return true;
 	}

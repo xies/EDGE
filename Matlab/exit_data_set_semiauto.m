@@ -1,6 +1,9 @@
+% Asks if you want to save changes if there are any changes.
+% This function is to be called whenever you are about to leave a data set, 
+% either by changing to another one or closing the GUI. 
+
+
 function handles = exit_data_set_semiauto(handles)
-% like the opposite of clear_data_set, this is whenever you are about to
-% leave a data set, either by changing to another one or closing the GUI
 
 fields = changed_data_info(handles);
 % ask about unsaved changes to DATA_INFO

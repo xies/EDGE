@@ -3,7 +3,6 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.awt.Polygon;
-import java.util.Vector;
 
 /**
  * A graph representation of one slice of a single cell. This objects contains references to its
@@ -64,8 +63,8 @@ public class Cell implements java.io.Serializable {
 		return parent.cellNeighbors(this, n);
 	}
 	
-	// add the vertex newVert into the list of vertices in between v and w
-	// assumes v and w are connected
+	/** Add the vertex newVert into the list of vertices in between v and w.
+	 * Assumes v and w are connected. */
 	public void splitEdge(Vertex v, Vertex w, Vertex newVert) {
 		if (!connected(v, w)) return;
 		Vertex[] newVertArray = new Vertex[numV() + 1];
@@ -95,7 +94,8 @@ public class Cell implements java.io.Serializable {
 		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in Cell:splitEdge!");
 		assert(isValid());
 	}
-	// remove the vertex v while preserving the sorted order
+	
+	/** remove the vertex v while preserving the sorted vertex order. */
 	public void removeVertex(Vertex v) {
 		if (!containsVertex(v)) return;
 		Vertex[] newVertArray = new Vertex[numV() - 1];
@@ -111,6 +111,7 @@ public class Cell implements java.io.Serializable {
 		assert(isValid());
 	}
 	
+	/** Are vertices a and b connected in this cell? */
 	public boolean connected(Vertex a, Vertex b) {
 		Vertex last = null;
 		for (Vertex v : vertices) {
@@ -137,16 +138,19 @@ public class Cell implements java.io.Serializable {
 	public int index() {
 		return index;
 	}
+	/** Get the indices of an array of cells (returned in an array). */
 	public static int[] index(Cell[] c) {
 		int[] out = new int[c.length];
 		for (int i = 0; i < c.length; i++)
 			out[i] = c[i].index;
 		return out;
 	}
+	/** Change the index of this cell. */
 	public void changeIndex(int to) {
 		parent.changeIndex(this, to);
 	}
 	
+	/** Directly set the Cell's index. Only called by the parent CellGraph. */
 	public void setIndex(int i) {
 		index = i;
 	}
@@ -156,6 +160,7 @@ public class Cell implements java.io.Serializable {
 	
 	/*	
 	// cyclically shift the order of the Vertices to match other cells
+	// would be useful for tracking vertices
 	public void shiftUp() {
 		Vertex temp = vertices[vertices.length-1];
 		for (int i = vertices.length - 1; i > 0; i--)
@@ -170,9 +175,8 @@ public class Cell implements java.io.Serializable {
 	}
 */
 	
-	// computes and returns the centroid of the Cell in an array
-	// uses the formula from Wikipedia:Polygon
-	/* can be accessed by Matlab */
+	/** Returns the centroid of the Cell in an array.
+	// Uses the formula from Wikipedia:Polygon. */
 	public double[] centroid() {
 		// create an array of the vertex coordinates for easy accessing
 		double[] vY = new double[vertices.length + 1];
@@ -200,6 +204,7 @@ public class Cell implements java.io.Serializable {
 		centroid[1] = Math.abs(x);  
 		return centroid;
 	}
+	/** Returns the centroid as a pair of integers. */
 	public int[] centroidInt() {
 		int[] centroidInteger = new int[2];
 		double[] centroidDouble = centroid();
@@ -207,6 +212,7 @@ public class Cell implements java.io.Serializable {
 		centroidInteger[1] = (int) Math.round(centroidDouble[1]);
 		return centroidInteger;
 	}
+	/** Returns the centroids for an array of cells. */
 	public static double[][] centroidStack(Cell[] cells) {
 		if (cells == null) return null;
 		double[][] centStack = new double[cells.length][2];
@@ -220,19 +226,9 @@ public class Cell implements java.io.Serializable {
 		}
 		return centStack;
 	}
-//	public static double[] areaStack(Cell[] cells) {
-//		if (cells == null) return null;
-//		double[] areaStack = new double[cells.length];
-//		for (int i = 0; i < cells.length; i++) {
-//			if (cells[i] == null)
-//				areaStack[i] = Double.NaN;
-//			else
-//				areaStack[i] = cells[i].area();
-//		}
-//		return areaStack;
-//	}
-	// returns all of the vertices in a cells.length x nverts_max x 2 array
-	// where nverts_max is the maximum number of vertices of all the Cells in cells
+	
+	/** Returns all of the vertices in a cells.length x nverts_max x 2 array,
+	 where nverts_max is the maximum number of vertices of all the Cells in cells. */
 	public static double[][][] allVertexStack(Cell[] cells) {
 		if (cells == null) return null;
 		int maxVerts = 0;
@@ -266,12 +262,13 @@ public class Cell implements java.io.Serializable {
 		return result;
 	}
 
-	// computes and returns the area of the Cell
-	// uses the formula from Wikipedia:Polygon
-	// this formula assumes the Vertices are sorted counterclockwise.
-	// if they are sorted clockwise we get the right answer but with a negative sign
-	// therefore I try to keep them sorted CCW but just in case I use an absolute value
-	// sign here
+	/** Computes and returns the area of the Cell.
+	 * 
+	 * Uses the formula from Wikipedia:Polygon
+	 * This formula assumes the Vertices are sorted counterclockwise.
+	 * If they are sorted clockwise we get the right answer but with a negative sign,
+	 * so I try to keep them sorted CCW but just in case I use an absolute value at the end.
+	 */
 	public double area() {
 		// create two arrays of the vertex coordinates for easy accessing
 		double[] vY = new double[vertices.length + 1];
@@ -292,7 +289,7 @@ public class Cell implements java.io.Serializable {
 		return Math.abs(area);
 	}
 	
-	// computes the perimeter of the Cell
+	/** Returns the perimeter of the Cell. */
 	public double perimeter() {
 		double perim = 0;	
 		for (int i = 0; i < numV() - 1; i++)
@@ -301,17 +298,19 @@ public class Cell implements java.io.Serializable {
 		return perim;
 	}
 	
+	/** Returns the number of vertices of the cell. */
 	public int numV() {
 		return vertices.length;
 	}
+	/** Returns the vertices in an array. */
 	public Vertex[] vertices() { 
 		return vertices;
 	}
-	
+	/** Returns the vertex coordinates in an array. */
 	public double[][] vertexCoords() {
 		return Vertex.coords(vertices);
 	}
-	
+	/** Returns the vertex coordinates for an array of cells. */
 	public static double[][] vertexCoords(Cell[] cells) {
 		Queue<Vertex> allVerts = new LinkedList<Vertex>();
 		for (Cell c : cells)
@@ -322,8 +321,10 @@ public class Cell implements java.io.Serializable {
 		return Vertex.coords(allVertsArray);
 	}
 	
-	// return the list of vertices starting with v and ending with w
-	// assumed v and w are connected and both part of this cell
+	/** Return the list of vertices sorted in a special order.
+	 * 
+	 * The list (stored in an array) starts with v and ends with w.
+	 * We assume v and w are connected and both part of this cell.	 */
 	public Vertex[] vertices(Vertex v, Vertex w) {
 		if (!containsVertex(v)) return null;
 		if (!containsVertex(w)) return null;
@@ -360,7 +361,9 @@ public class Cell implements java.io.Serializable {
 		return out;
 	}
 	
-	// returns the index of v (between 0 and numV()-1, inclusive)
+	/** Returns the index of the vertex v as it is stored in the cell.
+	 * 
+	 *  Result is between 0 and numV()-1, inclusive. */
 	public int indexOf(Vertex v) {
 		if (!containsVertex(v)) return -1;
 		for (int i = 0; i < numV(); i++)
@@ -369,9 +372,11 @@ public class Cell implements java.io.Serializable {
 		return -1;
 	}
 	
-	// translate the cell by delta (i.e., translate the location of all vertices by delta)
-	// NOTE: other cells may own this vertex!! should only be done for a cell that has all its own
-	// vertices!!!!!
+	/** Translate the cell by delta. 
+	 * 
+	 * i.e., translate the location of all vertices by delta
+	 * NOTE: other cells may own these same vertices!! 
+	 * So, this operation should only be done for a cell that has all its own vertices! */
 	public void translate(double[] delta) {
 		for (Vertex v : vertices)
 			v.translate(delta);
@@ -405,6 +410,23 @@ public class Cell implements java.io.Serializable {
 //		return true;
 //	}
 	
+	// returns [minY maxY minX maxX]
+	// this is for speedup purposes only
+	public double[] boundingBox() {
+		double[] out = new double[4];
+		out[0] = Double.MAX_VALUE;
+		out[1] = Double.MIN_VALUE;
+		out[2] = Double.MAX_VALUE;
+		out[3] = Double.MIN_VALUE;
+		for (Vertex v : vertices) {
+			out[0] = Math.min(out[0], v.coords()[0]);
+			out[1] = Math.max(out[1], v.coords()[0]);
+			out[2] = Math.min(out[2], v.coords()[1]);
+			out[3] = Math.max(out[3], v.coords()[1]);
+		}
+		return out;
+	}
+	
 	// computes the overlapping area between this and that Cell
 	public double overlapArea(Cell that) {
 //		Polygon p1 = this.getPolygon();
@@ -417,18 +439,28 @@ public class Cell implements java.io.Serializable {
 		if (that == null) return Double.NaN;
 		return PolygonIntersect.intersectionArea(this.vertexCoords(), that.vertexCoords());
 	}
-	
+	/** Is the point input inside of this cell? */
 	public boolean containsPoint(double y, double x) {
+		// upgrade for speed: if outside bounding box, then false
+		double[] bbox = boundingBox();
+		if (y < bbox[0] || y > bbox[1] || x < bbox[2] || x > bbox[3]) return false;
+		// end upgrade for speed
+		
 		double[] point = new double[2];
 		point[0] = y;
 		point[1] = x;
 		return containsPoint(point);
 	}
-	// uses the java.awt.Polygon to determine if the point is inside
+	/** Is the point input inside of this cell?
+	 * 
+	 * Uses the java.awt.Polygon to determine if the point is inside.
+	 * @param input double array of size 2 with y and x coordinates
+	 */
 	public boolean containsPoint(double[] input) {
 		Polygon p = getPolygon();
 		return p.contains(input[1], input[0]);
 	}
+	// Turn the cell into a java.awt.Polygon object.
 	private Polygon getPolygon() {
 		int[] x = new int[numV()];
 		int[] y = new int[numV()];
@@ -440,43 +472,43 @@ public class Cell implements java.io.Serializable {
 		return p;
 	}
 	
-	// does this Cell contain the Vertex input?
+	/** Does this Cell contain the Vertex input? */
 	public boolean containsVertex(Vertex input) {
 		for (Vertex v : vertices)
 			if (v == input) return true;
 		return false;
 	}
 	
-	// does this cell contain both of these vertices in a connected manner?
+	/** Does this cell contain both of these vertices in a connected manner? */
 	public boolean containsEdge(Vertex v, Vertex w) {
 		if (!containsVertex(v) || !containsVertex(w)) return false;
 		return connected(v, w);
 	}
 	
-	// check the angles formed by consecutive groups of 3 vertices. if any is too small
-	// remove that vertex...
-	public Vertex[] checkAngle(double minAngle) {
-		// an array that has the first 2 elements at the end so it is cyclic for groups of 3
-		Vector<Vertex> badVertices = new Vector<Vertex>();  // in case there are more than one (totally unlikely)
-		Vertex[] verts = new Vertex[numV() + 2];
-		for (int i = 0; i < numV(); i++)
-			verts[i] = vertices[i];
-		verts[numV()] = vertices[0];
-		verts[numV()+1] = vertices[1];
-		for (int i = 0; i < numV(); i++) {
-			double angle = Misc.angle(verts[i+1].coords(), verts[i].coords(), verts[i+2].coords());
-			if (angle < minAngle) {
-//				System.out.println(angle + " < " + minAngle);
-				badVertices.add(verts[i+1]); 
-			}
-		}
-		if (badVertices.isEmpty()) return null;
-		Vertex[] out = new Vertex[badVertices.size()];
-		badVertices.toArray(out);
-		return out;
-	}
+//	// check the angles formed by consecutive groups of 3 vertices. if any is too small
+//	// remove that vertex...
+//	public Vertex[] checkAngle(double minAngle) {
+//		// an array that has the first 2 elements at the end so it is cyclic for groups of 3
+//		Vector<Vertex> badVertices = new Vector<Vertex>();  // in case there are more than one (totally unlikely)
+//		Vertex[] verts = new Vertex[numV() + 2];
+//		for (int i = 0; i < numV(); i++)
+//			verts[i] = vertices[i];
+//		verts[numV()] = vertices[0];
+//		verts[numV()+1] = vertices[1];
+//		for (int i = 0; i < numV(); i++) {
+//			double angle = Misc.angle(verts[i+1].coords(), verts[i].coords(), verts[i+2].coords());
+//			if (angle < minAngle) {
+////				System.out.println(angle + " < " + minAngle);
+//				badVertices.add(verts[i+1]); 
+//			}
+//		}
+//		if (badVertices.isEmpty()) return null;
+//		Vertex[] out = new Vertex[badVertices.size()];
+//		badVertices.toArray(out);
+//		return out;
+//	}
 	
-	// the minimum angle of the cell
+	/** The minimum angle of the cell. Not necessarily interior angles... uses the smaller of the two. */
 	public double minimumAngle() {
 		double minAngle = Double.MAX_VALUE;
 		Vertex[] verts = new Vertex[numV() + 2];
@@ -491,7 +523,9 @@ public class Cell implements java.io.Serializable {
 		return minAngle;
 	}
 	
-	// draw the Cell (image is also returned for Matlab callers, there is no need for this in Java)
+	/** Draw the Cell in the input array image.
+	 * 
+	 * The image is also returned for Matlab callers, although there is no need for this in Java. */
 	public double[][] draw(double[][] image) {	
 		// draw the cell edges
 		for (int i = 0; i < numV() - 1; i++)
@@ -602,8 +636,7 @@ public class Cell implements java.io.Serializable {
 		return true;
 	}
 	
-	// return a sorted array of all the angles that this cell contains
-	// angles are in radians
+	/** Return a sorted array of all the angles that this cell contains (in radians). */
 	public double[] vertexAngles() {
 		double[] angles = new double[numV()];
 		Vertex[] wrapVerts = new Vertex[numV() + 2];
@@ -618,7 +651,7 @@ public class Cell implements java.io.Serializable {
 		return angles;
 	}
 	
-	// return an array with all the angles made to the cells from the centroid of this cell
+	/** Returns an array with all the angles made to the cells from the centroid of this cell. */
 	public double[] angle(Cell[] cells) {
 		double[] angles = new double[cells.length];
 		for (int i = 0; i < cells.length; i++)
@@ -626,7 +659,7 @@ public class Cell implements java.io.Serializable {
 		return angles;
 	}
 	
-	// the angle from the centroid of this cell to the centroid of cell Point
+	/** The angle from the centroid of this cell to the centroid of cell Point. */
 	public double angle(Cell point) {
 		return Misc.angle(centroid(), point.centroid());
 	}

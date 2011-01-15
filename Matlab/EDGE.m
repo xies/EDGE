@@ -1,3 +1,6 @@
+% The main file for the EDGE GUI. The other part of the interface is
+% semiauto.m.
+
 function varargout = EDGE(varargin)
     % EDGE M-file for EDGE.fig
     %      EDGE, by itself, creates a new EDGE or raises the existing
@@ -534,15 +537,15 @@ function dropdown_measurements_Callback(hObject, eventdata, handles)
     
     already_loaded = fieldnames(handles.loaded_measurements);
     if ~any(strcmp(already_loaded, genvarname(big_measure_name))) 
-set(handles.text_readyproc, 'Visible', 'on');
-set(handles.text_readyproc, 'String', 'Loading...');
-set(handles.text_readyproc, 'ForegroundColor', [1 0 0]);
-drawnow;
+        set(handles.text_readyproc, 'Visible', 'on');
+        set(handles.text_readyproc, 'String', 'Loading...');
+        set(handles.text_readyproc, 'ForegroundColor', [1 0 0]);
+        drawnow;
         load(fullfile(handles.src.measurements, [big_measure_name '.mat']));  % loads 'data', 'name', 'unit'
         handles.loaded_measurements.(genvarname(big_measure_name)).data = data;
         handles.loaded_measurements.(genvarname(big_measure_name)).name = name;
         handles.loaded_measurements.(genvarname(big_measure_name)).unit = unit;
-set(handles.text_readyproc, 'Visible', 'off');
+        set(handles.text_readyproc, 'Visible', 'off');
     end
     guidata(hObject, handles);
 

@@ -1,3 +1,7 @@
+% Applies bandpass filter (between llp and hhp, measured in pixels) to the
+% image "cells". This function written mostly by Matthias Kaschube. Returns
+% the filtered image and the filter itself.
+
 function [cellsf,filt] = get_filtered(cells,llp,hhp)
 
 %cells = array of cells

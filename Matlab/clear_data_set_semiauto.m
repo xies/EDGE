@@ -1,3 +1,6 @@
+% Used for changing data sets in semiauto. Only does tasks specific to 
+% semiauto, i.e., those that don't apply in EDGE such as tracking parameters.
+
 function handles = clear_data_set_semiauto(handles, data_set)
  
 readyproc(handles, 'loading')

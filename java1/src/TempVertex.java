@@ -1,9 +1,13 @@
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Stack;
 import java.util.Vector;
 
-// A Vertex that knows its neighbors
+/**
+ * A wrapper of the Vertex class that knows which cells it is part of.
+ * Used in the CellGraph constructor only. 
+ * 
+ * @author Michael Gelbart
+ */
 public class TempVertex {
 	private Vertex vertex;
 	private Set<Integer> cellNeighbors;
@@ -58,7 +62,7 @@ public class TempVertex {
 		return true;
 	}
 	
-	// turn an array of TempVertex into an array of Vertex
+	/** Turn an array of TempVertex into an array of Vertex. */
 	public static Vertex[] toVertexArray(TempVertex[] input) {
 		Vertex[] vertices = new Vertex[input.length];
 		for (int i = 0; i < input.length; i++) {
@@ -68,7 +72,7 @@ public class TempVertex {
 		return vertices;
 	}
 	
-	// merge two vertices
+	/** Merge two vertices. */
 	public static TempVertex merge(Vector<TempVertex> verts) {
 				
 		// combine the set of neighbors			
@@ -89,28 +93,19 @@ public class TempVertex {
 		return merged;
 	}
 	
-	// a recursive function used in merging the vertices
-	// finds all the vertices that are close to the vertex with index i
+	/** A recursive function used in merging the vertices up to some distance threshold.
+	// 
+	 * In other words, finds all the vertices that are close to the vertex with index i.
+	 * 
+	 * @param i the vertex we are considering now, to merge with others
+	 * @param distMatrix a boolean matrix which states if two vertices are close enough to be merged
+	 * @param interVerts initially empty, keeps track of vertices that will be merged
+	 * @param tempVerts the initial big set of input vertices
+	 */
 	public static void vertexMergeRecursive(int i, boolean[][] distMatrix, 
 			Vector<TempVertex> interVerts, Vector<TempVertex> tempVerts) {
 		
 		interVerts.add(tempVerts.elementAt(i));
-		
-		// mark this vertex as already checked
-		// the diagonal column is used to see if the vertex is "available" for merging
-		distMatrix[i][i] = false;
-		
-		for (int j = 0; j < distMatrix.length; j++)
-			if (distMatrix[i][j] && distMatrix[j][j]) 
-				vertexMergeRecursive(j, distMatrix, interVerts, tempVerts);
-	}
-	
-	// a recursive function used in merging the vertices
-	// finds all the vertices that are close to the vertex with index i
-	public static void vertexMergeRecursive(int i, boolean[][] distMatrix, 
-			Stack<TempVertex> interVerts, TempVertex[] tempVerts) {
-		
-		interVerts.push(tempVerts[i]);
 		
 		// mark this vertex as already checked
 		// the diagonal column is used to see if the vertex is "available" for merging

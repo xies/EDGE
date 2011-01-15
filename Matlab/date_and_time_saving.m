@@ -1,3 +1,5 @@
+% Outputs the data and time in a format that can be used in filenames.
+
 function out = date_and_time_saving()
 
 x=clock;

@@ -3,13 +3,15 @@ import java.awt.geom.Point2D;
 /**
  * Area of Intersection of Polygons
  *
- * Algorithm based on http://cap-lore.com/MathPhys/IP/
+ * Algorithm based on http://cap-lore.com/MathPhys/IP/ by Norman Hardy
  *
  * Adapted 9-May-2006 by Lagado
  * 
  * Borrowed by Michael Gelbart from
  * from http://www.cap-lore.com/MathPhys/IP/PolygonIntersect.java
  * January 2010
+ * 
+ * Borrowed and published with permission from Norman Hardy, Jan 2011.
  */
 public class PolygonIntersect extends Object
 {

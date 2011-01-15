@@ -1,3 +1,6 @@
+% Go to a particular image in either semiauto or EDGE. Changes the sliders
+% and the text, as well as the image.
+
 function handles = go_to_image(handles, T, Z)
 
 % called by update_embryo~~

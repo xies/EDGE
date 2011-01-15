@@ -1,5 +1,7 @@
+% Clear all graphics of a single cell, and removes it from the list of 
+% selected cells. Only called by EDGE (not semiauto).
+
 function handles = clear_cell(handles)
-% clears a single cell. only called by EDGE (not semiauto);
 
 handles.activeCell = [];
 handles.activeCellNeighbors = [];

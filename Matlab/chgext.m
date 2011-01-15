@@ -1,6 +1,8 @@
-function out = chgext(in, type)
-% change the extension of a filename string from .tif to something else
+% Change the extension of the filename string "in". If "type" is 'none',
+% then changes to no extension. If "type" is 'mat', changes to .mat.
+% Returns the new filename.
 
+function out = chgext(in, type)
 
 % remove the extension from "in"
 dot_in_string = strfind(in, '.');

@@ -1,3 +1,7 @@
+% Draw the 3D rendering of a cell. Takes in an array of java Cell objects
+% in CS. Also, highlights one of the slices in red (i.e., the one that the
+% user is currently looking at in the image view).
+
 function draw_cell_stack_highlight_z(CS, T, slice_highlight, handles, dx, dz)
 
 z_points = (0:length(CS)-1) * dz;

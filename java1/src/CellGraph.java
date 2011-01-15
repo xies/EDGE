@@ -20,15 +20,12 @@ import java.util.TreeMap;
 public class CellGraph implements java.io.Serializable {
 	
 	final static long serialVersionUID = (long) "CellGraph".hashCode();
-
-	// the threshold for merging vertices, measured in pixels
-	private static final double VERTEX_MERGE_DIST_THRESH_DEFAULT_VALUE = 3.0;
-	
-	// by default, don't do the min angle check
-	private static final double VERTEX_MIN_ANGLE_DEFAULT_VALUE = 0.0;
 	
 	// the minimum number of neighbors a Cell and have
 	private static final int MIN_CELL_NEIGHBORS = 2;  // do not allow cells or pairs of cells floating on their own
+	
+	// the minimum number of vertices a cell can have
+	private static final int MIN_CELL_VERTICES = 2;  // do not allow cells with 2 or fewer vertices (of course)
 	
 	// the map where all the cells are stored. they are keyed by their indices
 	final private Map<Integer, Cell> cells = new TreeMap<Integer, Cell>();
@@ -96,15 +93,8 @@ public class CellGraph implements java.io.Serializable {
 		}
 	}
 	
-	// ellipseProperties = YES; myosin = YES, distthresh = NO;
-	public CellGraph(int[][] regions, int[][] centlist, int[][] vertlist, 
-			int t, int z) {		
-		this(regions, centlist, vertlist, t, z, VERTEX_MERGE_DIST_THRESH_DEFAULT_VALUE,
-				VERTEX_MIN_ANGLE_DEFAULT_VALUE);
-	}
-	
-	public CellGraph(int[][] regions, int[][] centlist, int[][] vertlist,
-			int t, int z, double vertex_merge_dist_thresh, double vertex_min_angle) {		
+	public CellGraph(int[][] regions, int[][] centlist, int[][] vertlist, int t, int z, 
+			double vertex_merge_dist_thresh, double vertex_min_angle, double min_cell_size) {		
 		// assumes for regions: borders are -1, background is 0, cells are 1, 2, 3, ...
 		// assumes for centlist/vertlist: two columns of coordinates, not two rows
 		
@@ -168,15 +158,17 @@ public class CellGraph implements java.io.Serializable {
 			if (v.numNeighbors() == 1) {
 				tempVerts.remove(v);
 			}
+			
+			// jan 2011: MOVING THIS TO AFTER MERGING!!!!
 			// new: also, if a vertex has only two neighbors and is not along the edge, get rid of it
 			// this prevents weird extra vertices from appearing in the middle
-			else if (v.numNeighbors() == 2 && !v.containsNeighor(-1)) {
-				tempVerts.remove(v);
-			}
-			else {
-				// now can get rid of the background pixels
-				v.removeNeighbor(-1);
-			}
+//			else if (v.numNeighbors() == 2 && !v.containsNeighor(-1)) {
+//				tempVerts.remove(v);
+//			}
+//			else {
+//				// now can get rid of the background pixels
+//				v.removeNeighbor(-1);
+//			}
 		}
 	
 		
@@ -206,7 +198,16 @@ public class CellGraph implements java.io.Serializable {
 				Vector<TempVertex> interVerts = new Vector<TempVertex>();
 				TempVertex.vertexMergeRecursive(i, distMatrix, interVerts, tempVerts);
 				
-				mergedVerts.add(TempVertex.merge(interVerts));
+				// new jan 2011: in case vertices in the middle of a cell appear, we don't want these
+				// not that it's a big deal
+				// this used to be above, but actually it should be done for merged vertices,
+				// not pre-merge
+				TempVertex candidateMerged = TempVertex.merge(interVerts);
+			    if (!(candidateMerged.numNeighbors() == 2 && !candidateMerged.containsNeighor(-1))) {
+			    	candidateMerged.removeNeighbor(-1);
+			    	mergedVerts.add(candidateMerged);
+			    }
+			    	
 			}
 		} else {
 			 mergedVerts = tempVerts;
@@ -231,8 +232,8 @@ public class CellGraph implements java.io.Serializable {
 				}	
 			}
 			
-			// make sure that each Cell has at least 3 Vertices
-			if (vertsOfCell.size() >= 3) {
+			// make sure that each Cell has at least MIN_CELL_VERTICES Vertices
+			if (vertsOfCell.size() >= MIN_CELL_VERTICES) {
 				Vertex[] vertsOfCellArray = new Vertex[vertsOfCell.size()];
 				vertsOfCell.toArray(vertsOfCellArray);
 				
@@ -253,7 +254,7 @@ public class CellGraph implements java.io.Serializable {
 //			removeVertices(c.checkAngle(vertex_min_angle));
 //			removeVertices(test);
 			
-//			if (c.area() == 0 || c.numV() < 3)
+//			if (c.area() == 0 || c.numV() < MIN_CELL_VERTICES)
 //				removeCell(c);
 		}
 		*/
@@ -281,8 +282,39 @@ public class CellGraph implements java.io.Serializable {
 			addCell(finalCells.get(i), -i - 1);  // strictly NEGATIVE INDICES --> INACTIVE
 
 		
+		// new Jan 2011: impose minimum cell size here
+		// this will mess up if two neighboring cells are small:
+		// it will destroy them in random order, which means it might not destroy all of them
+		// but not sure this matters much, we'll see
+		for (Cell c : finalCells) {
+			if (c.area() < min_cell_size) {
+				destroyCell(c);
+			}
+		}
+		
 		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in CellGraph:init!");
 		assert(isValid());
+	}
+	
+	// kill a cell, and replace it with a single vertex at its centroid. 
+	// this needs to affect all its neighboring cells
+	public void destroyCell(Cell c) {
+		for (Cell n : c.neighbors()) {
+			Set<Vertex> nVerts = new HashSet<Vertex>();
+			for (Vertex v : n.vertices())
+				nVerts.add(v);
+			for (Vertex v : c.vertices())
+				nVerts.remove(v);
+			nVerts.add(new Vertex(c.centroid()[0], c.centroid()[1]));  // the new vertex at cell centroid
+			Vertex[] nVertsArray = new Vertex[nVerts.size()];
+			nVerts.toArray(nVertsArray);
+			int ind = n.index();
+			Cell toReplace = new Cell(n.centroidInt(), nVertsArray, this);
+			removeCell(n);  // remove the neighbor
+			if (toReplace.numV() >= MIN_CELL_VERTICES)
+				addCell(toReplace, ind);  // add the replacement neighbor
+		}
+		removeCell(c);
 	}
 	
 	
@@ -1467,6 +1499,8 @@ public class CellGraph implements java.io.Serializable {
 	private Cell cellAtPoint(double[] coord, Cell[] cells) {
 		if (coord[0] <= 0 || coord[0] > Ys || coord[1] <= 0 || coord[1] > Xs)
 			return null;
+		// there is potential for a speedup here with some kind of binary search at least
+		// along one coordinate, but that's ok for now; i already sped up c.containsPoint()
 		for (Cell c : cells) 
 			if (c.containsPoint(coord)) return c;
 		return null;

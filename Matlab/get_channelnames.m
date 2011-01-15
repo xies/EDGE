@@ -1,6 +1,7 @@
+% Gets the channel names from a directory (basically just folder names),
+% but ignores a folder named 'Membranes'
+
 function channelnames = get_channelnames(input_dir)
-% a quick function to get the channel names from a directory
-% (basically just folder names)
 
 channelnames = cell(0);
 files = dir(input_dir);  % get the channels from this data set

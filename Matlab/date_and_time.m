@@ -1,3 +1,5 @@
+% Outputs the date and time in a nice format to be printed to the screen.
+
 function out = date_and_time()
 
 x=clock;

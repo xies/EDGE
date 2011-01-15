@@ -5,9 +5,12 @@ function [clean cg] = semiauto_preprocess(handles, T, Z)
 %     return;
 % end
 
-% preprocess the given image in the semiautomatic image processing
+t = zeros(1,6);
 
+% preprocess the given image in the semiautomatic image processing
+tic
 cells = imread(handles.info.image_file(T, Z, handles.src.raw));
+t(1)=toc;
 % cells = cells(:,:,1); % in case it's a 3 channel image
 
 
@@ -24,18 +27,26 @@ lp = handles.info.bandpass_low / handles.info.microns_per_pixel;  % change to pi
 hp = handles.info.bandpass_high / handles.info.microns_per_pixel; % change to pixels
 th = handles.info.preprocessing_threshold;
 
+tic
 cellsi = get_membs_v3(cells, lp, hp, th);
+t(2)=toc;
 
 % change the minimum cell size from microns^2 to pixels^2
 minimum_cell_size = handles.info.minimum_cell_size / (handles.info.microns_per_pixel)^2;
 
+% tic
 % eliminate bad cells  
 [dirty clean] = eliminate_bad_cells(...
     cellsi, minimum_cell_size, handles.info.number_of_erosions);
+% t(3)=toc;
 
 % get the cell properties (centroids, vertices, etc.)
+tic
 [centroid_list regions] = find_centroids(clean);
+t(4)=toc;
+tic
 [vertex_list] = find_vertices(dirty);
+t(5)=toc;
 
 % the minimum distance between vertices before they get merged into one
 % VERTEX_MERGE_DIST_THRESH = 3.0; %pixel
@@ -52,6 +63,7 @@ VERTEX_MERGE_DIST_THRESH = handles.info.refine_min_edge_length / handles.info.mi
 VERTEX_MERGE_DIST_THRESH = -1; % pixels?!?
 % ok, now i give a negative one because we use 'branchpoints' to find
 % vertices in find_vertices.m
+% this should be adjustable!!
 
 
 
@@ -65,5 +77,7 @@ VERTEX_MIN_ANGLE_THRESH = degtorad(handles.info.refine_min_angle);
 VERTEX_MIN_ANGLE_THRESH = degtorad(15);
 
 % create the CellGraph object
+tic
 cg = CellGraph(regions, centroid_list, vertex_list, T, Z, ...
-    VERTEX_MERGE_DIST_THRESH, VERTEX_MIN_ANGLE_THRESH);
+    VERTEX_MERGE_DIST_THRESH, VERTEX_MIN_ANGLE_THRESH, minimum_cell_size);
+t(6)=toc;

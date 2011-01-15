@@ -23,7 +23,6 @@ units{8} = 'micron';
 
 data = num2cell(NaN(length(units), 1));
 
-
 %% optional: process only given cell
 
 % if c ~= 353;% 209 %353

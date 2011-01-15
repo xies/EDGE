@@ -1,3 +1,5 @@
+% Extract the current T and Z from handles.
+
 function [T Z] = getTZ(handles)
 T = str2double(get(handles.t_text,'String'));
 Z = str2double(get(handles.z_text,'String'));
@@ -17,6 +19,6 @@ end
 % images themselves, and are used with read_file
 
 % note: this means that, in this version, the true slider "value"
-% and what is being shown are different. this is because i slider
+% and what is being shown are different. this is because a slider
 % must always move UP as it moves RIGHT, but i don't always want this.
 % luckily the user only seeing the text box, so it works well like this.

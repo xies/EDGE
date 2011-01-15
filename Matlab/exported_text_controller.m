@@ -1,3 +1,5 @@
+% Controls the text in semiauto that says whether the data set is exported.
+
 function exported_text_controller(handles, val)
 
 switch val

@@ -1,3 +1,6 @@
+% The main file for the semiauto GUI. The other part of the interface is
+% EDGE.m.
+
 function varargout = semiauto(varargin)
     % SEMIAUTO M-file for semiauto.fig
     %      SEMIAUTO, by itself, creates a new SEMIAUTO or raises the existing
@@ -353,7 +356,7 @@ function mouseFunction(hObject,evnt)
         if isempty(newCell) % clicked outside the polygons
             return;
         end
-
+        
         addCell = 1;
         % if you click on the same cell it unselects
         if ~isempty(handles.activeCell)
@@ -1279,6 +1282,7 @@ function button_export_Callback(hObject, eventdata, handles)
             CHAN_fun.Processed = @(t, z) double(imread(handles.info.image_file(t, z, handles.src.bord)));
             
             try
+                %preliminary call to get things like the size of data
                 [data names units] = feval(measurementnames{j}, handles.embryo, ...
                     IMG_fun, handles.info.master_time, handles.info.master_layer, 1,  handles.info.microns_per_pixel, ...
                     handles.info.microns_per_z_step, handles.info.seconds_per_frame, CHAN_fun); 

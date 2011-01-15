@@ -1,3 +1,6 @@
+% Used for changing data sets in EDGE. Only does tasks specific to EDGE,
+% i.e., those that don't apply in semiauto such as 3D renderings.
+
 function handles = clear_data_set_maingui(handles, data_set)
 
 set(handles.text_readyproc, 'Visible', 'on');

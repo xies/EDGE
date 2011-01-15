@@ -1,6 +1,10 @@
+% Finds the specific measurement files for a given data set. 
+% Looks in the folder measure_path, and looks for the specified channels.
+% Returns measures, and array of all measurement function names, and
+% measurementchannels, an array of the same size that gives the
+% corresponding channel for each of the measurement names. 
+
 function [measurechannels measures] = get_measurement_file_names_specific_ch(measure_path, channels)
-% finds the folder names of all the measurements that apply to the current
-% data set
 
 current_dir = pwd;
 
