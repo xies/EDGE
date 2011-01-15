@@ -83,7 +83,7 @@ public class Embryo4D implements java.io.Serializable {
 			for (int z = 0; z < z(); z++) {
 				cellGraphs[t][z] = oldEmbryo.getCellGraph(unTranslateT(t), unTranslateZ(z)); // null if non-existent
 				if (cellGraphs[t][z] != null)
-					cellGraphs[t][z].setParent(this);
+					cellGraphs[t][z].parent = this;
 			}
 		}
 		
@@ -118,15 +118,20 @@ public class Embryo4D implements java.io.Serializable {
 	/** Add a CellGraph at (T, Z), 
 	* overwriting any existing CellGraph at that point */
 	public void addCellGraph(CellGraph cg, int T, int Z) {
+		boolean wasFull = isFull();
+		
 		int t = translateT(T);
 		int z = translateZ(Z);
 		cellGraphs[t][z] = cg;
-		cg.setParent(this);
+		cg.parent = this;
 		changed = true;
 		
-		if (isFull())  // this is slow and not always needed. right??
-			// wouldn't it be better to just track all the cells in this image?
-			trackAllCells();
+		if (wasFull) retrackAllCells(T, Z);
+		else if (isFull()) trackAllCells();
+		else ; // still not full, do nothing
+		
+//		if (isFull())  // this is slow and not always needed. right??
+//			trackAllCells();
 	}
 
 	/** Remove a CellGraph at (T, Z). */
@@ -486,6 +491,16 @@ public class Embryo4D implements java.io.Serializable {
 //		assert(isValid());
 //	}
 
+	/** Re-track all cells at a given (t, z). Different from trackAllCells, should be faster!
+	 * Assumes that the cells at this (t, z) are all inactive at the start. */
+	public void retrackAllCells(int T, int Z) {
+		if (T == masterTime && Z == masterLayer) trackAllCells();  // special case for master image
+		
+		// We only need to do part of trackAllCells()
+		for (Cell c : getCellGraph(T, Z).cells())
+			modifyCell(c, T, Z);
+	}
+	
 	/** Track all the cells in the embryo; perform a full tracking from scratch. */
 	public void trackAllCells() {
 		int reft = translateT(masterTime);
@@ -534,7 +549,37 @@ public class Embryo4D implements java.io.Serializable {
 		assert(isValid());
 	}
 
-	
+//	// used for retrackAllCells, when a single image is processed
+//	// this is just for speed
+//	// calls retrackCell
+//	private void retrackCellInactive(int c, int t, int z) {
+//		if (!isTracked()) return;
+//		int reft  = translateT(masterTime);
+//		int refz = translateZ(masterLayer);
+//				
+//		if (z == refz) {
+//			if (t == reft) {  // z = master layer, t = master time
+//				// need to retrack the whole thing
+////				retrackCell(c, t, z);
+//				// this should never happen...
+//			}
+//			else { // z = master layer,  t != master time
+//				// would like to get the backtrack location... but do master time for now even though slower
+//				Cell temp = backtrackCell(cellGraphs[t][z].getCell(c), t, z, true);
+//				// this is still not perfect... if you are at layer z=1 and backtrack to master
+//				// layer, it will do the whole master cell retrack, which is more than you need
+//				// ok, i can think about this later, it's a small detail
+//				if (temp != null)
+//					retrackCell(temp.index(), temp.t(), temp.z());
+//			}
+//		}
+//		else {  // z != master layer
+//			Cell temp = backtrackCell(cellGraphs[t][z].getCell(c), t, z, true);
+//			if (temp != null)
+//				retrackCell(temp.index(), temp.t(), temp.z());
+////			retrackCell(backtrack(cellGraphs[t][z].getCell(c), t, z, true), t, refz);
+//		}
+//	}
 	
 
 	// call this function if you modify the cell c at t, z (t and z already translated)
@@ -563,7 +608,7 @@ public class Embryo4D implements java.io.Serializable {
 			// in case they won't get tracked this time. note that this function does not deactivate
 			// at the current depth z itself, it just prepares the others for tracking
 			deactivateSingleCellZ(c, t, refz, Misc.sign(z - refz));
-			// note this does not deactiviate the master_layer itself, which is good!
+			// note this does not deactiviate the master_layer, which is good!
 			
 		
 			// use signum so that if z > master_layer you track upwards, if z < master_layer you track downwards
@@ -923,16 +968,15 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	// this is the 1:1 stuff that makes it all WORK (actually... don't need this property.. ha. 16/03/10)
 	private boolean isCellMatch (Cell cTrack, Cell cMatchCandidate, 
 			double area_change_max, double centroid_dist_max) {
-		
+			
 		// STEP 0: Translate the Cell by the predicted amount, and then use the new translated cell
 		// for all the below tests. 
 		cMatchCandidate = predictLocation(cTrack, cMatchCandidate);
-		
-		
+			
 		// STEP 1: Centroid distance cannot be bigger than CENTROID_DIST_MAX
 		if (Misc.distance(cTrack.centroid(), cMatchCandidate.centroid()) 
 				> centroid_dist_max) return false;
-		
+				
 		// STEP 2: Fractional area change cannot be bigger than AREA_CHANGE_MAX
 //		double areaAverage = (cMatchCandidate.area() + cTrack.area()) / 2.0;
 //		double areaRatio = Math.abs(cMatchCandidate.area() - cTrack.area()) / areaAverage;
@@ -947,7 +991,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		// extra that doesnt exist in cTrack, and then nothing bad happens. to avoid this we use the max area,
 		// since the max possible overlap area is that of the max area (i.e. when the two areas are equal and 
 		// completely overlapping)
-		
+				
 		// STEP 3: the two cells must contain each other's centroids
 		if (!cMatchCandidate.containsPoint(cTrack.centroid())) return false;
 		if (!cTrack.containsPoint(cMatchCandidate.centroid())) return false;
@@ -956,8 +1000,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		// actually, there IS a reason to check both. if we are CHECKING the tracking (as 
 		// opposed to doing it, then we want to check both of these conditions!!)
 		// yeah.. so I dropped the 1:1 thing... but anyway... (16/03/10)  (really? where is it dropped? 14/01/11)
-		
-		
+				
 		// NEW: Jan 2011
 		// try something drastic. if any of the neighbors of either cell can correspond with the other cell
 		// then consider it an error
@@ -977,7 +1020,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 				return false;
 		}
 		//////
-		
+
 		return true;
 	}
 	private double overlapScore(Cell a, Cell b) {
@@ -1002,19 +1045,19 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		
 		// get the centroids of all the cells from the master to this one
 		double[][] centroids; double[] ztVals; double ztDelta;
-		if (c.z() != masterLayer) {   // in this case we want a spatial stack
-			centroids = Cell.centroidStack(getCellStack(cTrack.index(), cMatchCandidate.t(), masterLayer, c.z()));
+		if (c.Z() != masterLayer) {   // in this case we want a spatial stack
+			centroids = Cell.centroidStack(getCellStack(cTrack.index(), cMatchCandidate.T(), masterLayer, c.Z()));
 			ztVals = new double[centroids.length];
 //			for (int i = 0; i < translateZ(c.z()); i++) ztVals[i] = i;
 			for (int i = 0; i < ztVals.length; i++) ztVals[i] = i;
-			ztDelta = cMatchCandidate.z() - cTrack.z();
+			ztDelta = cMatchCandidate.Z() - cTrack.Z();
 		}
 		else {  // at masterLayer
-			centroids = Cell.centroidStack(getCellStackTemporal(cTrack.index(), cMatchCandidate.z(), masterTime, c.t()));
+			centroids = Cell.centroidStack(getCellStackTemporal(cTrack.index(), cMatchCandidate.Z(), masterTime, c.T()));
 			ztVals = new double[centroids.length];
 //			System.out.println(ztVals.length + " " + c.t() + " " + translateT(c.t()));
 			for (int i = 0; i < ztVals.length; i++) ztVals[i] = i;
-			ztDelta = cMatchCandidate.t() - cTrack.t();
+			ztDelta = cMatchCandidate.T() - cTrack.T();
 		}
 		
 		// find the number of non-NaN points, use only MAX_PTS of them starting from the end
