@@ -36,11 +36,11 @@ public class CellGraph implements java.io.Serializable {
 	public final int Xs;
 	
 	/** The time coordinate of this CellGraph as specified by the raw images filenames */
-	public final int t;
+	public final int t;  // should be "T" but can't because of compatability with serialized material
 	/** The depth coordinate of this CellGraph as specified by the raw images filenames */
-	public final int z;
+	public final int z;  // should be "Z" but can't because of compatability with serialized material
 	
-	private Embryo4D parent;
+	public Embryo4D parent;
 	
 	/** Make an <i>untracked</i> copy of an existing CellGraph */
 	public CellGraph(CellGraph toCopy) {
@@ -93,7 +93,7 @@ public class CellGraph implements java.io.Serializable {
 		}
 	}
 	
-	public CellGraph(int[][] regions, int[][] centlist, int[][] vertlist, int t, int z, 
+	public CellGraph(int[][] regions, int[][] centlist, int[][] vertlist, int T, int Z, 
 			double vertex_merge_dist_thresh, double vertex_min_angle, double min_cell_size) {		
 		// assumes for regions: borders are -1, background is 0, cells are 1, 2, 3, ...
 		// assumes for centlist/vertlist: two columns of coordinates, not two rows
@@ -101,8 +101,8 @@ public class CellGraph implements java.io.Serializable {
 		Ys = regions.length;
 		Xs = regions[0].length;
 		
-		this.t = t;
-		this.z = z;
+		this.t = T;
+		this.z = Z;
 		
 		parent = null;
 		
@@ -315,11 +315,6 @@ public class CellGraph implements java.io.Serializable {
 				addCell(toReplace, ind);  // add the replacement neighbor
 		}
 		removeCell(c);
-	}
-	
-	
-	public void setParent(Embryo4D parent) {
-		this.parent = parent;
 	}
 	
 	// returns the Cells

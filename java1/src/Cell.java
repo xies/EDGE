@@ -155,8 +155,10 @@ public class Cell implements java.io.Serializable {
 		index = i;
 	}
 	
-	public int t() { return parent.t; }
-	public int z() { return parent.z; }
+	public int T() { return parent.t; }
+	public int Z() { return parent.z; }
+	public int t() { return parent.parent.translateT(parent.t); }
+	public int z() { return parent.parent.translateZ(parent.z); }
 	
 	/*	
 	// cyclically shift the order of the Vertices to match other cells
