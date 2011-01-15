@@ -412,9 +412,8 @@ public class Cell implements java.io.Serializable {
 //		return true;
 //	}
 	
-	// returns [minY maxY minX maxX]
-	// this is for speedup purposes only
-	public double[] boundingBox() {
+	/** Returns the bounding box around this cell in the format [minY maxY minX maxX]. */
+	public double[] boundingBox() {  
 		double[] out = new double[4];
 		out[0] = Double.MAX_VALUE;
 		out[1] = Double.MIN_VALUE;
@@ -429,7 +428,7 @@ public class Cell implements java.io.Serializable {
 		return out;
 	}
 	
-	// computes the overlapping area between this and that Cell
+	/** Computes the overlapping area between this and that Cell. */
 	public double overlapArea(Cell that) {
 //		Polygon p1 = this.getPolygon();
 //		Polygon p2 = that.getPolygon();
@@ -441,6 +440,7 @@ public class Cell implements java.io.Serializable {
 		if (that == null) return Double.NaN;
 		return PolygonIntersect.intersectionArea(this.vertexCoords(), that.vertexCoords());
 	}
+	
 	/** Is the point input inside of this cell? */
 	public boolean containsPoint(double y, double x) {
 		// upgrade for speed: if outside bounding box, then false
@@ -472,6 +472,21 @@ public class Cell implements java.io.Serializable {
 		}
 		Polygon p = new Polygon(x, y, numV());
 		return p;
+	}
+	
+	/** Is this cell on the boundary of the image? */
+	// If it has a vertex that no other cell shares, it is on the boundary
+	public boolean isBoundary() {
+		for (Vertex v : vertices)
+			if (parent.cellsNeighboringVertex(v).length <= 1) return true;
+		return false;
+	}
+	
+	/** Does this (presumably active) cell touch an inactive cell? */
+	public boolean touchesInactive() {
+		for (Cell c : neighbors())
+			if (!c.isActive()) return true;
+		return false;
 	}
 	
 	/** Does this Cell contain the Vertex input? */

@@ -1329,12 +1329,15 @@ public class CellGraph implements java.io.Serializable {
 	}
 
 	// returns cellsNeighboringVertex(v).length for each Vertex
-	public int[] numOfCellsNeighboringVertex() {
-		Vertex[] input = vertices();
+	public int[] numOfCellsNeighboringVertex(Cell[] cells) {
+		Vertex[] input = vertices(cells);
 		int[] ret = new int[input.length];
 		for (int i = 0; i < input.length; i++) 
 			ret[i] = cellsNeighboringVertex(input[i]).length;
 		return ret;
+	}
+	public int[] numOfCellsNeighboringVertex() {
+		return numOfCellsNeighboringVertex(cells());
 	}
 	
 	// are these two cells connected?

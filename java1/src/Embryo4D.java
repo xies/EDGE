@@ -549,74 +549,62 @@ public class Embryo4D implements java.io.Serializable {
 		assert(isValid());
 	}
 
-//	// used for retrackAllCells, when a single image is processed
-//	// this is just for speed
-//	// calls retrackCell
-//	private void retrackCellInactive(int c, int t, int z) {
-//		if (!isTracked()) return;
-//		int reft  = translateT(masterTime);
-//		int refz = translateZ(masterLayer);
-//				
-//		if (z == refz) {
-//			if (t == reft) {  // z = master layer, t = master time
-//				// need to retrack the whole thing
-////				retrackCell(c, t, z);
-//				// this should never happen...
-//			}
-//			else { // z = master layer,  t != master time
-//				// would like to get the backtrack location... but do master time for now even though slower
-//				Cell temp = backtrackCell(cellGraphs[t][z].getCell(c), t, z, true);
-//				// this is still not perfect... if you are at layer z=1 and backtrack to master
-//				// layer, it will do the whole master cell retrack, which is more than you need
-//				// ok, i can think about this later, it's a small detail
-//				if (temp != null)
-//					retrackCell(temp.index(), temp.t(), temp.z());
-//			}
-//		}
-//		else {  // z != master layer
-//			Cell temp = backtrackCell(cellGraphs[t][z].getCell(c), t, z, true);
-//			if (temp != null)
-//				retrackCell(temp.index(), temp.t(), temp.z());
-////			retrackCell(backtrack(cellGraphs[t][z].getCell(c), t, z, true), t, refz);
-//		}
-//	}
 	
-
+	
 	// call this function if you modify the cell c at t, z (t and z already translated)
 	// in necessary, retrack the cell
-	private void retrackCell(int c, int t, int z) {
+	private void retrackCell(int i, int t, int z) {
 		if (!isTracked()) return;
-
 		int reft  = translateT(masterTime);
 		int refz = translateZ(masterLayer);
-				
+		
+		// there are two different strategies, depending on whether or not the cell is active
+		// if it's active, you re-track starting from that exact point
+		
+		// if it's not active, you backtrack to find the last cell, and then start re-tracking from there
+		// note though that in this case the cell that's changed and the cell you start tracking from
+		// are different. so if for example refz = 10 and this cell is at z=11, then you backtrack to
+		// z = 10. THEN using the naive active retrack mechanism you will also redo the temporal tracking
+		// all along starting from that cell. but that's not needed because the cell at the master layer
+		// was not changed.
+		
+//		// if the cell is inactive...
+//		if (!cellGraphs[t][z].isActive(i)) {
+//			int newInd = backtrack(i, t, z, true);
+//			if (newInd != 0) {
+//				cellGraphs[t][z].changeIndex(c, newInd);
+//				retrackCell(newInd, t, z);
+//			}
+
+		
+		
 		if (z == refz) {
 			if (t == reft) {  // z = master layer, t = master time
 				// need to retrack the whole thing
-				deactivateSingleCellTZ(c);
-				trackSingleCellTZ(c);
+				deactivateSingleCellTZ(i);
+				trackSingleCellTZ(i);
 			}
 			else { // z = master layer,  t != master time
-				deactivateSingleCellZ(c, t);
-				deactivateSingleCellTZ(c, reft, Misc.sign(t - reft)); // for other times in that direction
-				trackSingleCellZ(c, t);
-				trackSingleCellTZ(c, reft, Misc.sign(t - reft));
+				deactivateSingleCellZ(i, t);
+				deactivateSingleCellTZ(i, reft, Misc.sign(t - reft)); // for other times in that direction
+				trackSingleCellZ(i, t);
+				trackSingleCellTZ(i, reft, Misc.sign(t - reft));
 			}
 		}
 		else {  // z != master layer
 			// first, need to deactivate all cells in the direction you're tracking
 			// in case they won't get tracked this time. note that this function does not deactivate
 			// at the current depth z itself, it just prepares the others for tracking
-			deactivateSingleCellZ(c, t, refz, Misc.sign(z - refz));
+			deactivateSingleCellZ(i, t, refz, Misc.sign(z - refz));
 			// note this does not deactiviate the master_layer, which is good!
 			
 		
-			// use signum so that if z > master_layer you track upwards, if z < master_layer you track downwards
+			// use Misc.sign so that if z > master_layer you track upwards, if z < master_layer you track downwards
 			// for the 3rd argument, one might be tempted to save a bit more time and start from z instead
 			// of master_layer (why re-track everything lower?). actually you'd need to start from 
 			// something like z-layersToLookBackZ (or master_layer if you go past it when subtracked layers_to_look_backZ)
 			// and I don't want to worry about that right now
-			trackSingleCellZ(c, t, refz, Misc.sign(z - refz));
+			trackSingleCellZ(i, t, refz, Misc.sign(z - refz));
 		}
 		
 		if (DEBUG_MODE && !isValid()) System.err.println("Error in Embryo4D:retrackCell!");
@@ -766,7 +754,8 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 				numCells--;
 			}
 			else {	
-				int oldInd = c.index();
+				int oldInd = c.index();  // could speed this up by doing backtrack, right?
+				// don't need to retrack the entire cell.... no but it's just that (t, z). hmm..!
 				cellGraphs[t][z].removeCell(c);
 				retrackCell(oldInd, t, z);
 			}
@@ -784,7 +773,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		int z = translateZ(Z);
 		
 		if (isTracked()) {
-			if (CellGraph.isActive(c))
+			if (c.isActive())
 				retrackCell(c.index(), t, z);
 			else {  // if inactive
 				int newInd = backtrack(c, t, z, true);
