@@ -78,6 +78,9 @@ handles.activeCell = [];
 handles.activeVertex = [];
 handles.activeAdjustment = [];
 
+% this is for automatically error correct *some* images-- small detail
+handles.some_auto_range = [];
+
 % initialize the vec buttons
 handles = semiauto_change_image_callbacks(handles);
 

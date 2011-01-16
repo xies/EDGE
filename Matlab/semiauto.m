@@ -26,7 +26,7 @@ function varargout = semiauto(varargin)
 
     % Edit the above text to modify the response to help semiauto
 
-    % Last Modified by GUIDE v2.5 12-Jan-2011 23:22:06
+    % Last Modified by GUIDE v2.5 15-Jan-2011 21:13:49
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -466,40 +466,7 @@ function button_applythis_Callback(hObject, eventdata, handles) %#ok<*DEFNU>
     
 
 function button_applysome_Callback(hObject, eventdata, handles)
-    prompt = {'Enter Z-range (e.g., 5-10):', ...
-            'Enter T-range (e.g., 0):'};
-    dlg_title = 'Input which images to process';
-    num_lines = 2;
-    defaultanswer = {'',''};
-%     options.Resize='on';
-    options.WindowStyle='normal';
-%         options.Interpreter='tex';
-    answer = inputdlg(prompt, dlg_title, num_lines, defaultanswer, options);
-
-    if isempty(answer) || isempty(answer{1})
-        return;
-    end;
-
-    z_do   = answer{1}(1,:);        
-    if size(answer{1}, 1) == 2
-        z_skip = answer{1}(2,:);
-    else
-        z_skip = [];
-    end
-
-    t_do   = answer{2}(1,:);
-    if size(answer{2}, 1) == 2
-        t_skip = answer{2}(2,:);
-    else
-        t_skip = [];
-    end
-
-    z_do_range   = parse_range(z_do);
-    z_skip_range = parse_range(z_skip);
-    t_do_range   = parse_range(t_do);
-    t_skip_range = parse_range(t_skip);
-    
-    
+    q = query_for_image_subset(); 
 
     % if some images are already processed, then ask about overwriting
     if ~handles.embryo.isEmpty
@@ -521,17 +488,17 @@ function button_applysome_Callback(hObject, eventdata, handles)
     handles.activeCell = [];
     readyproc(handles, 'proc_all');  
     badimages = '';
-    for time_i = t_do_range(1):t_do_range(2)
+    for time_i = q.t_do_range(1):q.t_do_range(2)
         % in case they specify to skip anything
-        if time_i >= t_skip_range(1) && time_i <= t_skip_range(2)
+        if time_i >= q.t_skip_range(1) && time_i <= q.t_skip_range(2)
             continue;
         end
         
-        for layer_i = z_do_range(1):z_do_range(2)
+        for layer_i = q.z_do_range(1):q.z_do_range(2)
             % in case they specify to skip anything
-            if layer_i >= z_skip_range(1) && layer_i <= z_skip_range(2)
+            if layer_i >= q.z_skip_range(1) && layer_i <= q.z_skip_range(2)
                 continue;
-           end            
+            end            
 
             % skip those that are already processed if the user
             % specified this
@@ -2301,6 +2268,29 @@ function button_set_master_image_Callback(hObject, eventdata, handles)
     
     
 
+function vec_puncture_cell_Callback(hObject, eventdata, handles)
+    if isempty(handles.activeCell)
+        msgbox('You must select at least one cell for puncturing.',...
+            'Cell puncture failed', 'error');
+        return;
+    end    
+    if length(handles.activeCell) > 1
+        msgbox('You can only puncture one cell at a time.',...
+            'Cell puncture failed', 'error');
+        return;
+    end    
+    [T Z] = getTZ(handles);
+    CellObj = handles.embryo.getCell(handles.activeCell, T, Z);
+    
+    % delete the cells
+    handles.embryo.getCellGraph(T, Z).destroyCell(CellObj);
+  
+    % no longer active
+    handles.activeCell = [];
+    
+    handles = slider_callbacks_draw_image_slice(handles);
+    guidata(hObject, handles);
+
 function vec_remove_cell_Callback(hObject, eventdata, handles)
     if isempty(handles.activeCell)
         msgbox('You must select at least one cell for delete.',...
@@ -2317,7 +2307,6 @@ function vec_remove_cell_Callback(hObject, eventdata, handles)
     cellArray = handles.embryo.getCells(handles.activeCell, T, Z);
     
     % delete the cells
-    [T Z] = getTZ(handles);
     handles.embryo.getCellGraph(T, Z).removeCells(cellArray);
   
     % no longer active
@@ -2398,13 +2387,19 @@ function vec_remove_edge_Callback(hObject, eventdata, handles)
         handles.embryo.autoRemoveEdges(T, Z);
         
         readyproc(handles, 'ready');
-
-    elseif get(handles.radiobutton_vec_auto_allimg, 'Value')
+        
+    elseif get(handles.radiobutton_vec_auto_allimg, 'Value') || get(handles.radiobutton_vec_auto_someimg, 'Value')
         readyproc(handles, 'proc_all');
 
-        for time_i = time_array;%handles.info.start_time:handles.info.end_time
+        for time_i = handles.time_array;%handles.info.start_time:handles.info.end_time
             set(handles.text_processing_time,  'String', num2str(time_i));
-            for layer_i = layer_array;%handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+            for layer_i = handles.layer_array;%handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer                
+                if get(handles.radiobutton_vec_auto_someimg, 'Value')
+                    if query_for_image_subset_skip(handles.some_auto_range, time_i, layer_i)
+                        continue;
+                    end
+                end
+                
                 set(handles.text_processing_layer, 'String', num2str(layer_i));
                 drawnow;
                 
@@ -2496,12 +2491,18 @@ function vec_add_edge_Callback(hObject, eventdata, handles)
         
         readyproc(handles, 'ready');
 
-    elseif get(handles.radiobutton_vec_auto_allimg, 'Value')
+    elseif get(handles.radiobutton_vec_auto_someimg, 'Value') || get(handles.radiobutton_vec_auto_allimg, 'Value')
         readyproc(handles, 'proc_all');
 
-        for time_i = time_array;%handles.info.start_time:handles.info.end_time
+        for time_i = handles.time_array;%handles.info.start_time:handles.info.end_time
             set(handles.text_processing_time,  'String', num2str(time_i));
-            for layer_i = layer_array;%handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+            for layer_i = handles.layer_array;%handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+                if get(handles.radiobutton_vec_auto_someimg, 'Value')
+                    if query_for_image_subset_skip(handles.some_auto_range, time_i, layer_i)
+                        continue;
+                    end
+                end
+                
                 set(handles.text_processing_layer, 'String', num2str(layer_i));
                 drawnow;
                 
@@ -2603,7 +2604,18 @@ function vec_unselect_all_Callback(hObject, eventdata, handles)
 
 function vec_select_auto_change(hObject, eventdata)
     handles = guidata(hObject);
+    
+    if get(handles.radiobutton_vec_auto_someimg, 'Value')
+        handles.some_auto_range = query_for_image_subset;
+        if isempty(handles.some_auto_range)
+            set(handles.radiobutton_vec_manual, 'Value', 1);
+        end
+    end
+    
     semiauto_set_vec_enabling(handles);
+    guidata(hObject, handles);
+
+   
     
 % function vec_add_vertex_Callback(hObject, eventdata, handles)
 %     handles.activeAdjustment = 'add_vertex';
@@ -2664,7 +2676,7 @@ function vec_split_edge_Callback(hObject, eventdata, handles)
             readyproc(handles, 'ready');
 
         
-    elseif get(handles.radiobutton_vec_auto_allimg, 'Value')
+    elseif get(handles.radiobutton_vec_auto_someimg, 'Value') || get(handles.radiobutton_vec_auto_allimg, 'Value')
 %        % allows you to applyall for multiple data sets at once
 %         datanames = get_folder_names(fullfile('..', 'DATA_GUI'));
 %         default_val = find(strcmp(datanames, handles.data_set));
@@ -2685,12 +2697,18 @@ function vec_split_edge_Callback(hObject, eventdata, handles)
 %                 handles = clear_data_set_semiauto(handles, datanames{selection(i)});
 %             end
 
-            for time_i = time_array;%handles.info.start_time:handles.info.end_time
+            for time_i = handles.time_array;%handles.info.start_time:handles.info.end_time
                 set(handles.text_processing_time,  'String', num2str(time_i));
-                for layer_i = layer_array;%handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+                for layer_i = handles.layer_array;%handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
                     set(handles.text_processing_layer, 'String', num2str(layer_i));
                     drawnow;
 
+                    if get(handles.radiobutton_vec_auto_someimg, 'Value')
+                        if query_for_image_subset_skip(handles.some_auto_range, time_i, layer_i)
+                            continue;
+                        end
+                    end
+                    
                     if get(handles.radiobutton_stop, 'Value')
                         set(handles.radiobutton_stop, 'Value', 0);
                         readyproc(handles, 'ready');
@@ -2873,7 +2891,7 @@ function vec_activate_cell_Callback(hObject, eventdata, handles)
         handles = slider_callbacks_draw_image_slice(handles);
 
         readyproc(handles, 'ready');
-    elseif get(handles.radiobutton_vec_auto_allimg, 'Value')
+    elseif get(handles.radiobutton_vec_auto_someimg, 'Value') || get(handles.radiobutton_vec_auto_allimg, 'Value')
 %        % allows you to applyall for multiple data sets at once
 %         datanames = get_folder_names(fullfile('..', 'DATA_GUI'));
 %         default_val = find(strcmp(datanames, handles.data_set));
@@ -2895,9 +2913,9 @@ function vec_activate_cell_Callback(hObject, eventdata, handles)
 %             end
 
             readyproc(handles, 'proc_all');
-            for time_i = time_array%handles.info.start_time:handles.info.end_time
+            for time_i = handles.time_array%handles.info.start_time:handles.info.end_time
                 set(handles.text_processing_time,  'String', num2str(time_i));
-                for layer_i = layer_array%handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+                for layer_i = handles.layer_array%handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
                     set(handles.text_processing_layer, 'String', num2str(layer_i));
                     drawnow;
                          
@@ -2905,6 +2923,13 @@ function vec_activate_cell_Callback(hObject, eventdata, handles)
                     if time_i == handles.info.master_time && layer_i == handles.info.master_layer
                         continue;
                     end
+                    
+                    if get(handles.radiobutton_vec_auto_someimg, 'Value')
+                        if query_for_image_subset_skip(handles.some_auto_range, time_i, layer_i)
+                            continue;
+                        end
+                    end
+                    
 
                     if get(handles.radiobutton_stop, 'Value')
                         set(handles.radiobutton_stop, 'Value', 0);
@@ -2976,3 +3001,5 @@ end
 
 
 function DUMMY_Callback(hObject, eventdata, handles)
+
+

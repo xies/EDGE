@@ -35,6 +35,7 @@ else
     set(handles.vec_remove_cell, 'Enable', 'off');
     set(handles.vec_move_vertex, 'Enable', 'off');
     set(handles.vec_remove_vertex, 'Enable', 'off');
+    set(handles.vec_puncture_cell, 'Enable', 'off');
     
     set(handles.vec_activate_cell, 'Enable', 'on');
     set(handles.vec_activate_cell, 'String', 'R+S+A edge');
