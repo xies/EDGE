@@ -304,32 +304,34 @@ public class CellGraph implements java.io.Serializable {
 	// kill a cell, and replace it with a single vertex at its centroid. 
 	// this needs to affect all its neighboring cells
 	public void destroyCell(Cell c) {
+		Vertex newVert = new Vertex(c.centroid()[0], c.centroid()[1]);
 		for (Cell n : c.neighbors()) {
 			Set<Vertex> nVerts = new HashSet<Vertex>();
 			for (Vertex v : n.vertices())
 				nVerts.add(v);
 			for (Vertex v : c.vertices())
 				nVerts.remove(v);
-			nVerts.add(new Vertex(c.centroid()[0], c.centroid()[1]));  // the new vertex at cell centroid
+			nVerts.add(newVert);  // the new vertex at cell centroid
 			Vertex[] nVertsArray = new Vertex[nVerts.size()];
 			nVerts.toArray(nVertsArray);
-//			int ind = n.index();
+			int ind = n.index();
 			Cell toReplace = new Cell(n.centroidInt(), nVertsArray, this);
 			if (parent == null)
 				removeCell(n);
 			else
 				parent.removeCell(n, t, z);  // remove the neighbor
 			if (toReplace.numV() >= MIN_CELL_VERTICES) {
-				if (parent==null)
-					addCellInactive(toReplace); // alternatively, addCell(toReplace, ind);
+				if (parent == null)
+					addCell(toReplace, ind);
 				else
 					parent.addCell(toReplace, t, z);  // add the replacement neighbor
 			}
 		}
 		if (parent == null)
 			removeCell(c);
-		else
+		else 
 			parent.removeCell(c, t, z);
+		
 	}
 	
 	// returns the Cells
@@ -1067,23 +1069,16 @@ public class CellGraph implements java.io.Serializable {
 	}
 	
 	// split the edge between v and w to include another edge at coord
+	// returns the new vertex
 	public Vertex splitEdge(Vertex v, Vertex w, double[] coord) {
 		if (!connected(v, w)) return null;
 		
 		Vertex newVert = new Vertex(coord[0], coord[1]);
 		
-		// find the two cells (at most 2) associated with this edge
-		Cell c = null; 
-		Cell d = null;
-		for (Cell can : cells()) {
-			if (can.containsVertex(v) && can.containsVertex(w)) {
-				if (c == null)
-					c = can;
-				else
-					d = can;
-			}
-		}
-		
+		Cell[] out = cellsNeighboringEdge(v, w);
+		Cell c = out[0];
+		Cell d = out[1];
+
 		c.splitEdge(v, w, newVert);
 		parent.modifyCell(c, t, z);
 		if (d != null) {
@@ -1091,7 +1086,7 @@ public class CellGraph implements java.io.Serializable {
 			parent.modifyCell(d, t, z);
 		}
 		
-		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in CellGraph:splitEdge!");
+		if (Embryo4D.DEBUG_MODE && !isValid()) System.err.println("Error in CellGraph:splitEdge! at (t,z)=("+ t+","+z+").");
 		assert(isValid());
 		return newVert;
 	}
@@ -1125,6 +1120,7 @@ public class CellGraph implements java.io.Serializable {
 	// relax and edge by finding a pseudo-optimal vertex position for splitting the edge
 	// we must create an angle on the interval [minAngle maxAngle]. the minimum prevents unrealistic
 	// sharp corners, the maximum prevents the addition of vertices that don't capture any new curvature
+	// new Jan 2011: don't do this if it makes an active cell inactive!
 	private boolean refineEdge(Vertex v, Vertex w, boolean[][] bords, double maxAngle, double minAngle, double minEdgeLength) {
 		double[] cV = v.coords();
 		double[] cW = w.coords();
@@ -1166,29 +1162,44 @@ public class CellGraph implements java.io.Serializable {
 //			if (angle > maxAngle)
 //				continue;
 			
-			if (withinOne(r1, bords)) {
+			
+			double[] r = null;
+			if (withinOne(r1, bords)) r = r1;
+			if (withinOne(r2, bords)) r = r2; // if both ok, pick the second one arbitrarily
+			
+			if (r != null) {
 //			if (bords[(int)Math.round(r1[0])-1][(int)Math.round(r1[1])-1]) {
 //				if ((Misc.distance(r1, cV) + Misc.distance(r1, cW) - edgeLength >= distThresh) &&
-				 if (Misc.distance(r1, cV) >= minEdgeLength && Misc.distance(r1, cW) >= minEdgeLength &&
+				 if (Misc.distance(r, cV) >= minEdgeLength && Misc.distance(r, cW) >= minEdgeLength &&
 						 angle < maxAngle) {
-					splitEdge(v, w, r1);
+
+					// do not perform if it inactivates a cell
+					Cell[] cd = cellsNeighboringEdge(v, w);
+					Cell c = cd[0]; Cell d = cd[1];
+					boolean cWasActive = c.isActive();
+					boolean dWasActive = d==null?false:d.isActive();
+					//
+					
+					Vertex newVert = splitEdge(v, w, r);
+
+					// do not perform if it inactivates a cell 
+					if ((cWasActive && !c.isActive()) || (dWasActive && !d.isActive())) { 
+						// on the line above, dont need to check if d is null because of short-circuiting
+						Vertex[] toRemove = new Vertex[1]; 
+						toRemove[0] = newVert;
+						removeVertices(toRemove);
+						return false;
+					}
+					//
+					
+					
 					return true;
 				}
 				else return false; // if one point doesn't pass the test, the other can't try
 				 // for example, if nearest border has angle too big, then it shouldn't try
 				 // the next very far away borders, the causes problems
 			}
-						
-			if (withinOne(r2, bords)) {
-//			if (bords[(int)Math.round(r2[0])-1][(int)Math.round(r2[1])-1]) {
-//				if ((Misc.distance(r2, cV) + Misc.distance(r2, cW) - edgeLength >= distThresh) &&
-				if (Misc.distance(r2, cV) >= minEdgeLength && Misc.distance(r2, cW) >= minEdgeLength && 
-						angle < maxAngle) {
-					splitEdge(v, w, r2);
-					return true;
-				}
-				else return false;
-			}
+
 			
 		}
 		return false;
@@ -1333,6 +1344,24 @@ public class CellGraph implements java.io.Serializable {
 		return neighbors;
 	}
 	
+	// find the Cells (at most 2) touching this edge (2 vertices)
+	public Cell[] cellsNeighboringEdge(Vertex v, Vertex w) {
+		// find the two cells (at most 2) associated with this edge
+		Cell[] out = new Cell[2];
+		Cell c = null;
+		Cell d = null;
+		for (Cell can : cells()) {
+			if (can.containsVertex(v) && can.containsVertex(w)) {
+				if (c == null)
+					c = can;
+				else
+					d = can;
+			}
+		}
+		out[0] = c;
+		out[1] = d;
+		return out;
+	}
 	
 	// find the Cells touching the Vertex input
 	public Cell[] cellsNeighboringVertex(Vertex input) {
