@@ -2402,9 +2402,9 @@ function vec_remove_edge_Callback(hObject, eventdata, handles)
     elseif get(handles.radiobutton_vec_auto_allimg, 'Value')
         readyproc(handles, 'proc_all');
 
-        for time_i = handles.info.start_time:handles.info.end_time
+        for time_i = time_array;%handles.info.start_time:handles.info.end_time
             set(handles.text_processing_time,  'String', num2str(time_i));
-            for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+            for layer_i = layer_array;%handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
                 set(handles.text_processing_layer, 'String', num2str(layer_i));
                 drawnow;
                 
@@ -2499,9 +2499,9 @@ function vec_add_edge_Callback(hObject, eventdata, handles)
     elseif get(handles.radiobutton_vec_auto_allimg, 'Value')
         readyproc(handles, 'proc_all');
 
-        for time_i = handles.info.start_time:handles.info.end_time
+        for time_i = time_array;%handles.info.start_time:handles.info.end_time
             set(handles.text_processing_time,  'String', num2str(time_i));
-            for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+            for layer_i = layer_array;%handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
                 set(handles.text_processing_layer, 'String', num2str(layer_i));
                 drawnow;
                 
@@ -2657,7 +2657,7 @@ function vec_split_edge_Callback(hObject, eventdata, handles)
             bords       = imread(handles.info.image_file(T, Z, handles.tempsrc.bord));
 
             % refine the edges
-            handles.embryo.getCellGraph(T, Z).refineEdges(bords, max_angle, min_angle, min_edge_len); 
+            handles.embryo.autoSplitEdges(T, Z, bords, max_angle, min_angle, min_edge_len); 
 
             handles = slider_callbacks_draw_image_slice(handles);
 
@@ -2685,11 +2685,9 @@ function vec_split_edge_Callback(hObject, eventdata, handles)
 %                 handles = clear_data_set_semiauto(handles, datanames{selection(i)});
 %             end
 
-
-            readyproc(handles, 'proc_all');
-            for time_i = handles.info.start_time:handles.info.end_time
+            for time_i = time_array;%handles.info.start_time:handles.info.end_time
                 set(handles.text_processing_time,  'String', num2str(time_i));
-                for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+                for layer_i = layer_array;%handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
                     set(handles.text_processing_layer, 'String', num2str(layer_i));
                     drawnow;
 
@@ -2706,7 +2704,7 @@ function vec_split_edge_Callback(hObject, eventdata, handles)
                     bords       = imread(handles.info.image_file(time_i, layer_i, handles.tempsrc.bord));
 
                     % refine the edges
-                    handles.embryo.getCellGraph(time_i, layer_i).refineEdges(bords, max_angle, min_angle, min_edge_len);
+                    handles.embryo.autoSplitEdges(time_i, layer_i, bords, max_angle, min_angle, min_edge_len);
                 end
             end
 %         end
@@ -2828,10 +2826,10 @@ function button_switch_to_explorer_Callback(hObject, eventdata, handles)
 %     guidata(hObject, handles);    
 %     
 
-% this button is supposed to be for activating cells in the Manual mode,
-% but this functionality has not yet been written. in automatic mode, it is
-% used to do error correcton all in one step. in particular, it calls split
-% edge, then add edge, then remove edge
+% this button is for activating cells in the Manual mode,
+% in automatic mode, it is
+% used to do error correcton all in one step. in particular, it calls 
+% remove edge, then split edge, then add edge
 function vec_activate_cell_Callback(hObject, eventdata, handles)
     if get(handles.radiobutton_vec_manual, 'Value')   
         [T Z] = getTZ(handles);
@@ -2868,7 +2866,7 @@ function vec_activate_cell_Callback(hObject, eventdata, handles)
 
         % remove edges, split edges, add edges
         handles.embryo.autoRemoveEdges(T, Z);
-        handles.embryo.getCellGraph(T, Z).refineEdges(bords, max_angle, min_angle, min_edge_len); 
+        handles.embryo.autoSplitEdges(T, Z, bords, max_angle, min_angle, min_edge_len);
         handles.embryo.autoAddEdges(T, Z);
 
 
@@ -2896,11 +2894,10 @@ function vec_activate_cell_Callback(hObject, eventdata, handles)
 %                 handles = clear_data_set_semiauto(handles, datanames{selection(i)});
 %             end
 
-
             readyproc(handles, 'proc_all');
-            for time_i = handles.info.start_time:handles.info.end_time
+            for time_i = time_array%handles.info.start_time:handles.info.end_time
                 set(handles.text_processing_time,  'String', num2str(time_i));
-                for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+                for layer_i = layer_array%handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
                     set(handles.text_processing_layer, 'String', num2str(layer_i));
                     drawnow;
                          
@@ -2923,7 +2920,7 @@ function vec_activate_cell_Callback(hObject, eventdata, handles)
 
                     % remove edges, refine edges, add edges
                     handles.embryo.autoRemoveEdges(time_i, layer_i);
-                    handles.embryo.getCellGraph(time_i, layer_i).refineEdges(bords, max_angle, min_angle, min_edge_len);
+                    handles.embryo.autoSplitEdges(time_i, layer_i, bords, max_angle, min_angle, min_edge_len);
                     handles.embryo.autoAddEdges(time_i, layer_i);
                 end
             end
