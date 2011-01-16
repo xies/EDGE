@@ -945,6 +945,9 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		int t = translateT(T);
 		int z = translateZ(Z);
 		int newInd = backtrack(cellGraphs[t][z].getCell(c), t, z, false);
+		// make sure no other cell with this index exists at this layer
+		if (cellGraphs[t][z].containsCell(newInd)) return -1;
+		
 		cellGraphs[t][z].changeIndex(c, newInd);
 //		retrackCell(newInd, t, z);
 		changed = true;
@@ -1027,7 +1030,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		final int MIN_PTS = 3;
 		final int MAX_PTS = 7;
 		
-		// make a copy of the cell
+		// make a temporary copy of the cell
 		Cell c = new Cell(cMatchCandidate);
 		
 //		System.out.println(c.index() + "  t=" + c.t() + "  z=" + c.z());
@@ -1191,7 +1194,12 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 					candidates.add(pair);
 //					double overlap = cg.getCell(newInd).overlapArea(backtrackCell(cg.getCell(newInd), translateT(t), translateZ(z)));
 //					overlap /= cg.getCell(newInd).area();
-					candidatesOverlap.add(overlapScore(cg.getCell(newInd), backtrackCell(cg.getCell(newInd), translateT(T), translateZ(Z), true)));
+					candidatesOverlap.add(
+							overlapScore(cg.getCell(newInd), backtrackCell(cg.getCell(newInd), translateT(T), translateZ(Z), true))
+//							-(cNeigh.isActive()?overlapScore(cNeigh, backtrackCell(cNeigh, translateT(T), translateZ(Z), true)):0)
+					);
+					// Jan 2011- added this subtraction: how much does it IMPROVE the overlap score
+					// from what that neighbor cell had before
 					
 					// success
 //					break; 
@@ -1214,7 +1222,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			}  // for each neighbor
 			
 			// now pick the best cell (cell with highest overlap score)
-			double max = 0;
+			double max = Double.MIN_VALUE;
 			int maxInd = -1;
 			for (int k = 0; k < candidates.size(); k++) {
 				if (candidatesOverlap.elementAt(k) != Double.NaN && 
@@ -1227,10 +1235,11 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			if (maxInd >= 0) {
 				// (16/03/10) make sure that if the pair is active, then we actually want to merge~~~
 				// by this i mean, either it is inactive, and that's fine, or it is active, and then we demand
-				// that the "overlap score" is bigger now than it used to be.
+				// that the "overlap score" is bigger now than it used to be.				
 				if (!candidates.elementAt(maxInd)[1].isActive() || 
 						candidatesOverlap.elementAt(maxInd) > 
-						overlapScore(candidates.elementAt(maxInd)[1], backtrackCell(candidates.elementAt(maxInd)[1], translateT(T), translateZ(Z), true)))
+						overlapScore(candidates.elementAt(maxInd)[1], backtrackCell(candidates.elementAt(maxInd)[1], translateT(T), translateZ(Z), true))
+					)
 				{
 			
 					// if you found anything, keep that Cell
@@ -1376,6 +1385,9 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		
 	}
 	
+	public void autoSplitEdges(int T, int Z, boolean[][] bords, double maxAngle, double minAngle, double minEdgeLength) {
+		getCellGraph(T, Z).refineEdges(bords, maxAngle, minAngle, minEdgeLength);
+	}
 	
 	private boolean isValid() {
 

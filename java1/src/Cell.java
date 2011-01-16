@@ -39,7 +39,8 @@ public class Cell implements java.io.Serializable {
 	* Create a new Cell with coordinates (y,x) and vertices inputVerts.
 	* The constructor automatically sorts the Vertices into clockwise order.
 	*/
-	public Cell(int[] centroid, Vertex[] inputVertices, CellGraph parent) {	
+	public Cell(int[] centroid, Vertex[] inputVertices, CellGraph parent) {
+		
 		vertices = inputVertices;
 		this.parent = parent;
 		

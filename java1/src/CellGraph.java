@@ -842,6 +842,9 @@ public class CellGraph implements java.io.Serializable {
 		for (int j = 0; j < dVerts.length - 1; j++)
 			newVertArray[i++] = dVerts[j];
 		
+		// avoid crazy cases
+		if (newVertArray.length < MIN_CELL_VERTICES) return 0;
+		
 		// use the special constructor that takes in a SORTED array of vertices
 		Cell newCell = new Cell(newVertArray, this);
 
@@ -909,6 +912,9 @@ public class CellGraph implements java.io.Serializable {
 		verts1.toArray(verts1Array);
 		verts2.toArray(verts2Array);
 		
+		// avoid weird cases
+		if (verts1Array.length < MIN_CELL_VERTICES || verts2Array.length < MIN_CELL_VERTICES) return null;
+		
 		Cell new1 = new Cell(verts1Array, this);
 		Cell new2 = new Cell(verts2Array, this);
 		
@@ -971,6 +977,7 @@ public class CellGraph implements java.io.Serializable {
 		cent[1] = cent[1] / verts.length;
 
 		// make the new cell
+		if (verts.length < MIN_CELL_VERTICES) return 0;
 		Cell newCell = new Cell(cent, verts, this);
 
 		// make sure it has positive area
