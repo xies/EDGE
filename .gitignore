@@ -1,5 +1,6 @@
 .metadata/
 documents/
+matlab code not for distribution/
 DATA_GUI/
 DATA_INFO.csv
 DATA_MOVIES/
