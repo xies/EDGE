@@ -83,7 +83,7 @@ public class Embryo4D implements java.io.Serializable {
 			for (int z = 0; z < z(); z++) {
 				cellGraphs[t][z] = oldEmbryo.getCellGraph(unTranslateT(t), unTranslateZ(z)); // null if non-existent
 				if (cellGraphs[t][z] != null)
-					cellGraphs[t][z].parent = this;
+					cellGraphs[t][z].setParent(this);
 			}
 		}
 		
@@ -123,7 +123,7 @@ public class Embryo4D implements java.io.Serializable {
 		int t = translateT(T);
 		int z = translateZ(Z);
 		cellGraphs[t][z] = cg;
-		cg.parent = this;
+		cg.setParent(this);
 		changed = true;
 		
 		if (wasFull) retrackAllCells(T, Z);
@@ -550,9 +550,10 @@ public class Embryo4D implements java.io.Serializable {
 	}
 
 	
-	
 	// call this function if you modify the cell c at t, z (t and z already translated)
-	// in necessary, retrack the cell
+	// if necessary, retrack the cell
+	// this function does not retrack the cell itself, but rather it STARTS
+	// tracking from there and proceeds by changing the following cells if needed!!
 	private void retrackCell(int i, int t, int z) {
 		if (!isTracked()) return;
 		int reft  = translateT(masterTime);
@@ -595,8 +596,9 @@ public class Embryo4D implements java.io.Serializable {
 			// first, need to deactivate all cells in the direction you're tracking
 			// in case they won't get tracked this time. note that this function does not deactivate
 			// at the current depth z itself, it just prepares the others for tracking
-			deactivateSingleCellZ(i, t, refz, Misc.sign(z - refz));
+//			deactivateSingleCellZ(i, t, refz, Misc.sign(z - refz));
 			// note this does not deactiviate the master_layer, which is good!
+			deactivateSingleCellZ(i, t, z, Misc.sign(z - refz));
 			
 		
 			// use Misc.sign so that if z > master_layer you track upwards, if z < master_layer you track downwards
@@ -604,7 +606,8 @@ public class Embryo4D implements java.io.Serializable {
 			// of master_layer (why re-track everything lower?). actually you'd need to start from 
 			// something like z-layersToLookBackZ (or master_layer if you go past it when subtracked layers_to_look_backZ)
 			// and I don't want to worry about that right now
-			trackSingleCellZ(i, t, refz, Misc.sign(z - refz));
+//			trackSingleCellZ(i, t, refz, Misc.sign(z - refz));
+			trackSingleCellZ(i, t, z, Misc.sign(z - refz));
 		}
 		
 		if (DEBUG_MODE && !isValid()) System.err.println("Error in Embryo4D:retrackCell!");
@@ -721,11 +724,12 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			}
 			else {
 				cellGraphs[t][z].addCellInactive(c);
-				int newInd = backtrack(c, t, z, true);
-				if (newInd != 0) { // only want to add it and retrack if we found something to match it onto
-					cellGraphs[t][z].changeIndex(c, newInd);
-					retrackCell(newInd, t, z);
-				}
+//				int newInd = backtrack(c, t, z, true);
+//				if (newInd != 0) { // only want to add it and retrack if we found something to match it onto
+//					cellGraphs[t][z].changeIndex(c, newInd);
+//					retrackCell(newInd, t, z);
+//				}
+				modifyCell(c, T, Z);
 			}
 		}
 		else {
@@ -754,8 +758,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 				numCells--;
 			}
 			else {	
-				int oldInd = c.index();  // could speed this up by doing backtrack, right?
-				// don't need to retrack the entire cell.... no but it's just that (t, z). hmm..!
+				int oldInd = c.index();
 				cellGraphs[t][z].removeCell(c);
 				retrackCell(oldInd, t, z);
 			}
@@ -949,7 +952,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 		if (cellGraphs[t][z].containsCell(newInd)) return -1;
 		
 		cellGraphs[t][z].changeIndex(c, newInd);
-//		retrackCell(newInd, t, z);
+//		retrackCell(newInd, t, z);  // why is this commented?
 		changed = true;
 		return newInd;
 	}

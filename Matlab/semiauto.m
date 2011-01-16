@@ -2414,7 +2414,7 @@ function vec_remove_edge_Callback(hObject, eventdata, handles)
                     guidata(hObject, handles);
                     return;
                 end
-
+                
                 handles.embryo.autoRemoveEdges(time_i, layer_i);
      
             end

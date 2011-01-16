@@ -25,7 +25,7 @@ public class CellGraph implements java.io.Serializable {
 	private static final int MIN_CELL_NEIGHBORS = 2;  // do not allow cells or pairs of cells floating on their own
 	
 	// the minimum number of vertices a cell can have
-	private static final int MIN_CELL_VERTICES = 2;  // do not allow cells with 2 or fewer vertices (of course)
+	private static final int MIN_CELL_VERTICES = 3;  // do not allow cells with 2 or fewer vertices (of course)
 	
 	// the map where all the cells are stored. they are keyed by their indices
 	final private Map<Integer, Cell> cells = new TreeMap<Integer, Cell>();
@@ -40,7 +40,7 @@ public class CellGraph implements java.io.Serializable {
 	/** The depth coordinate of this CellGraph as specified by the raw images filenames */
 	public final int z;  // should be "Z" but can't because of compatability with serialized material
 	
-	public Embryo4D parent;
+	private Embryo4D parent;
 	
 	/** Make an <i>untracked</i> copy of an existing CellGraph */
 	public CellGraph(CellGraph toCopy) {
@@ -296,6 +296,11 @@ public class CellGraph implements java.io.Serializable {
 		assert(isValid());
 	}
 	
+	public void setParent(Embryo4D e) {
+		parent = e;
+	}
+	public Embryo4D parent() { return parent; }
+	
 	// kill a cell, and replace it with a single vertex at its centroid. 
 	// this needs to affect all its neighboring cells
 	public void destroyCell(Cell c) {
@@ -308,13 +313,23 @@ public class CellGraph implements java.io.Serializable {
 			nVerts.add(new Vertex(c.centroid()[0], c.centroid()[1]));  // the new vertex at cell centroid
 			Vertex[] nVertsArray = new Vertex[nVerts.size()];
 			nVerts.toArray(nVertsArray);
-			int ind = n.index();
+//			int ind = n.index();
 			Cell toReplace = new Cell(n.centroidInt(), nVertsArray, this);
-			removeCell(n);  // remove the neighbor
-			if (toReplace.numV() >= MIN_CELL_VERTICES)
-				addCell(toReplace, ind);  // add the replacement neighbor
+			if (parent == null)
+				removeCell(n);
+			else
+				parent.removeCell(n, t, z);  // remove the neighbor
+			if (toReplace.numV() >= MIN_CELL_VERTICES) {
+				if (parent==null)
+					addCellInactive(toReplace); // alternatively, addCell(toReplace, ind);
+				else
+					parent.addCell(toReplace, t, z);  // add the replacement neighbor
+			}
 		}
-		removeCell(c);
+		if (parent == null)
+			removeCell(c);
+		else
+			parent.removeCell(c, t, z);
 	}
 	
 	// returns the Cells

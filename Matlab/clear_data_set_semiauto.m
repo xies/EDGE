@@ -81,6 +81,10 @@ handles.activeAdjustment = [];
 % this is for automatically error correct *some* images-- small detail
 handles.some_auto_range = [];
 
+% when exporting to EDGE, don't need to recopy processed membranes if you
+% didn't change them
+handles.changed_processed_membranes = 0;
+
 % initialize the vec buttons
 handles = semiauto_change_image_callbacks(handles);
 
