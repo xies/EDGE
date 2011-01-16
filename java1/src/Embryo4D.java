@@ -1235,20 +1235,17 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 				}
 			}
 			
-			if (maxInd >= 0) {
+			if (maxInd >= 0) { 	// if you found anything, keep that Cell
+
 				// (16/03/10) make sure that if the pair is active, then we actually want to merge~~~
 				// by this i mean, either it is inactive, and that's fine, or it is active, and then we demand
 				// that the "overlap score" is bigger now than it used to be.				
-				if (!candidates.elementAt(maxInd)[1].isActive() || 
-						candidatesOverlap.elementAt(maxInd) > 
-						overlapScore(candidates.elementAt(maxInd)[1], backtrackCell(candidates.elementAt(maxInd)[1], translateT(T), translateZ(Z), true))
-					)
-				{
-			
-					// if you found anything, keep that Cell
-			
+//				if (!candidates.elementAt(maxInd)[1].isActive() || 
+//						candidatesOverlap.elementAt(maxInd) > 
+//						overlapScore(candidates.elementAt(maxInd)[1], backtrackCell(candidates.elementAt(maxInd)[1], translateT(T), translateZ(Z), true))
+//					)		
 					cg.removeEdge(candidates.elementAt(maxInd)[0], candidates.elementAt(maxInd)[1]);
-				}
+				
 			}
 			
 		}   // for each Cell
