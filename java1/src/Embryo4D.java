@@ -1301,6 +1301,8 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			if (c == null) {
 				System.err.println("WARNING (Embryo4D:autoAddEdges):null Cell during error correction! index = " + i);
 				System.err.println("t = " + T + ", z = " + Z);
+				cg.removeCell(c);
+				continue;
 			}
 //			System.out.println(i);
 			
