@@ -221,7 +221,7 @@ function keyFunction(hObject, eventdata)
         case 'v'  % switch to selecting vertices
             set(handles.radiobutton_adjust_vertices, 'Value', 1);
             vec_select_cv_change(hObject, eventdata);
-        case 'hyphen' 
+        case {'1', 'hyphen'}
             % it is smart and realizes what you want based on what's
             % selected
             if get(handles.radiobutton_adjust_cells, 'Value') && ...
@@ -251,6 +251,11 @@ function keyFunction(hObject, eventdata)
             if get(handles.radiobutton_adjust_vertices, 'Value') && ...
                     length(handles.activeVertex) == 2
                 vec_split_edge_Callback(hObject, eventdata, handles);
+            end
+        case 'a'
+            if get(handles.radiobutton_adjust_cells, 'Value') && ...
+                    ~isempty(handles.activeCell)
+                vec_activate_cell_Callback(hObject, eventdata, handles);
             end
         case 's'
             vec_select_all_Callback(hObject, eventdata, handles);
