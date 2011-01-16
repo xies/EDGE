@@ -301,8 +301,7 @@ public class CellGraph implements java.io.Serializable {
 	}
 	public Embryo4D parent() { return parent; }
 	
-	// kill a cell, and replace it with a single vertex at its centroid. 
-	// this needs to affect all its neighboring cells
+	/** Remove a cell, and replace it with a single vertex at its centroid. */
 	public void destroyCell(Cell c) {
 		Vertex newVert = new Vertex(c.centroid()[0], c.centroid()[1]);
 		for (Cell n : c.neighbors()) {
