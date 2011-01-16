@@ -1450,6 +1450,7 @@ function button_export_Callback(hObject, eventdata, handles)
                 if ~exist(src, 'file')  
                     % this should never happen
                     msgbox(strcat('Temporary file ', src, ' does not exist. Save aborted.'), 'Save failed', 'error');
+                    uiwait;
                     readyproc(handles, 'ready');
                     guidata(hObject, handles);
                     return;
@@ -2981,6 +2982,7 @@ function cell_text_Callback(hObject, eventdata, handles)
     elseif ~handles.embryo.getCellGraph(T, Z).containsCell(ind)
         handles.activeCell = [];
         msgbox(['Cell number ' num2str(ind) ' does not exist at this (T, Z).'], '', 'error');
+        uiwait;
     else
         handles.activeCell = ind;
         handles = slider_callbacks_draw_image_slice_dots_semiauto(handles);
