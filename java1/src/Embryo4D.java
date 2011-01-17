@@ -116,7 +116,8 @@ public class Embryo4D implements java.io.Serializable {
 	public int masterLayer() { return masterLayer; }
 	
 	/** Add a CellGraph at (T, Z), 
-	* overwriting any existing CellGraph at that point */
+	* overwriting any existing CellGraph at that point.
+	* Retrack if needed. */
 	public void addCellGraph(CellGraph cg, int T, int Z) {
 		boolean wasFull = isFull();
 		
