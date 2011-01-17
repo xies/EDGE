@@ -475,8 +475,9 @@ function button_applysome_Callback(hObject, eventdata, handles)
 
     % if some images are already processed, then ask about overwriting
     if ~handles.embryo.isEmpty
-        res = questdlg('Some images are already processed. Overwrite or keep these?', ...
-            'Overwrite processed images?', 'Overwrite', 'Keep', 'Cancel', 'Overwrite');
+            res = questdlg(['Some images are already processed. Overwrite or keep these? ' ...
+                'Note: if yes, all overwritten CellGraphs will be deleted immediately.'], ...
+                          'Overwrite processed images?', 'Overwrite', 'Keep', 'Cancel', 'Overwrite');
         switch res
             case 'Cancel'
                 return;
@@ -488,6 +489,36 @@ function button_applysome_Callback(hObject, eventdata, handles)
     else
         overwrite_ok = 0;
     end
+    
+    % remove the cell graphs that you are going to overwrite
+    % that way it won't do tracking each time
+    if overwrite_ok
+        for time_i = q.t_do_range(1):q.t_do_range(2)
+        % in case they specify to skip anything
+            if time_i >= q.t_skip_range(1) && time_i <= q.t_skip_range(2)
+                continue;
+            end
+
+            for layer_i = q.z_do_range(1):q.z_do_range(2)
+                % in case they specify to skip anything
+                if layer_i >= q.z_skip_range(1) && layer_i <= q.z_skip_range(2)
+                    continue;
+                end            
+
+                % skip those that are already processed if the user
+                % specified this
+                if ~overwrite_ok && ~isempty(handles.embryo.getCellGraph(time_i, layer_i))
+    %                 if time_i == handles.info.master_time && layer_i == handles.info.master_layer && ~isempty(handles.embryo.getCellGraph(time_i, layer_i))
+                    continue;
+                end
+                
+                handles.embryo.removeCellGraph(time_i, layer_i);
+            end
+        end
+        
+        
+    end
+    
     
 
     handles.activeCell = [];
@@ -594,7 +625,8 @@ function button_applyall_Callback(hObject, eventdata, handles)
     if length(selection) == 1
     % if some images are already processed, then ask about overwriting
         if ~handles.embryo.isEmpty
-            res = questdlg('Some images are already processed. Overwrite or keep these?', ...
+            res = questdlg(['Some images are already processed. Overwrite or keep these? ' ...
+                'Note: if yes, all overwritten CellGraphs will be deleted immediately.'], ...
                           'Overwrite processed images?', 'Overwrite', 'Keep', 'Cancel', 'Overwrite');
             switch res
                 case 'Cancel'
