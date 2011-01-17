@@ -141,6 +141,8 @@ public class Cell implements java.io.Serializable {
 	}
 	/** Get the indices of an array of cells (returned in an array). */
 	public static int[] index(Cell[] c) {
+		if (c == null) return null;
+		if (c.length == 0) return null;
 		int[] out = new int[c.length];
 		for (int i = 0; i < c.length; i++)
 			out[i] = c[i].index;

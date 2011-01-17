@@ -632,22 +632,63 @@ function export_button_Callback(hObject, eventdata, handles)
     [T Z] = getTZ(handles);
     cell_indices = handles.activeCell;
     % export neighbor information up to the degree currently selected
-    % for all selected cells
+    % for all selected cells FOR ALL LAYERS ALL TIMES
     norder = str2double(get(handles.edit_neighbors_order, 'String'));
-    neighbor_indices = cell(length(handles.activeCell),norder);
-    for i = 1:length(handles.activeCell)
-        for j = 1:norder
-            neighbor_indices{i,j} = handles.embryo.getCellGraph(T, Z).cellNeighbors(handles.activeCell(i),j);
+    
+    if norder > 0
+        res = questdlg(['You have selected a neighbors order greater than zero. ' ...
+            'EDGE will try to export the indices of neighbors in addition to cell indices, ' ...
+            'at all layers and all times, ' ...
+            'which may cause the exporting to be very slow. Continue anyway?'], ...
+                  'Neighbor exporting may be slow', ...
+                  'Yes, all (t,z)', 'Yes, but just this (t,z)', 'Cancel', 'Yes, all (t,z)');
+        if strcmp(res, 'Cancel')
+            return;
+        end
+        
+        set(handles.text_readyproc, 'Visible', 'on');
+        set(handles.text_readyproc, 'String', 'Exporting...');
+        set(handles.text_readyproc, 'ForegroundColor', [1 0 0]);
+        drawnow;
+        
+    end
+    
+    if strcmp(res, 'Yes, all (t,z)')
+        neighbor_indices = cell(length(handles.activeCell),handles.embryo.t, handles.embryo.z, norder);
+        for i = 1:length(handles.activeCell)
+            tind = 1;
+            for time_i = handles.info.start_time:handles.info.end_time
+                zind = 1;
+                for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
+                    for j = 1:norder
+                        neighbor_indices{i,tind, zind, j} = Cell.index(...
+                            handles.embryo.getCellGraph(time_i, layer_i).cellNeighbors(...
+                            handles.activeCell(i),j));
+                    end
+                    zind = zind + 1;
+                end
+                tind = tind + 1;
+            end
+        end
+    elseif strcmp(res, 'Yes, but just this (t,z)');
+        neighbor_indices = cell(length(handles.activeCell), norder);
+        for i = 1:length(handles.activeCell)
+            for j = 1:norder
+                neighbor_indices{i, j} = Cell.index(...
+                    handles.embryo.getCellGraph(T, Z).cellNeighbors(...
+                    handles.activeCell(i),j));
+            end
         end
     end
-%     neighbor_indices = handles.activeCellNeighbors;
     
-    
+    set(handles.text_readyproc, 'Visible', 'off');
+
+    %     neighbor_indices = handles.activeCellNeighbors;
     save(fullfile(dirname, date_and_time_saving), ...
         'cell_indices', 'neighbor_indices', 'T', 'Z');
     
-    msgbox('Successfully exported data to the DATA_OUTPUT folder.');
-    
+    msgbox('Successfully exported to the DATA_OUTPUT folder.');
+    uiwait;
 %     % select which data sets to export
 %     datanames = get_folder_names(fullfile('..', 'DATA_GUI'));
 %     default_val = find(strcmp(datanames, handles.data_set));
