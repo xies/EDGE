@@ -1307,6 +1307,9 @@ public class CellGraph implements java.io.Serializable {
 	public Cell[] cellNeighbors(Cell input, int n) {
 		return cellNeighbors(input, cells(), n);
 	}
+	public Cell[] cellNeighbors(int input, int n) {
+		return cellNeighbors(getCell(input), n);
+	}
 	public Cell[] cellNeighbors(Cell input, Cell[] cells) {
 		return cellNeighbors(input, cells, 1);
 	}
