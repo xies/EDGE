@@ -60,7 +60,7 @@ VERTEX_MERGE_DIST_THRESH = handles.info.refine_min_edge_length / handles.info.mi
 %yes, using it for both is bad - it should be higher for the error
 %correction than here. same thing as below with the angle thresh
 % i know hardcoding is bad, but ... oh well ;)
-VERTEX_MERGE_DIST_THRESH = -1; % pixels?!?
+VERTEX_MERGE_DIST_THRESH = 2; % pixels?!?
 % ok, now i give a negative one because we use 'branchpoints' to find
 % vertices in find_vertices.m
 % this should be adjustable!!

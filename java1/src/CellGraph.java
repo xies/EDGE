@@ -186,7 +186,7 @@ public class CellGraph implements java.io.Serializable {
 			
 			for (int i = 0; i < tempVerts.size(); i++)
 				for (int j = 0; j < tempVerts.size(); j++)
-					distMatrix[i][j] = Misc.distance(tempVerts.elementAt(i).vertexCoords(), tempVerts.elementAt(j).vertexCoords()) <=
+					distMatrix[i][j] = Misc.distance(tempVerts.elementAt(i).vertexCoords(), tempVerts.elementAt(j).vertexCoords()) <
 						vertex_merge_dist_thresh;
 					
 			// call the recursive merging function on each vertex
