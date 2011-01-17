@@ -25,7 +25,7 @@ function varargout = EDGE(varargin)
 
     % Edit the above text to modify the response to help EDGE
 
-    % Last Modified by GUIDE v2.5 15-Jan-2011 17:56:06
+    % Last Modified by GUIDE v2.5 17-Jan-2011 14:58:33
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -1342,4 +1342,3 @@ function go_to_master_image_Callback(hObject, eventdata, handles)
     slider_callbacks_draw_3D_cell(handles);
     slider_callbacks_draw_measurement(handles);    
     guidata(hObject, handles);    
-
