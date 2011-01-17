@@ -142,7 +142,6 @@ public class Cell implements java.io.Serializable {
 	/** Get the indices of an array of cells (returned in an array). */
 	public static int[] index(Cell[] c) {
 		if (c == null) return null;
-		if (c.length == 0) return null;
 		int[] out = new int[c.length];
 		for (int i = 0; i < c.length; i++)
 			out[i] = c[i].index;
@@ -480,9 +479,27 @@ public class Cell implements java.io.Serializable {
 	/** Is this cell on the boundary of the image? */
 	// If it has a vertex that no other cell shares, it is on the boundary
 	public boolean isBoundary() {
+		// if it has any vertices that are not shared
 		for (Vertex v : vertices)
 			if (parent.cellsNeighboringVertex(v).length <= 1) return true;
+		
+		// if it has any edges that are not shared
+		Vertex[] verts = new Vertex[numV() + 1];
+		for (int i = 0; i < numV(); i++)
+			verts[i] = vertices[i];
+		verts[numV()] = vertices[0];
+		for (int i = 0; i < numV(); i++)
+			if (edgeNeighbor(verts[i], verts[i+1]) == null) return true;
 		return false;
+	}
+	
+	// the cell that shares this edge
+	private Cell edgeNeighbor(Vertex v, Vertex w) {
+		if (!containsVertex(v) || !containsVertex(w)) return null;
+		Cell[] c = parent.cellsNeighboringEdge(v, w);
+		if (c[0] == this) return c[1];
+		else if (c[1] == this) return c[0];
+		else return null;
 	}
 	
 	/** Does this (presumably active) cell touch an inactive cell? */
