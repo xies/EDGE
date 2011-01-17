@@ -631,7 +631,18 @@ function export_button_Callback(hObject, eventdata, handles)
 
     [T Z] = getTZ(handles);
     cell_indices = handles.activeCell;
-    neighbor_indices = handles.activeCellNeighbors;
+    % export neighbor information up to the degree currently selected
+    % for all selected cells
+    norder = str2double(get(handles.edit_neighbors_order, 'String'));
+    neighbor_indices = cell(length(handles.activeCell),norder);
+    for i = 1:length(handles.activeCell)
+        for j = 1:norder
+            neighbor_indices{i,j} = handles.embryo.getCellGraph(T, Z).cellNeighbors(handles.activeCell(i),j);
+        end
+    end
+%     neighbor_indices = handles.activeCellNeighbors;
+    
+    
     save(fullfile(dirname, date_and_time_saving), ...
         'cell_indices', 'neighbor_indices', 'T', 'Z');
     
