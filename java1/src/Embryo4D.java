@@ -966,7 +966,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 			
 		// STEP 0: Translate the Cell by the predicted amount, and then use the new translated cell
 		// for all the below tests. 
-		cMatchCandidate = predictLocation(cTrack, cMatchCandidate);
+//		cMatchCandidate = predictLocation(cTrack, cMatchCandidate);
 			
 		// STEP 1: Centroid distance cannot be bigger than CENTROID_DIST_MAX
 		if (Misc.distance(cTrack.centroid(), cMatchCandidate.centroid()) 
