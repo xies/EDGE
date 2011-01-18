@@ -25,7 +25,7 @@ function varargout = EDGE(varargin)
 
     % Edit the above text to modify the response to help EDGE
 
-    % Last Modified by GUIDE v2.5 17-Jan-2011 14:58:33
+    % Last Modified by GUIDE v2.5 17-Jan-2011 20:45:42
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -572,6 +572,7 @@ function dropdown_datasets_Callback(hObject, eventdata, handles)
     end
 
     handles = clear_data_set_maingui(handles, new_dataset);
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles);
     
  
@@ -1063,3 +1064,8 @@ function go_to_master_image_Callback(hObject, eventdata, handles)
     slider_callbacks_draw_3D_cell(handles);
     slider_callbacks_draw_measurement(handles);    
     guidata(hObject, handles);    
+
+
+% function DUMMY_Callback(hObject, eventdata, handles)
+% does nothing, just allows us to take focus away from things
+% by giving focus to DUMMY
