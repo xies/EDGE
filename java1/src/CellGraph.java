@@ -1325,6 +1325,25 @@ public class CellGraph implements java.io.Serializable {
 	public Cell[] cellNeighborsActive(Cell input) {
 		return cellNeighborsActive(input, 1);
 	}
+	public Cell[] cellNeighborsActive(int input, int n) {
+		return cellNeighborsActive(getCell(input), n);
+	}
+	public Cell[] cellNeighborsActive(int input) {
+		return cellNeighborsActive(getCell(input), 1);
+	}
+	// getting indices
+	public int[] cellNeighborIndices(int input, int n) {
+		return Cell.index(cellNeighbors(input, n));
+	}
+	public int[] cellNeighborIndices(int input) {
+		return cellNeighborIndices(input, 1);
+	}
+	public int[] cellNeighborActiveIndices(int input, int n) {
+		return Cell.index(cellNeighborsActive(input, n));
+	}
+	public int[] cellNeighborActiveIndices(int input) {
+		return cellNeighborActiveIndices(input, 1);
+	}
 	
 	// find the Vertices touching the Vertex input
 	public Vertex[] verticesNeighboringVertex(Vertex input) {
