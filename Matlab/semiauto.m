@@ -268,28 +268,10 @@ function keyFunction(hObject, eventdata)
         otherwise
           % nothing
     end
-
-    % for the data cursor stuff - failure    
-% function output_txt = dcupdate(obj, eventdata)
-%     disp('hi')
-%     output_txt = '';
-%     pos = get(eventdata,'Position')
-        
+    
 function mouseFunction(hObject,evnt)
     handles = guidata(hObject);
-    
     [T Z] = getTZ(handles);
- 
-%     handles.embryo.totalCellCount
-    
-%     handles.embryo.getCellGraph(T, Z).getCell(handles.activeCell)1
-    
-% %         v = handles.embryo.getCellGraph(T, Z).vertices;
-% %     handles.embryo.getCellGraph(T, Z).verticesNeighboringVertex(v(1));
-% %     
-% %     handles.embryo.getCellGraph(T, Z).fillHoles;
-% keyboard
-
 
     % only select a cell if the polygon mode is on
     if ~get(handles.cbox_poly, 'Value');
@@ -320,12 +302,7 @@ function mouseFunction(hObject,evnt)
         
 %         handles.activeVertex{3} = newVert;
         handles.activeVertex = [];
-        
-%         tempcg = handles.tempcg;
-%         filename = handles.info.image_file(T, Z, handles.tempsrc.poly); 
-%         save(chgext(filename, 'none'), 'tempcg');
-        
-        
+
         handles.activeAdjustment = [];
         vec_adjustments_visible(handles, 'on');
         
@@ -348,12 +325,6 @@ function mouseFunction(hObject,evnt)
         vec_adjustments_visible(handles, 'on');
         
         handles = slider_callbacks_draw_image_slice(handles);
-        
-%     elseif strcmp(handles.activeAdjustment, 'add_vertex')
-%         newVertex = Vertex(location(1), location(2));
-%         handles.activeVertex{length(handles.activeVertex)+1} = newVertex;
-%         
-%         handles = slider_callbacks_draw_image_slice_dots_semiauto(handles);
         
 % the regular case of selecting a cell
     elseif get(handles.radiobutton_adjust_cells, 'Value')
@@ -454,11 +425,7 @@ function button_applythis_Callback(hObject, eventdata, handles) %#ok<*DEFNU>
     handles.embryo.addCellGraph(tempcg, T, Z);
     readyproc(handles, 'ready');
 %     save_embryo(handles);
-    
-%     filename_poly = handles.info.image_file(T, Z, handles.tempsrc.poly);
-%     save(chgext(filename_poly, 'none'), 'tempcg'); % remove the extension
 
-    % set tempcg
     handles = semiauto_change_image_callbacks(handles);
     
     % redraw the new image
@@ -515,10 +482,8 @@ function button_applysome_Callback(hObject, eventdata, handles)
                 handles.embryo.removeCellGraph(time_i, layer_i);
             end
         end
-        
-        
+  
     end
-    
     
 
     handles.activeCell = [];
@@ -597,13 +562,6 @@ function button_applysome_Callback(hObject, eventdata, handles)
     
         
         
-        
-        
-        
-        
-        
-        
-        
 
 function button_applyall_Callback(hObject, eventdata, handles)
    
@@ -664,8 +622,7 @@ function button_applyall_Callback(hObject, eventdata, handles)
         end
         set(handles.text_readyproc_details, 'String', datanames{selection(i)});
         set(handles.text_readyproc_details, 'Visible', 'on');
-            
-        
+             
         
         % if the user selected to overwrite images that are already processed,
         % then first delete all the CellGraphs that are already processed. 
@@ -2284,9 +2241,7 @@ function button_import_Callback(hObject, eventdata, handles)
         ' Before processing, select a reference image and press the "Set reference image" button.']);    
 
     guidata(hObject, handles);
-   
-    
-    
+       
     
 function button_set_master_image_Callback(hObject, eventdata, handles)
     [T Z] = getTZ(handles);
@@ -2299,11 +2254,9 @@ function button_set_master_image_Callback(hObject, eventdata, handles)
     handles.info.master_layer = Z;
 
     handles = update_embryo(handles);
-    
     handles = slider_callbacks_draw_image_slice(handles);
     
     guidata(hObject, handles);
-    
     
 
 function vec_puncture_cell_Callback(hObject, eventdata, handles)
@@ -2349,15 +2302,6 @@ function vec_remove_cell_Callback(hObject, eventdata, handles)
   
     % no longer active
     handles.activeCell = [];
-    
-    % save tempcg to the temporary file, so that these two
-    % are always consistent, and handles.tempcg is just for
-    % convenient access
-%     tempcg = handles.tempcg;
-%     [T Z] = getTZ(handles);
-%     filename = handles.info.image_file(T, Z, handles.tempsrc.poly); 
-%     save(chgext(filename, 'none'), 'tempcg'); % remove the extension
-%     save_embryo(handles);
     
     handles = slider_callbacks_draw_image_slice(handles);
     guidata(hObject, handles);
@@ -2463,8 +2407,6 @@ function vec_remove_edge_Callback(hObject, eventdata, handles)
     handles = slider_callbacks_draw_image_slice(handles);
     guidata(hObject, handles);
     
-
-
 
 function vec_add_cell_Callback(hObject, eventdata, handles)
     if length(handles.activeVertex) < 3
@@ -2769,8 +2711,6 @@ function vec_split_edge_Callback(hObject, eventdata, handles)
 %             handles = clear_data_set_semiauto(handles, data_set);
 %         end
 
-
-
         handles = slider_callbacks_draw_image_slice(handles);
 
         readyproc(handles, 'ready');
@@ -2796,91 +2736,7 @@ function button_switch_to_explorer_Callback(hObject, eventdata, handles)
     closeGUI(hObject, eventdata);
     EDGE('dummy', passinfo);
 
-
-% function button_refine_applythis_Callback(hObject, eventdata, handles)
-%     readyproc(handles, 'refining');
-%     handles.activeVertex = [];
-% 
-%     
-%     % get the parameters
-%     [T Z]   = getTZ(handles);
-%     max_angle   = degtorad(str2double(get(handles.info_text_refine_max_angle, 'String')));
-%     min_angle   = degtorad(str2double(get(handles.info_text_refine_min_angle, 'String')));
-%     min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String')) ...
-%                     /handles.info.microns_per_pixel;
-%     bords       = imread(handles.info.image_file(T, Z, handles.tempsrc.bord));
-%     
-%     % refine the edges
-%     handles.embryo.getCellGraph(T, Z).refineEdges(bords, max_angle, min_angle, min_edge_len);
-%     
-% %     tempcg = handles.tempcg;
-% %     filename = handles.info.image_file(T, Z, handles.tempsrc.poly); 
-% %     save(chgext(filename, 'none'), 'tempcg');
-% %     save_embryo(handles);    
-%     
-%     handles = slider_callbacks_draw_image_slice(handles);
-%     
-%     readyproc(handles, 'ready');
-%     guidata(hObject, handles);    
-%     
-% 
-% function button_refine_applyall_Callback(hObject, eventdata, handles)
-% %     % allows you to applyall for multiple data sets at once
-% %     datanames = get_folder_names(fullfile('..', 'DATA_GUI'));
-% %     default_val = find(strcmp(datanames, handles.data_set));
-% %     if length(datanames) > 1
-% %         [selection ok] = listdlg('ListString', datanames, 'Name', 'Select data sets for processing', ...
-% %             'ListSize', [300 300], 'InitialValue', default_val);
-% %         if ~ok
-% %             return;
-% %         end
-% %     else
-% %         selection = default_val;
-% %     end
-% %     data_set = handles.data_set;
-% %     
-% %     % do it for all data sets~~~
-% %     for i = 1:length(selection)
-% %         if ~strcmp(data_set, datanames{selection(i)})
-% %             handles = clear_data_set_semiauto(handles, datanames{selection(i)});
-% %         end
-% %         
-%     
-%         readyproc(handles, 'refine_all');
-%         for time_i = handles.info.start_time:handles.info.end_time
-%             set(handles.text_processing_time,  'String', num2str(time_i));
-%             for layer_i = handles.info.bottom_layer:my_sign(handles.info.top_layer-handles.info.bottom_layer):handles.info.top_layer
-%                 set(handles.text_processing_layer, 'String', num2str(layer_i));
-%                 drawnow;
-% 
-%                 if get(handles.radiobutton_stop, 'Value')
-%                     set(handles.radiobutton_stop, 'Value', 0);
-%                     readyproc(handles, 'ready');
-%                     guidata(hObject, handles);
-%                     return;
-%                 end
-% 
-%                 max_angle   = degtorad(str2double(get(handles.info_text_refine_max_angle, 'String')));
-%                 min_angle   = degtorad(str2double(get(handles.info_text_refine_min_angle, 'String')));
-%                 min_edge_len= str2double(get(handles.info_text_refine_min_edge_length, 'String'));
-%                 bords       = imread(handles.info.image_file(time_i, layer_i, handles.tempsrc.bord));
-% 
-%                 % refine the edges
-%                 handles.embryo.getCellGraph(time_i, layer_i).refineEdges(bords, max_angle, min_angle, min_edge_len);
-%      
-%             end
-%         end
-% %     end
-% %     if ~strcmp(handles.data_set, data_set)
-% %         % go back to the original data set
-% %         handles = clear_data_set_semiauto(handles, data_set);
-% %     end
-%     
-%     handles = slider_callbacks_draw_image_slice(handles);
-%     
-%     readyproc(handles, 'ready');
-%     guidata(hObject, handles);    
-%     
+    
 
 % this button is for activating cells in the Manual mode,
 % in automatic mode, it is
@@ -3039,6 +2895,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-function DUMMY_Callback(hObject, eventdata, handles)
+% function DUMMY_Callback(hObject, eventdata, handles)
 
 

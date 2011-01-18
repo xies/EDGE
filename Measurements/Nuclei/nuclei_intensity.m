@@ -14,7 +14,9 @@ units{2} = 'microns';
 
 if z == embryo.masterLayer
     nuclear_intensity_profile = zeros(embryo.z, 1);
-    for z_i = embryo.lowestTracked(c, t) : my_sign(embryo.highestTracked(c, t) - embryo.lowestTracked(c, t)) : embryo.highestTracked(c, t)
+    for z_i = embryo.lowestTracked(c, t) : ...
+            my_sign(embryo.highestTracked(c, t) - embryo.lowestTracked(c, t)) : ...
+            embryo.highestTracked(c, t)
         
         % draw the Cell
         [cell_img R] = drawCellSmall(embryo, t, z, c);
@@ -22,10 +24,11 @@ if z == embryo.masterLayer
         nuclei = getNuclei(t, z_i);
         nuclei = nuclei(R(1):R(1)+size(cell_img, 1)-1, R(2):R(2)+size(cell_img, 2)-1);
         nuclear_intensity = sum(sum(nuclei(cell_img))); 
-        nuclear_intensity_profile(embryo.translateZ(z_i)+1) = nuclear_intensity;
+        nuclear_intensity_profile(embryo.translateZ(z_i)+1) = nuclear_intensity; 
+        
     end
 
-    [max_val max_ind] = max(nuclear_intensity_profile);
+    [~, max_ind] = max(nuclear_intensity_profile);
     % max_ind = embryo.unTranslateZ(max_ind); 
 
     data{1} = nuclear_intensity_profile(embryo.translateZ(z)+1);
