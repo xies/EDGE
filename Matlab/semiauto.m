@@ -774,6 +774,8 @@ function dropdown_datasets_Callback(hObject, eventdata, handles)
     handles = exit_data_set_semiauto(handles);
 
     handles = clear_data_set_semiauto(handles, new_dataset);
+    
+    uicontrol(handles.DUMMY);
     guidata(hObject, handles);
 
     
@@ -2896,5 +2898,6 @@ end
 
 
 % function DUMMY_Callback(hObject, eventdata, handles)
-
+% does nothing, just allows us to take focus away from things
+% by giving focus to DUMMY
 
