@@ -9,10 +9,10 @@ function position = get_nuclear_position(intensity, t, c)
     maxi = find( diff([NaN; x])>0 &  diff([x; NaN])<0   );
     % of these "peaks", find the one at the maximum intensity
     
-    if length(maxi) > 1
-        tosort = [maxi(:) x(maxi)];
+    if length(maxi) > 1        
+        tosort = [x(maxi) maxi(:)];
         tosort = sortrows(tosort);
-        maxi = tosort(end,1);
+        maxi = tosort(end,2);
     end
     
     if ~isempty(maxi)

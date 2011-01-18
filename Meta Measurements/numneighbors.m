@@ -7,7 +7,7 @@ cell_inds = []; % all cells
 measurement = 'Membranes--vertices--# of neighbors';
 layers_from_top = 3;
 
-
+%%
 % '1-15-2011, 3;29 PM'
 
 [data_all data_apical data_basal data_middle] = ...
@@ -25,5 +25,7 @@ out(:,3)=neighbor_results(data_middle, 'middle');
 
 %% matthias wants the image thing. OK
 plot_neighbor_image(diff(data_apical), 5);
-plot_neighbor_image(diff(data_middle), 6);
+%%
+plot_neighbor_image(data_middle, 16);
+%%
 plot_neighbor_image(diff(data_basal),  7);

@@ -9,7 +9,5 @@ for i = 1:size(in, 1)
     x=in(i,:);
     x=x(~isnan(x));
     out(i) = std(x);
-mean(x)
-std(x)
 end
     
