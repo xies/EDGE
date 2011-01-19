@@ -34,8 +34,8 @@ plot_neighbor_image(diff(data_basal),  7);
 title('nneighbor diff vs. time, basal');
 
 %% 
-plot_neighbor_image(diff(squeeze(data_all(1, :, :))), 101)
-title('nneighbor diff vs z, time 0');
+plot_neighbor_image(diff(squeeze(data_all(1, :, :))), 102)
+title('nneighbor diff vs z, time 10');
 %%
 
 % for cells that have a transition in z, plot the transition location vs
@@ -45,13 +45,18 @@ data2 = data_all(:, 1:end-3,:); % get rid of junk at the top
 
 % my_sum(diff(squeeze(data_all(1, :, :)))')
 %%
-c=158;  %158 102 141 161
+c=138;  %158 102 141 161 (148, 151, 127 at time 10)  % 158, 151,127 nicest  131 ok
+% 66, 131 at time 20 138 143 150 (106)
+% time 0: 155, 112, 66, 138
 d = diff(data2(:,:,c)');
 [z1 t1] = find(d < 0);
 [z2 t2] = find(d > 0);
 % z(6)=[]; t(6) =[];
 figure; plot(t1, z1, '.b'); hold on; plot(t2, z2, '.r');
 legend('apical->basal vertex gains', 'apical-> basal vertex losses')
+xlabel('time')
+ylabel('depth of vertex change')
+title(['depth of neighbor number change vs time for cell' num2str(c)]);
 % vertex-exchange seems to move downwards... and all seem to be RED
 % red means d > 0, means you GAIN a vertex moving up, or lose one as you
 % move basally

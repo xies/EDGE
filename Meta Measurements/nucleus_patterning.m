@@ -31,7 +31,7 @@ end
 
 %% do the correlation thing with dropping times
 norder = 5;
-% neigh = extract_neighborhood(data_set, cell_inds, norder);
+neigh = extract_neighborhood(data_set, cell_inds, norder);
 load neighbor_info_090309
 
 %%
@@ -39,6 +39,7 @@ masterlayer = 9;
 mastertime = 1;
 dropping_dt = NaN(length(cell_inds), norder);
 dropping_xcor = NaN(length(cell_inds), norder, 2*tlength-1);
+dropping_xcornolag = NaN(length(cell_inds), norder);
 
 nuclear_position_noNaN = nuclear_position;
 nuclear_position_noNaN(isnan(nuclear_position_noNaN)) = 0;
@@ -64,6 +65,17 @@ for i = 1:length(cell_inds)
             cor = cor + newcorr;
         end
         dropping_xcor(i, j, :) = cor / length(neigh{i, mastertime, masterlayer, j});
+    end
+    
+    % compute xcorr_nolag
+    for j = 1:norder
+        a = nuclear_position(:,i);
+        b = nuclear_position(:,(neigh{i, mastertime, masterlayer, j}(k)));
+        a = (a-my_mean(a)/my_std(a));
+        b = (b-my_mean(b)/my_std(b));
+        dot = a.*b;
+        dot = dot(~isnan(dot));
+        dropping_xcornolag(i, j) = dot;
     end
     
 end
