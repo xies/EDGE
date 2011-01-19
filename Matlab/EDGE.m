@@ -815,11 +815,13 @@ function button_make_movie_Callback(hObject, eventdata, handles)
         aviobj = avifile(filename, 'fps', fps);
     end
  
+
  
 % this code is useless- can just uses the axis
     axesprops = get(handles.axes2);
     names = fieldnames(axesprops);
- 
+
+    
     axes(handles.axes2);
     axis_props = axis;
 % the axis properties of the current image. will use this for all images. 
@@ -827,8 +829,7 @@ function button_make_movie_Callback(hObject, eventdata, handles)
     ax = gca;
     set(ax, 'Color', 'none');
 %     axes(ax);
-    
-       
+
 %     indTime = 0;
     for time_i = handles.info.start_time:handles.info.end_time
         cla;
@@ -836,18 +837,19 @@ function button_make_movie_Callback(hObject, eventdata, handles)
         if get(handles.radiobutton_3d_spatial, 'Value')
             slider_callbacks_draw_3D_cell(handles, time_i, NaN); 
         else
-            [T Z] = getTZ(handles);
+            [T, Z] = getTZ(handles);
             slider_callbacks_draw_3D_cell(handles, NaN, Z); 
         end
         
         axis(axis_props);
         
+        % copy the camera properties
         for i = 1:length(names)
             cont = strfind(names{i}, 'Camera');
             if ~isempty(cont) && cont(1) == 1
                 set(ax, names{i}, axesprops.(names{i}));
             end
-        end
+        end        
 
         if movie_on
             F = getframe(f);
