@@ -23,6 +23,7 @@ units{8} = 'micron';
 
 data = num2cell(NaN(length(units), 1));
 
+
 %% optional: process only given cell
 
 % if c ~= 353;% 209 %353
@@ -48,10 +49,13 @@ data{1} = nuclear_intensity;
 centroids = Cell.centroidStack(embryo.getCellStack(c, t)) * dx;
 x_values = centroids(:, 2);
 
+if isnan(dt)
+    th_min_layer = 20;
+else
+    th_min_layer = 7;
+end    
 
-
-
-if (z ~= embryo.masterLayer ||  sum(~isnan(x_values))<20)
+if (z ~= embryo.masterLayer ||  sum(~isnan(x_values))<th_min_layer)
      return;
 end
 
@@ -90,7 +94,7 @@ for z_i = embryo.lowestTracked(c, t) : my_sign(embryo.highestTracked(c, t) - emb
         nuclei{embryo.translateZ(z_i)+1,2} = cell_img;
         nuclei{embryo.translateZ(z_i)+1,3} = X*dx;
         nuclei{embryo.translateZ(z_i)+1,4} = Y*dx;
-        ind_all(z_i) = 1;
+        ind_all(embryo.translateZ(z_i)+1) = 1;
     end
     
 end
@@ -123,8 +127,10 @@ cfun = fit(z_values(ind),nuclear_intensity_profile(ind),'gauss2',fitopt);
 %% calculate center of mass of nucleus (x and y position)
 
 % estimate range over which to look for nucleus
+
 ind_nuc = find(z_values>=cfun.b1-cfun.c1*2 & z_values<=cfun.b1+cfun.c1*2 & ...
     ind_all==1);
+
 norm_nuc = zeros(1,1);
 com_nuc = zeros(2,1);
 for i=ind_nuc(1):ind_nuc(end)
@@ -174,11 +180,11 @@ y_v = [y_val(ind_nuc(1));y_val(ind_nuc);y_val(ind_nuc(end))];
 z_v = [cfun.b1-cfun.c1*2;z_val(ind_nuc);cfun.b1+cfun.c1*2];
 nucleus_length = sum(sqrt(diff(x_v).^2 + diff(y_v).^2 + diff(z_v).^2));
 %% output
-data{2} = com_nuc(1);   % position of nucleaus in x
-data{3} = com_nuc(2);   % position of nucleaus in y
-data{4} = cfun.b1;     % position of nucleaus in z
-data{5} = cfun.b1-cfun.c1;  % lower end of nucleaus (z coord.; mean-SD)
-data{6} = cfun.b1+cfun.c1;     % upper end of nucleau (mean+SD)
+data{2} = com_nuc(1);   % position of nucleus in x
+data{3} = com_nuc(2);   % position of nucleus in y
+data{4} = cfun.b1     % position of nucleus in z
+data{5} = cfun.b1-cfun.c1;  % lower end of nucleus (z coord.; mean-SD)
+data{6} = cfun.b1+cfun.c1;     % upper end of nucleus (mean+SD)
 data{7} = nucleus_length; % length of nucleus (4 sigma)
 data{8} = nucleus_depth; % depth of nucleus
 

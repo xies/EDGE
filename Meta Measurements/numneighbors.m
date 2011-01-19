@@ -5,13 +5,14 @@ clear all; close all; clc;
 data_set = '090309 MembCherry HistoneGFP';
 cell_inds = []; % all cells
 measurement = 'Membranes--vertices--# of neighbors';
-layers_from_top = 3;
+layers_from_top = 3; 
+masterlayer = 9;
 
 %%
 % '1-15-2011, 3;29 PM'
 
 [data_all data_apical data_basal data_middle] = ...
-    extract_measurement(data_set, measurement, cell_inds, layers_from_top);
+    extract_measurement(data_set, measurement, cell_inds, layers_from_top, masterlayer);
 
 %% take distribution over cells
 % out = [];
@@ -27,7 +28,25 @@ layers_from_top = 3;
 plot_neighbor_image(diff(data_apical), 5);
 title('nneighbor diff vs. time, apical');
 %%
-plot_neighbor_image(data_middle, 16);
+d = diff(data_middle);
+d = d(5:end-10,:);  % cut off ends, very liberally...
+for i = 1:size(d,2)  % cells
+    last = 0;
+    for j = 1:size(d,1)  % times
+        if abs(d(j,i)) == 1  % if change
+           if last
+               d(j,i)=0;
+           elseif abs(d(min(j+1,size(d,1)),i)) == 1  % the next one
+               d(j,i)=0;
+           end
+           last = 1;
+        else
+            last = 0;
+        end
+    end
+end
+
+plot_neighbor_image(d, 17);
 title('nneighbor diff vs. time, middle');
 %%
 plot_neighbor_image(diff(data_basal),  7);

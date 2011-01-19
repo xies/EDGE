@@ -1,5 +1,5 @@
 function [data_allz data_topz data_btmz data_midz neighbor_indices cell_indices] = ...
-    extract_measurement(data_set, measurement, cell_inds, layers_from_top)
+    extract_measurement(data_set, measurement, cell_inds, layers_from_top, masterlayer)
 
 % load the data
 data = [];
@@ -41,6 +41,6 @@ for t = 1:size(data, 1)
             % midz takes middle of non-NaN values, not middle of 
             % coordinate system.
         end
-        data_midz(t, i) = data_allz(t, 9, i);  % temp1!
+        data_midz(t, i) = data_allz(t, masterlayer, i);  % temp1!
     end
 end
