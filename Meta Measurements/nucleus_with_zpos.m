@@ -2,16 +2,14 @@ clear all;  clc;
 % close all;
 
 %%
-% data_set = 'Histone032'; masterlayer = 8; dt=5;
-data_set = '090309 MembCherry HistoneGFP'; masterlayer=9; dt=19.5;
+data_set = 'Histone032'; masterlayer = 8; dt=5; windowsize = 11;
+% data_set = '090309 MembCherry HistoneGFP'; masterlayer=9; dt=19.5; windowsize = 3;
 cell_inds = []; % all cells
 % measurement = 'Membranes--vertices--# of neighbors';
 measurement = 'Nuclei--nuclei_properties--position-z';
 
 layers_from_top = 3;
 
-%%
-% '1-15-2011, 3;29 PM'
 %% get x y z positions
 [data_all,~,~, data_z] = ...
     extract_measurement(data_set, 'Nuclei--nuclei_properties--position-z', cell_inds, layers_from_top, masterlayer);
@@ -38,9 +36,9 @@ datavx = NaN(clength, tlength-1);
 datavy = NaN(clength, tlength-1);
 datavz = NaN(clength, tlength-1);
 for i = 1:clength
-%     datavx(i,:) = take_derivative(data_x(:,i));
-%     datavy(i,:) = take_derivative(data_y(:,i));
-    datavz(i,:) = take_derivative(data_z(:,i));
+%     datavx(i,:) = take_derivative(data_x(:,i), windowsize);
+%     datavy(i,:) = take_derivative(data_y(:,i), windowsize);
+    datavz(i,:) = take_derivative(data_z(:,i), windowsize);
 end
 %%
 % datav = sqrt(datavx.^2 + datavy.^2 + datavz.^2);
@@ -48,11 +46,11 @@ datav = datavz;
 % datav = sqrt(datavx.^2 + datavy.^2);
 
 %% do the correlation thing
-norder = 7;
+norder = 9;
 disp('loading neighbors...')
 % neigh = extract_neighborhood_masterlayer(data_set, cell_inds, norder);
-load neighbor_info_090309_ml_7
-% load neighbor_info_histone032_7
+% load neighbor_info_090309_ml_9
+load neighbor_info_histone032_9
 disp('done.');
 
 %% averaging over neighbors FOR EACH cell, THEN averaging over cells
@@ -169,10 +167,10 @@ mastertime = 1;
 dropping_xcornolag = NaN(norder+1,tlength-1);
 
 dropping_xcornolag(1,:)=1;
-
+samplesize = zeros(norder+1,1);
 
 for t = 1:tlength-1
-    disp(t);
+    fprintf('time %u of %u\n', t, tlength-1);
     for j = 1:norder
 
         a=[];b=[];
@@ -205,7 +203,7 @@ end
 
 dxc_avg = dropping_xcornolag;
 
-%%
+
 
 % figure; plot(dropping_xcornolag.');
 % legend('0','1','2','3','4','5');

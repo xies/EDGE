@@ -10,7 +10,7 @@ end
 neigh = cell(length(cell_inds), embryo4d.t, max_order);
 
 for i = 1:length(cell_inds)
-    i
+    fprintf('cell %u of %u\n',i, length(cell_inds));
     j = 1;
     for time = embryo4d.startTime:sign(embryo4d.endTime-embryo4d.startTime):embryo4d.endTime
         for l = 1:max_order

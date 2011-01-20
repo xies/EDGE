@@ -30,21 +30,21 @@ title('nneighbor diff vs. time, apical');
 %%
 d = diff(data_middle);
 d = d(5:end-10,:);  % cut off ends, very liberally...
-for i = 1:size(d,2)  % cells
-    last = 0;
-    for j = 1:size(d,1)  % times
-        if abs(d(j,i)) == 1  % if change
-           if last
-               d(j,i)=0;
-           elseif abs(d(min(j+1,size(d,1)),i)) == 1  % the next one
-               d(j,i)=0;
-           end
-           last = 1;
-        else
-            last = 0;
-        end
-    end
-end
+% for i = 1:size(d,2)  % cells
+%     last = 0;
+%     for j = 1:size(d,1)  % times
+%         if abs(d(j,i)) == 1  % if change
+%            if last
+%                d(j,i)=0;
+%            elseif abs(d(min(j+1,size(d,1)),i)) == 1  % the next one
+%                d(j,i)=0;
+%            end
+%            last = 1;
+%         else
+%             last = 0;
+%         end
+%     end
+% end
 
 plot_neighbor_image(d, 17);
 title('nneighbor diff vs. time, middle');

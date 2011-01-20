@@ -1,3 +1,3 @@
-function out = take_derivative(in)
+function out = take_derivative(in, windowsize)
 
-out = diff(smooth(in, 3)).';
+out = diff(smooth(in, windowsize)).';
