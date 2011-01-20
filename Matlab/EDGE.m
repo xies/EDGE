@@ -805,7 +805,7 @@ function button_make_movie_Callback(hObject, eventdata, handles)
     
     % shoud we make a movie (or a picture?)
     movie_on = ~(handles.fixed || get(handles.radiobutton_3d_temporal, 'Value'));
-    
+         
     filename = fullfile(dirname, strcat('Cell', num2str(handles.activeCell), ...
         '_Created_', date_and_time_saving));
     
