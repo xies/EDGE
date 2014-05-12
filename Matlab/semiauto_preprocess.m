@@ -1,11 +1,11 @@
-function [clean cg] = semiauto_preprocess(handles, T, Z)
+function [clean,cg] = semiauto_preprocess(handles, T, Z)
 
 % if T == 51 && Z == 3
 %     [clean cg] = semiauto_preprocess_active_contours(handles, T, Z);
 %     return;
 % end
 
-t = zeros(1,6);
+t = zeros(1,6); % timer reports
 
 % preprocess the given image in the semiautomatic image processing
 tic
@@ -28,7 +28,7 @@ hp = handles.info.bandpass_high / handles.info.microns_per_pixel; % change to pi
 th = handles.info.preprocessing_threshold;
 
 tic
-cellsi = get_membs_v3(cells, lp, hp, th);
+cellsi = get_membs_v3(cells, lp, hp, th); % raw processed cell borders
 t(2)=toc;
 
 % change the minimum cell size from microns^2 to pixels^2
@@ -36,13 +36,13 @@ minimum_cell_size = handles.info.minimum_cell_size / (handles.info.microns_per_p
 
 % tic
 % eliminate bad cells  
-[dirty clean] = eliminate_bad_cells(...
+[dirty,clean] = eliminate_bad_cells(...
     cellsi, minimum_cell_size, handles.info.number_of_erosions);
 % t(3)=toc;
 
 % get the cell properties (centroids, vertices, etc.)
 tic
-[centroid_list regions] = find_centroids(clean);
+[centroid_list,regions] = find_centroids(clean);
 t(4)=toc;
 tic
 [vertex_list] = find_vertices(dirty);
