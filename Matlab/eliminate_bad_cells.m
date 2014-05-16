@@ -3,7 +3,7 @@
 % remove cells with area smaller than min_cell_sz, which is given in
 % pixel^2
 
-function [dirty clean] = eliminate_bad_cells(...
+function [dirty,clean] = eliminate_bad_cells(...
     input, min_cell_sz, num_erosions)
 
 % remove junk on the outside
@@ -13,9 +13,9 @@ if num_erosions > 0
     end
     % the below lines should not be here when the rest of the function
     % is uncommented, because it gets done at the bottom anyway!
-    dirty = bwmorph(input, 'skel', Inf);
-    clean = bwmorph(dirty, 'shrink', Inf);
-    clean = bwmorph(clean,  'clean',  Inf);
+%     dirty = bwmorph(input, 'skel', Inf);
+%     clean = bwmorph(dirty, 'shrink', Inf);
+%     clean = bwmorph(clean,  'clean',  Inf);
 else
     dirty = input;
     clean = input;
@@ -29,40 +29,33 @@ end
 % to going through the CellGraph constructor with so many cells before
 % finally removing the small ones at the last step.
 
-% regions = bwlabel(logical(1-input), 4);
-% 
-% % now it will not ignore any of the regions,
-% % since it sometimes confuses the borders as the background
-% regions = regions + 1;
-% 
-% tic
-% S = regionprops(regions, 'Area', 'Solidity');
-% toc
-% tic
-% cellAreas1 = [S.Area];
-% areas = [cellAreas1; 1:length(cellAreas1)]';
-% 
-% 
-% sol1 = [S.Solidity];
-% solidity = [sol1; 1:length(sol1)]';
-% toc
-% tic
-% [~, bordindex] = min(solidity(:,1));
-% toc
-% 
-% badcells = areas(areas(:,1) < min_cell_sz, 2);
-% badcells = badcells(:);
-% 
-% tic
-% % make those into BORDERS and then skeletonize
-% for i = 1:length(badcells)
-%     regions(regions == badcells(i)) = bordindex;
-% end
-% toc
-% 
-% tic
-% borders = regions == bordindex;
-% 
-% dirty = bwmorph(borders, 'skel', Inf);
-% clean = bwmorph(dirty, 'shrink', Inf);
-% clean = bwmorph(clean,  'clean',  Inf);
+regions = bwlabel(logical(1-input), 4);
+
+% now it will not ignore any of the regions,
+% since it sometimes confuses the borders as the background
+regions = regions + 1;
+
+tic
+S = regionprops(regions, 'Area', 'Solidity');
+toc
+tic
+cellAreas1 = [S.Area];
+areas = [cellAreas1; 1:length(cellAreas1)]';
+
+
+sol1 = [S.Solidity];
+solidity = [sol1; 1:length(sol1)]';
+toc
+tic
+[~, bordindex] = min(solidity(:,1));
+toc
+
+badcells = areas(areas(:,1) < min_cell_sz, 2);
+badcells = badcells(:);
+
+tic
+% original = regions;
+% make those into BORDERS and then skeletonize
+
+[dirty,clean] = eliminate_region(regions,badcells(:),bordindex);
+toc

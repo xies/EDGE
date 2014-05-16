@@ -126,7 +126,7 @@ public class CellGraph implements java.io.Serializable {
 		// first, find which Cells each tempVertex touches
 		for (int i = tempVerts.size() - 1; i >= 0; i--) {
 			TempVertex v = tempVerts.elementAt(i);
-				    
+			
 			// look at the 8 pixels around it
 			for (int Y = (int) v.vertexCoords()[0] - 1; Y <= (int) v.vertexCoords()[0] + 1; Y++) {
 				for (int X = (int) v.vertexCoords()[1] - 1; X <= (int) v.vertexCoords()[1] + 1; X++) { 
@@ -179,7 +179,7 @@ public class CellGraph implements java.io.Serializable {
 			// bwmorph(img, 'branchpoints') method to find the vertices. in that 
 			// case they are already merged. and then we assume they don't want further merging.
 			
-		
+			
 			// calculate a distance matrix between the vertices
 			// in preparation for merging the vertices together
 			boolean[][] distMatrix = new boolean[tempVerts.size()][tempVerts.size()];
@@ -188,7 +188,7 @@ public class CellGraph implements java.io.Serializable {
 				for (int j = 0; j < tempVerts.size(); j++)
 					distMatrix[i][j] = Misc.distance(tempVerts.elementAt(i).vertexCoords(), tempVerts.elementAt(j).vertexCoords()) <
 						vertex_merge_dist_thresh;
-					
+			
 			// call the recursive merging function on each vertex
 			mergedVerts = new Vector<TempVertex>();
 			for (int i = 0; i < tempVerts.size(); i++) {
@@ -202,12 +202,13 @@ public class CellGraph implements java.io.Serializable {
 				// not that it's a big deal
 				// this used to be above, but actually it should be done for merged vertices,
 				// not pre-merge
+				
 				TempVertex candidateMerged = TempVertex.merge(interVerts);
 			    if (!(candidateMerged.numNeighbors() == 2 && !candidateMerged.containsNeighor(-1))) {
 			    	candidateMerged.removeNeighbor(-1);
 			    	mergedVerts.add(candidateMerged);
 			    }
-			    	
+			 
 			}
 		} else {
 			 mergedVerts = tempVerts;

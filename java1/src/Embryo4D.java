@@ -1030,6 +1030,7 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 	// in order to let it line up with cTrack
 	// this is accomplished by fitting a straight line through the centroids and using the slope to translate the
 	// cell
+	@SuppressWarnings("unused")
 	private Cell predictLocation(Cell cTrack, Cell cMatchCandidate) {
 		final int MIN_PTS = 3;
 		final int MAX_PTS = 7;

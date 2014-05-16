@@ -10,6 +10,7 @@ JAVA_MEMORY_STRING = '-Xmx512m';
 % ******************* %
 
 % get the path to this file
+mfilename('fullpath')
 [program_dir] = fileparts(mfilename('fullpath'));
 
 %% edit the java.opts file
@@ -42,7 +43,6 @@ matlab_path = fullfile(program_dir, MATLAB_NAME);
 measurements_path = fullfile(program_dir, MEASUREMENTS_NAME);
 addpath(matlab_path, measurements_path);
 savepath;
-
 
 %% message to user
 msgbox('Installation completed. You must restart Matlab before continuing.', ...

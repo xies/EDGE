@@ -509,7 +509,8 @@ function button_applysome_Callback(hObject, eventdata, handles)
             end
             
             
-
+            
+            
             set(handles.text_processing_time,  'String', num2str(time_i));
             set(handles.text_processing_layer, 'String', num2str(layer_i));
             drawnow;

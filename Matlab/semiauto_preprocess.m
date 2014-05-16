@@ -16,7 +16,7 @@ t(1)=toc;
 
 % a special clause for totally blank images (these are "fillers")
 if ~any(cells(:))
-   CellGraph(cells, [], [], T, Z, NaN, NaN);
+    CellGraph(cells, [], [], T, Z, NaN, NaN);
 end
 
 
@@ -28,25 +28,41 @@ hp = handles.info.bandpass_high / handles.info.microns_per_pixel; % change to pi
 th = handles.info.preprocessing_threshold;
 
 tic
+
 cellsi = get_membs_v3(cells, lp, hp, th); % raw processed cell borders
+
+
 t(2)=toc;
 
 % change the minimum cell size from microns^2 to pixels^2
 minimum_cell_size = handles.info.minimum_cell_size / (handles.info.microns_per_pixel)^2;
 
 % tic
-% eliminate bad cells  
+% eliminate bad cells
 [dirty,clean] = eliminate_bad_cells(...
     cellsi, minimum_cell_size, handles.info.number_of_erosions);
 % t(3)=toc;
 
-% get the cell properties (centroids, vertices, etc.)
-tic
-[centroid_list,regions] = find_centroids(clean);
-t(4)=toc;
-tic
-[vertex_list] = find_vertices(dirty);
-t(5)=toc;
+if T ~= handles.info.master_time && Z ~= handles.info.master_layer
+    % get the cell properties (centroids, vertices, etc.)
+    tic
+    [centroid_list,regions] = find_centroids(clean);
+    t(4)=toc;
+    tic
+    [vertex_list] = find_vertices(dirty);
+    t(5)=toc;
+else
+    
+    cg = handles.embryo.getCellGraph( ...
+        handles.info.master_time, ...
+        handles.info.master_layer);
+    centroid_list = cg.centroidCoords;
+    [clean,regions] = correct_centroids(cellsi,-cells,centroid_list);
+    vertex_list = find_vertices(cellsi);
+    
+%     [centroid_list,regions] = find_centroids(clean);
+    
+end
 
 % the minimum distance between vertices before they get merged into one
 % VERTEX_MERGE_DIST_THRESH = 3.0; %pixel
@@ -56,7 +72,7 @@ VERTEX_MERGE_DIST_THRESH = handles.info.refine_min_edge_length / handles.info.mi
 % edge -- in both cases, one cannot make edges smaller than this
 % also, note that the VERTEX_MERGE_DIST_THRESH may not end up being exactly
 % the same as a minimum edge length, but it's close enough
- 
+
 %yes, using it for both is bad - it should be higher for the error
 %correction than here. same thing as below with the angle thresh
 % i know hardcoding is bad, but ... oh well ;)

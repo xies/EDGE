@@ -43,3 +43,5 @@ cellsi = bwmorph(cellsi,'clean');   %gets rid of single dots
 cellsi(mask==0)=0;
 % label cells by integers; every cell gets addressed
 cellsi = logical(cellsi);
+
+% correct_centroids(
