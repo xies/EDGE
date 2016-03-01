@@ -37,7 +37,7 @@ output_filename = [filename ...
 MSC = parseNDskl(output_filename);
 
 mask = MSC2mask(MSC, X,Y);
-figure,imshow(imoverlay(im,mask,[1 0 0]))
+% figure,imshow(imoverlay(im,mask,[1 0 0]))
 % keyboard
 % save([file_dir, '/MSC.c_' num2str(cutoff) '.CUD.NDskl.S003.a.NDskl.mat'],'MSC');
 
