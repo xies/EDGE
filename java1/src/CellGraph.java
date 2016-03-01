@@ -1,3 +1,30 @@
+/****************************************************************************************
+Copyright (c) 2012, Michael Gelbart (michael.gelbart@gmail.com)
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+- Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+****************************************************************************************/
+
+
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -1639,8 +1666,7 @@ public class CellGraph implements java.io.Serializable {
 	
 	// takes time Xs * Ys * nCells * C  where C is the point-in-polygon size and is a constant
 	public double[][] drawRegions() {
-		// first, draw the Cell regions. Then, draw the borders. That way the borders
-		// can't have any holes in them
+		// first, draw the Cell regions. 
 		double[][] image = new double[Ys][Xs];
 		
 		for (Cell c : cells()) {
@@ -1654,15 +1680,16 @@ public class CellGraph implements java.io.Serializable {
 						image[y][x] = c.index();
 		}
 		
-		// draw the borders
-		double borders[][] = draw();
-		
-		// set background to 0 and borders to -1, so that
-		// cells can start from 1
-		for (int y = 0; y < Ys; y++)
-			for (int x = 0; x < Xs; x++)
-				if (borders[y][x] > 0) 
-				image[y][x] = -1;
+//		// Then, draw the borders. That way the borders
+//		// can't have any holes in them	
+//		double borders[][] = draw();
+//		
+//		// set background to 0 and borders to -1, so that
+//		// cells can start from 1
+//		for (int y = 0; y < Ys; y++)
+//			for (int x = 0; x < Xs; x++)
+//				if (borders[y][x] > 0) 
+//					image[y][x] = -1;
 		
 		return image;
 	}

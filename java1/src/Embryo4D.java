@@ -1,3 +1,30 @@
+/****************************************************************************************
+Copyright (c) 2012, Michael Gelbart (michael.gelbart@gmail.com)
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+- Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+****************************************************************************************/
+
+
 import java.util.Vector;
 
 /**
@@ -657,6 +684,8 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 */
 	
 	// returns null if nothing is found
+	// if matchCandidates is true then it will check that the two cells actually match each other
+	// if it is false then it will just look for centroid-matches
 	private Cell backtrackCell(Cell cTrack, int t, int z, boolean matchCandidates) {
 		int reft = translateT(masterTime);
 		int refz = translateZ(masterLayer);
@@ -1196,14 +1225,25 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 					pair[0] = cThis;
 					pair[1] = cNeigh;
 					candidates.add(pair);
+					
+					double SUBTRACTION_MULTIPLIER = 0.7;
+					double subtractionTerm = 0;
+					if (cNeigh.isActive()) {
+						Cell cNeighBack = backtrackCell(cNeigh, translateT(T), translateZ(Z), false); // false so it doesn't need to check if they really match
+						if (cNeighBack != null) {
+							subtractionTerm = overlapScore(cNeigh, cNeighBack) * SUBTRACTION_MULTIPLIER;
+						}
+					}
+					
 //					double overlap = cg.getCell(newInd).overlapArea(backtrackCell(cg.getCell(newInd), translateT(t), translateZ(z)));
 //					overlap /= cg.getCell(newInd).area();
 					candidatesOverlap.add(
 							overlapScore(cg.getCell(newInd), backtrackCell(cg.getCell(newInd), translateT(T), translateZ(Z), true))
-//							-(cNeigh.isActive()?overlapScore(cNeigh, backtrackCell(cNeigh, translateT(T), translateZ(Z), true)):0)
+							-subtractionTerm
 					);
 					// Jan 2011- added this subtraction: how much does it IMPROVE the overlap score
 					// from what that neighbor cell had before
+					// June 2012 - added multiplier of 1/2 to this term -- may need adjusting...
 					
 					// success
 //					break; 
@@ -1331,7 +1371,9 @@ no, actually, it will be FINE with any layers to look back. that is an amazing r
 //					System.out.println(cg.getCell(newIndex1));
 //					System.out.println(cg.getCell(newIndex2));
 										
-					if (CellGraph.isActive(newIndex1) && CellGraph.isActive(newIndex2)) {
+					if (CellGraph.isActive(newIndex1) && CellGraph.isActive(newIndex2) &&
+							backtrackCell(cg.getCell(newIndex1), translateT(T), translateZ(Z), true) != null &&
+							backtrackCell(cg.getCell(newIndex2), translateT(T), translateZ(Z), true) != null) {
 						Vertex[] newPair = new Vertex[2];
 						newPair[0] = v;
 						newPair[1] = w;
