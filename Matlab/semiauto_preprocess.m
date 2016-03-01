@@ -28,7 +28,7 @@ hp = handles.info.bandpass_high / handles.info.microns_per_pixel; % change to pi
 th = handles.info.preprocessing_threshold;
 
 tic
-cellsi = get_membs_v3(cells, lp, hp, th);
+cellsi = get_membs_disperse(handles.info.image_file(T, Z, handles.src.raw), th, handles.info.Xs, handles.info.Ys);
 t(2)=toc;
 
 % change the minimum cell size from microns^2 to pixels^2
