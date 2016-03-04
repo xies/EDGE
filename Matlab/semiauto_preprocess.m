@@ -25,11 +25,20 @@ cells = double(cells);
 % process into thin borders
 lp = handles.info.bandpass_low / handles.info.microns_per_pixel;  % change to pixels
 hp = handles.info.bandpass_high / handles.info.microns_per_pixel; % change to pixels
-th = handles.info.preprocessing_threshold;
+th = handles.info.bandpass_threshold;
 
 tic
-cellsi = get_membs_disperse(handles.info.image_file(T, Z, handles.src.raw), th, handles.info.Xs, handles.info.Ys);
+switch lower(handles.info.preprocess_type)
+    case 'bandpass'
+        cellsi = get_membs_v3(cells,lp,hp,th);
+    case 'disperse'
+        cellsi = get_membs_disperse( ...
+            handles.info.image_file(T, Z, handles.src.raw), th, ...
+            handles.info.Xs, handles.info.Ys);
+end
 t(2)=toc;
+display(['Preprocessing time = ' num2str(t(2))]);
+
 
 % change the minimum cell size from microns^2 to pixels^2
 minimum_cell_size = handles.info.minimum_cell_size / (handles.info.microns_per_pixel)^2;

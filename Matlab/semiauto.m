@@ -26,7 +26,7 @@ function varargout = semiauto(varargin)
 
     % Edit the above text to modify the response to help semiauto
 
-    % Last Modified by GUIDE v2.5 15-Jan-2011 21:13:49
+    % Last Modified by GUIDE v2.5 04-Mar-2016 16:26:00
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -127,6 +127,7 @@ function semiauto_OpeningFcn(hObject, eventdata, handles, varargin) %#ok<*INUSL>
 
     set(handles.panel_vec_cell_vert,'SelectionChangeFcn', @vec_select_cv_change);
     set(handles.panel_vec_manual_auto,'SelectionChangeFcn', @vec_select_auto_change);
+    set(handles.panel_preprocessing_type,'SelectionChangeFcn',@select_preprocess_change);
     
     % the below lines mess up proportional resizing
 %     set(handles.axes1, 'Units', 'pixels');
@@ -149,7 +150,7 @@ function closeGUI(hObject, eventdata) %#ok<*INUSD>
    
     % for debugging purposes, make sure you're in the current directory at
     % this time
-    cd(fullfile(handles.program_dir, 'Matlab'));
+%     cd(fullfile(handles.program_dir, 'Matlab'));
     
     if isfield(handles, 'data_set') % if you've never imported anything, don't do a check
         try  % want to let it close even if there's an error!!
@@ -941,7 +942,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function info_text_preprocessing_threshold_Callback(hObject, eventdata, handles)
+function info_text_bandpass_threshold_Callback(hObject, eventdata, handles)
     [ST, I] = dbstack;
     name = ST.name;
     % get rid of "info_text_" at the beginning and 
@@ -954,7 +955,7 @@ function info_text_preprocessing_threshold_Callback(hObject, eventdata, handles)
     handles = semiauto_info_text_callback(handles, name);
     guidata(hObject, handles);
 
-function info_text_preprocessing_threshold_CreateFcn(hObject, eventdata, handles)
+function info_text_bandpass_threshold_CreateFcn(hObject, eventdata, handles)
 
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
@@ -2897,7 +2898,65 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% function DUMMY_Callback(hObject, eventdata, handles)
-% does nothing, just allows us to take focus away from things
-% by giving focus to DUMMY
 
+function select_preprocess_change(hObject, eventdata)
+    handles = guidata(hObject);
+    
+    if get(handles.radiobutton_process_bandpass,'Value')
+        handles.preprocess_type = 'bandpass';
+    else
+        handles.preprocess_type = 'disperse';
+    end
+    
+    semiauto_set_process(handles);
+    guidata(hObject, handles);
+
+
+    
+function info_text_disperse_threshold_Callback(hObject, eventdata, handles)
+% hObject    handle to info_text_disperse_threshold (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of info_text_disperse_threshold as text
+%        str2double(get(hObject,'String')) returns contents of info_text_disperse_threshold as a double
+
+th = str2double( get(hObject,'String') );
+if isnan(th)
+    set(hObject,'Value', num2str(handles.info_text_disperse_threshold.Value));
+else
+    set( handles.info_text_disperse_threshold,'Value', th);
+    handles.info.disperse_threshold = th;
+end
+guidata(hObject,handles);
+
+
+
+% --- Executes during object creation, after setting all properties.
+function info_text_disperse_threshold_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to info_text_disperse_threshold (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --------------------------------------------------------------------
+function panel_preprocessing_type_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to panel_preprocessing_type (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes when selected object is changed in panel_preprocessing_type.
+function panel_preprocessing_type_SelectionChangeFcn(hObject, eventdata, handles)
+% hObject    handle to the selected object in panel_preprocessing_type 
+% eventdata  structure with the following fields (see UIBUTTONGROUP)
+%	EventName: string 'SelectionChanged' (read only)
+%	OldValue: handle of the previously selected object or empty if none was selected
+%	NewValue: handle of the currently selected object
+% handles    structure with handles and user data (see GUIDATA)
