@@ -7,8 +7,8 @@ if get(handles.radiobutton_process_bandpass, 'Value')
     set(handles.text_bandpass_low,'Visible','on');
     set(handles.info_text_bandpass_high,'Visible','on');
     set(handles.info_text_bandpass_low,'Visible','on');
-    set(handles.info_text_bandpass_threshold,'Visible','on');
-    set(handles.text_bandpass_thresh,'Visible','on');
+    set(handles.info_text_preprocessing_threshold,'Visible','on');
+    set(handles.text_preprocess_thresh,'Visible','on');
     
     set(handles.info_text_disperse_threshold,'Visible','off');
     set(handles.text_disperse_threshold,'Visible','off');
@@ -19,8 +19,8 @@ else
     set(handles.text_bandpass_low,'Visible','off');
     set(handles.info_text_bandpass_high,'Visible','off');
     set(handles.info_text_bandpass_low,'Visible','off');
-    set(handles.info_text_bandpass_threshold,'Visible','off');
-    set(handles.text_bandpass_thresh,'Visible','off');
+    set(handles.info_text_preprocessing_threshold,'Visible','off');
+    set(handles.text_preprocess_thresh,'Visible','off');
     
     set(handles.info_text_disperse_threshold,'Visible','on');
     set(handles.text_disperse_threshold,'Visible','on');

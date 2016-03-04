@@ -26,7 +26,7 @@ function varargout = semiauto(varargin)
 
     % Edit the above text to modify the response to help semiauto
 
-    % Last Modified by GUIDE v2.5 04-Mar-2016 16:26:00
+    % Last Modified by GUIDE v2.5 04-Mar-2016 17:04:54
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -89,6 +89,7 @@ function semiauto_OpeningFcn(hObject, eventdata, handles, varargin) %#ok<*INUSL>
             % make sure we're in the right directory
             cd(main_dir);
         else
+            % dataset passed from EDGE
             default_data_set_number = 1;
             default_data_set = datanames{default_data_set_number};  % just take the first one
             set(handles.dropdown_datasets, 'Value', default_data_set_number);
@@ -105,7 +106,7 @@ function semiauto_OpeningFcn(hObject, eventdata, handles, varargin) %#ok<*INUSL>
             set(handles.z_slider, 'Value', passinfo.z_slider);
             z_slider_Callback(hObject, [], handles);
         end
-    else   % if it's the first data set
+    else   % if there are no previously loaded datasets
         % no point putting a msgbox here because the gui loads on
         % top of it and you can't see it anyway
         handles = handles_set_program_dir(handles);
@@ -125,6 +126,7 @@ function semiauto_OpeningFcn(hObject, eventdata, handles, varargin) %#ok<*INUSL>
     set(handles.figure1,'WindowButtonUpFcn',@mouseFunction);
 %     set(handles.axes1, 'ButtonDownFcn', @mouseFunction);
 
+    handles.preprocess = 'bandpass';
     set(handles.panel_vec_cell_vert,'SelectionChangeFcn', @vec_select_cv_change);
     set(handles.panel_vec_manual_auto,'SelectionChangeFcn', @vec_select_auto_change);
     set(handles.panel_preprocessing_type,'SelectionChangeFcn',@select_preprocess_change);
@@ -942,7 +944,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function info_text_bandpass_threshold_Callback(hObject, eventdata, handles)
+function info_text_preprocessing_threshold_Callback(hObject, eventdata, handles)
     [ST, I] = dbstack;
     name = ST.name;
     % get rid of "info_text_" at the beginning and 
@@ -955,7 +957,7 @@ function info_text_bandpass_threshold_Callback(hObject, eventdata, handles)
     handles = semiauto_info_text_callback(handles, name);
     guidata(hObject, handles);
 
-function info_text_bandpass_threshold_CreateFcn(hObject, eventdata, handles)
+function info_text_preprocessing_threshold_CreateFcn(hObject, eventdata, handles)
 
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
@@ -2923,7 +2925,7 @@ function info_text_disperse_threshold_Callback(hObject, eventdata, handles)
 
 th = str2double( get(hObject,'String') );
 if isnan(th)
-    set(hObject,'Value', num2str(handles.info_text_disperse_threshold.Value));
+    set( hObject,'String', handles.info.disperse_threshold);
 else
     set( handles.info_text_disperse_threshold,'Value', th);
     handles.info.disperse_threshold = th;
@@ -2945,18 +2947,3 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --------------------------------------------------------------------
-function panel_preprocessing_type_ButtonDownFcn(hObject, eventdata, handles)
-% hObject    handle to panel_preprocessing_type (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes when selected object is changed in panel_preprocessing_type.
-function panel_preprocessing_type_SelectionChangeFcn(hObject, eventdata, handles)
-% hObject    handle to the selected object in panel_preprocessing_type 
-% eventdata  structure with the following fields (see UIBUTTONGROUP)
-%	EventName: string 'SelectionChanged' (read only)
-%	OldValue: handle of the previously selected object or empty if none was selected
-%	NewValue: handle of the currently selected object
-% handles    structure with handles and user data (see GUIDATA)

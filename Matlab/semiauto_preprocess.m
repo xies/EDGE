@@ -25,10 +25,10 @@ cells = double(cells);
 % process into thin borders
 lp = handles.info.bandpass_low / handles.info.microns_per_pixel;  % change to pixels
 hp = handles.info.bandpass_high / handles.info.microns_per_pixel; % change to pixels
-th = handles.info.bandpass_threshold;
+th = handles.info.preprocessing_threshold;
 
 tic
-switch lower(handles.info.preprocess_type)
+switch lower(handles.preprocess_type)
     case 'bandpass'
         cellsi = get_membs_v3(cells,lp,hp,th);
     case 'disperse'
